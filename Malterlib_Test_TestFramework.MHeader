@@ -1,0 +1,259 @@
+// Copyright © 2015 Hansoft AB 
+// Distributed under the MIT license, see license text in LICENSE.Malterlib
+
+Property
+{
+	MalterlibTestMain "@('Tools/Tester/Source/Main.cpp'->MakeAbsolute())"
+	
+	MalterlibEnableInternalTests false // User: Enable internal Malterlib tests
+	{
+		!!MalterlibEnableInternalTests ""
+	}
+	MalterlibSeparateTestWorkspaces false // User: Enable generation of separate workspaces for all tests, either true for all tests, or list the test you want to be separate
+	{
+		!!MalterlibSeparateTestWorkspaces ""
+	}
+	MalterlibInternalTestHelperTarget true
+	{
+		!!"Target:Target.Name" "~*_Test_Malterlib_Helper_*"
+	}
+	MalterlibInternalTestTarget true
+	{
+		&
+		{
+			!MalterlibInternalTestHelperTarget true
+			"Target:Target.Name" "~*_Test_Malterlib_*"
+		}
+	}
+}
+
+Property
+{
+	MalterlibTest true
+	{
+		&
+		{
+			MalterlibTest ""
+			|
+			{
+				MalterlibHelperTest true
+				MalterlibMainTest true
+			}
+		}
+	}
+}
+
+
+%Target "@(MalterlibTests)"
+{
+	Property
+	{
+		MalterlibPostCopyProject "Tests"
+		ProductName "Test @(Target:this.Identity->Replace('_',' '))"
+		MalterlibTest true
+		{
+			!!MalterlibTest ""
+		}
+		MalterlibHelperTest true
+		{
+			&
+			{
+				MalterlibHelperTest ""
+				MalterlibInternalTestHelperTarget true
+			}
+		}
+		MalterlibMainTest true
+		{
+			&
+			{
+				MalterlibMainTest ""
+				!MalterlibHelperTest true
+			}
+		}
+	}
+	Property
+	{
+		!!MalterlibInternalTestTarget true
+		!!MalterlibInternalTestHelperTarget true
+		
+		MalterlibExeIcon "@(Builtin.BasePath)/Malterlib/Core/Resources/MSVC/icon1.ico"
+		{
+			!!PlatformFamily Windows			
+		}
+		MalterlibMemoryManager_Debug_EnableMemoryLeaks true
+		MalterlibNoShortcuts true
+	}
+	Target
+	{
+		Type "ConsoleExecutable"
+		BaseName "Test_@(Target:this.Identity)"
+		ExtraGroups "@(MalterlibTestExtraGroups_@(Target:this.Identity));@(MalterlibTestExtraGroups);@(Target.ExtraGroups)"
+		DebuggerCommandArguments "--Tests"
+		DebuggerCommandArguments "--Tests --TestGroups Performance"
+		{
+			!!Tests "Perf Tests"
+		}
+		Group "Tests"
+		{
+			!!MalterlibMainTest true
+		}
+		Group "Helpers"
+		{
+			!MalterlibMainTest true
+		}
+	}
+	Compile
+	{
+		!!CompileDialect "C"
+		PrefixHeader "@('Tools/Tester/Source/PCH.h'->MakeAbsolute())"
+	}
+	%Group Source
+	{
+		%File "@(MalterlibTestMain)"
+		{
+			!MalterlibTestOwnMain true
+		}
+		%File "Tools/Tester/Source/PCH.h"
+	}
+	%Group Tests
+	{
+		%File "@(MalterlibTestFiles_@(Target:this.Identity));@(MalterlibTestFiles)"
+	}
+	%Dependency "@(MalterlibTestDependencies_@(Target:this.Identity));@(MalterlibTestDependencies)"
+	%Dependency Lib_Malterlib
+}
+
+Property
+{
+	MalterlibTestAutoAddTarget "@(MalterlibTestAutoAdd_@(Target:this.Identity))"
+	MalterlibTestAutoAddTarget true
+	{
+		!!MalterlibTestAutoAddTarget ""
+	}
+	MalterlibTestAutoAddWorkspace "@(MalterlibTestAutoAdd_@(Workspace:this.Identity))"
+	MalterlibTestAutoAddWorkspace true
+	{
+		!!MalterlibTestAutoAddWorkspace ""
+	}
+	
+}
+
+%Target "Exe_RunAllTests"
+{
+	Property
+	{
+		MalterlibPostCopyProject "Tests"
+	}
+	Property
+	{
+		MalterlibLinkWithOpenSSL true
+	}
+	
+	Target
+	{
+		BaseName RunAllTests
+	}
+	%Group "AllTests"
+	{
+		%GenerateFile "AllTests"
+		{
+			Property
+			{
+				Name "@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp"
+				AllTestsTemplate "		\"@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
+				{
+					&
+					{
+						!Explodee ""
+						"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+					}
+				}
+				
+				AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
+
+				Contents	"ch8 const *g_AllTests[] = \n"\
+							"	{\n"\
+							"@(AllTests)"\
+							"	}\n"\
+							";\n"\
+							"\n"\
+							"mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n"\
+							"\n"
+				
+				Group "@(Platform) @(Architecture) @(Configuration)"
+			}
+		}
+	}
+	%Group Source
+	{
+		%File "Tools/RunAllTests/Source/*"
+	}
+	
+	Property
+	{
+		AllTestsTemplate "@(Builtin.Function->GetProperty('Target', 'Name', '@(Explodee)'));"
+		{
+			&
+			{
+				!Explodee ""
+				true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+			}
+		}
+		
+		AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
+	}
+	%Dependency "Lib_Malterlib"
+
+	%Dependency "@(AllTests)"
+}
+
+%Workspace "Tests"
+{
+	Property.EnableTestConfigs true
+	Property.OnlyTestConfigs true
+	{
+		!!OnlyTestConfigs ""
+	}
+	
+	%Group "Tests"
+	{
+		%Target "@(MalterlibTests)"
+		{
+			!!MalterlibTestAutoAddTarget true
+		}
+	}
+	
+	%Target Exe_RunAllTests
+}
+
+%Workspace "@(MalterlibTests)"
+{
+	&
+	{
+		|
+		{
+			MalterlibSeparateTestWorkspaces true
+			MalterlibSeparateTestWorkspaces "~*@(Workspace:this.Identity)*"
+		}
+		MalterlibTestAutoAddWorkspace true
+	}
+	
+	Property.EnableTestConfigs true
+	Property.OnlyTestConfigs true
+	{
+		!!OnlyTestConfigs ""
+	}
+	
+	Workspace
+	{
+		Name "Test_@(Workspace:this.Identity)"
+		//ExtraGroups "@(MalterlibTestWorkspaceExtraGroups_@(Target:this.Identity));@(Workspace.ExtraGroups)"
+	}
+
+	%Group Tests
+	{
+		%Target "@(Workspace:this.Identity)"
+	}
+}
+
+

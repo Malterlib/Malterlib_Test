@@ -1,0 +1,105 @@
+// Copyright © 2015 Hansoft AB 
+// Distributed under the MIT license, see license text in LICENSE.Malterlib
+
+BuildTarget "Tests - Malterlib"
+{
+	StaticOptions
+	{
+		MalterlibBuildServerTest true
+		MalterlibDeploySymbols false
+		MalterlibSigning false
+	}
+	DynamicOptions
+	{
+	}
+
+	PreStage "Pre Build Clean"
+	{
+		Command "../../Shared/BuildScripts/Prebuild.sh"
+		{
+			Platform Windows
+			Platform ZDriveDeploy
+			Platform OSX
+			Platform Test_Windows
+			Platform Test_OSX10.7
+			Platform Test_Linux2.6
+			Params "Malterlib Malterlib"
+		}
+	}
+	
+	Stages Build
+	{
+		Stage Build
+		{
+			Command "../../Shared/BuildScripts/BuildWorkspace.sh"
+			{
+				Platform Windows
+				Params "Malterlib Windows x86 \"Release Testing (Tests)\""
+			}
+			Command "../../Shared/BuildScripts/BuildWorkspace.sh"
+			{
+				Platform Windows
+				Params "Malterlib Windows x64 \"Release Testing (Tests)\""
+			}
+			Command "../../Shared/BuildScripts/BuildWorkspace.sh"
+			{
+				Platform OSX
+				Params "Malterlib OSX10.7 x64 \"Release Testing (Tests)\""
+			}
+			Command "../../Shared/BuildScripts/BuildWorkspace.sh"
+			{
+				Platform OSX
+				Params "Malterlib Linux2.6 x64 \"Release Testing (Tests)\""
+			}
+		}
+		Stage "Deploy Files"
+		{
+			Command "../../Shared/BuildScripts/DeployFiles.sh"
+			{
+				Platform ZDriveDeploy
+				Params "Test/* Tests/Malterlib"
+			}
+		}
+		Stage "Run tests"
+		{
+			Command "../../Shared/BuildScripts/RunTests.sh"
+			{
+				Platform Test_Windows
+				AllSlaves 1
+				NoSandbox 1
+				Params "Malterlib Windows x86 ReleaseTestingTests"
+			}
+			Command "../../Shared/BuildScripts/RunTests.sh"
+			{
+				Platform Test_Windows
+				AllSlaves 1
+				NoSandbox 1
+				Params "Malterlib Windows x64 ReleaseTestingTests"
+			}
+			Command "../../Shared/BuildScripts/RunTests.sh"
+			{
+				Platform Test_OSX10.7
+				AllSlaves 1
+				NoSandbox 1
+				Params "Malterlib OSX10.7 x64 ReleaseTestingTests"
+			}
+			Command "../../Shared/BuildScripts/RunTests.sh"
+			{
+				Platform Test_Linux2.6
+				AllSlaves 1
+				NoSandbox 1
+				Params "Malterlib Linux2.6 x64 ReleaseTestingTests"
+			}
+		}
+	}
+	
+	PostStage "Post Build Clean"
+	{
+		Command "../../Shared/BuildScripts/Postbuild.sh"
+		{
+			Platform Windows
+			Platform OSX
+			Params "Malterlib"
+		}
+	}
+}
