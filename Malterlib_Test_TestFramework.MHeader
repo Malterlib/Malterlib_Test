@@ -106,6 +106,10 @@ Property
 	{
 		!!CompileDialect "C"
 		PrefixHeader "@('Tools/Tester/Source/PCH.h'->MakeAbsolute())"
+		PreprocessorDefines "DMalterlibEnableThirdPartyComparisonTests;@(PreprocessorDefines)"
+		{
+			!!MalterlibEnableThirdPartyComparisonTests true
+		}
 	}
 	%Group Source
 	{
