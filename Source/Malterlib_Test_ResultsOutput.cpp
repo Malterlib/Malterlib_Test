@@ -353,15 +353,15 @@ namespace NMib
 
 					NStr::CStr BaseLine;
 					if (pBaseLine && (&Result != pBaseLine))
-						BaseLine = NStr::CStr::CFormat("{fe2,fn2}") << (pBaseLine->m_Cycles.m_Average / Result.m_Cycles.m_Average) * 100.0;
+						BaseLine = NStr::CStr::CFormat("{fe2,fn2}") << (pBaseLine->m_Cycles.m_Median / Result.m_Cycles.m_Median) * 100.0;
 					if (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result)
 					{
 						fl_ReportRow0
 						(
 							Name
 							, NStr::CStr::CFormat("{}") << Result.m_nIterations
-							, NStr::CStr::CFormat("{fn0}") << fp64(1.0)/Result.m_Time.m_Average
-							, NStr::CStr::CFormat("{fn0}") << fp64(Result.m_nContributingThreads)/Result.m_Time.m_Average
+							, NStr::CStr::CFormat("{fn0}") << fp64(1.0)/Result.m_Time.m_Median
+							, NStr::CStr::CFormat("{fn0}") << fp64(Result.m_nContributingThreads)/Result.m_Time.m_Median
 							, BaseLine
 							, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
 							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Median - pBaseLine->m_Cycles.m_Median)
@@ -377,8 +377,8 @@ namespace NMib
 						(
 							Name
 							, NStr::CStr::CFormat("{}") << Result.m_nIterations
-							, NStr::CStr::CFormat("{fn0}") << fp64(1.0)/Result.m_Time.m_Average
-							, NStr::CStr::CFormat("{fn0}") << fp64(Result.m_nContributingThreads)/Result.m_Time.m_Average
+							, NStr::CStr::CFormat("{fn0}") << fp64(1.0)/Result.m_Time.m_Median
+							, NStr::CStr::CFormat("{fn0}") << fp64(Result.m_nContributingThreads)/Result.m_Time.m_Median
 							, BaseLine
 							, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
 							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Median
@@ -396,8 +396,8 @@ namespace NMib
 					CTestPerformanceResult const &Result = Results.m_Results[i];
 					if (Result.m_MeasureType == ETestMeasureType_Baseline && nResults != 1)
 						continue; // Baseline is normally much smaller
-					if (Result.m_Time.m_Average < SmallestAverage)
-						SmallestAverage = Result.m_Time.m_Average;
+					if (Result.m_Time.m_Median < SmallestAverage)
+						SmallestAverage = Result.m_Time.m_Median;
 				}
 
 				NStr::CStr TimeUnit;
