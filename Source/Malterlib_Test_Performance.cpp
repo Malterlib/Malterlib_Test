@@ -344,7 +344,7 @@ namespace NMib
 						CTestPerformanceResult const &Result = m_Results.m_Results[i];
 						if (Result.m_MeasureType == ETestMeasureType_Normal)
 						{
-							Throughput = fp64(Result.m_nContributingThreads) / Result.m_Time.m_Average;
+							Throughput = fp64(Result.m_nContributingThreads) / Result.m_Time.m_Median;
 							bFound = true;
 							break;
 						}
