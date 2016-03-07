@@ -98,7 +98,8 @@ namespace
 				(void)Object;
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire()) == DMibLExpr(Object.f_Contract(200)));
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100")) == DMibLExpr(Object.f_Contract(200)));
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100 where note is 'Should be'")) == DMibLExpr(Object.f_Contract2(200)));
+
+				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100 where note: 'Should be'")) == DMibLExpr(Object.f_Contract2(200)));
 
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesAssert()) == DMibLExpr(Object.f_Assert(200)));
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesAssert("_Value < 100")) == DMibLExpr(Object.f_Assert(200)));
