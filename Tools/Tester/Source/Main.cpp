@@ -17,6 +17,8 @@ public:
 		NMib::NContainer::TCVector<NMib::NStr::CStr> CommandLine;
 		NMib::NSys::fg_Process_GetCommandLineArgs(CommandLine);
 		
+		NMib::fg_GetSys()->f_RemoveAllLoggers();
+		
 		for (auto iArg = CommandLine.f_GetIterator(); iArg; ++iArg)
 		{
 			if (*iArg == "--JustExit")
