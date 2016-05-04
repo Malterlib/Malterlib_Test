@@ -514,11 +514,13 @@ namespace NMib
 		
 #		define DMibAssert(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))(ETest_FailAndStop)
 #		define DMibAssertException(d_Expression, d_Exception) DMibTest(DMibExpr(NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))(ETest_FailAndStop)
+#		define DMibAssertExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))(ETest_FailAndStop)
 #		define DMibAssertTrue(d_Right) DMibTest(DMibExpr(d_Right))(ETest_FailAndStop)
 #		define DMibAssertFalse(d_Right) DMibTest(!DMibExpr(d_Right))(ETest_FailAndStop)
 		
 #		define DMibExpect(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))
 #		define DMibExpectException(d_Expression, d_Exception) DMibTest(DMibExpr(NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))
+#		define DMibExpectExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))
 #		define DMibExpectTrue(d_Right) DMibTest(DMibExpr(d_Right))
 #		define DMibExpectFalse(d_Right) DMibTest(!DMibExpr(d_Right))
 
@@ -526,10 +528,12 @@ namespace NMib
 #			define DTest DMibTest
 #			define DAssert DMibAssert
 #			define DAssertException DMibAssertException
+#			define DAssertExceptionType DMibAssertExceptionType
 #			define DAssertTrue DMibAssertTrue
 #			define DAssertFalse DMibAssertFalse
 #			define DExpect DMibExpect
 #			define DExpectException DMibExpectException
+#			define DExpectExceptionType DMibExpectExceptionType
 #			define DExpectTrue DMibExpectTrue
 #			define DExpectFalse DMibExpectFalse
 #			define DTestExpr DMibTestExpr
