@@ -184,7 +184,7 @@ Property
 							"mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n"\
 							"\n"
 				
-				Group "@(Platform) @(Architecture) @(Configuration)"
+				Group "@(Platform) @(Architecture) @(FullConfiguration)"
 			}
 		}
 	}
