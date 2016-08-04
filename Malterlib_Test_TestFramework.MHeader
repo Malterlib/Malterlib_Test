@@ -147,6 +147,10 @@ Property
 	Property
 	{
 		MalterlibPostCopyProject "Tests"
+		{
+			!!MalterlibPostCopyProject ""
+		}
+		
 	}
 	Property
 	{
@@ -164,7 +168,7 @@ Property
 			Property
 			{
 				Name "@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp"
-				AllTestsTemplate "		\"@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
+				AllTestsTemplate "		\"@(Builtin.Function->GetProperty('Property', 'MalterlibPostCopyDestination', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
 				{
 					&
 					{
