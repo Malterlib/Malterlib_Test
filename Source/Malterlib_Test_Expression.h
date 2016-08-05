@@ -57,8 +57,8 @@ namespace NMib
 		
 		namespace NPrivate
 		{
-			DMibPrivateTypeTraitsImplement_MemberTraitsWithName(Operator, Bool, operator bool, 0, (), , ;, CBaseMixin::*, Normal, true,,,bool);		
-			
+			DMibPrivateTypeTraitsImplement_MemberTraitsWithNameTraits(Operator, Bool, operator bool, 0, (), , bool, ;, CBaseMixin::*, Normal)
+			DMibPrivateTypeTraitsImplement_MemberTraitsWithNameHas(Operator, Bool, operator bool, 0, (), , ;, CBaseMixin::*, Normal)
 			
 			template <typename t_CType>
 			typename TCEnableIf<NTraits::TCIsConvertible<t_CType, bool>::mc_Value || TCHasOperator_Bool<typename NTraits::TCRemoveReference<t_CType>::CType>::mc_Value, bool>::CType 
@@ -756,7 +756,7 @@ namespace NMib
 				return m_Variable;
 			}
 
-			TCExpression(t_CType _Variable, const ch8 *_pDescription)
+			TCExpression(t_CType const &_Variable, const ch8 *_pDescription)
 				: m_pDescription(_pDescription)
 				, m_Variable(_Variable)
 			{
