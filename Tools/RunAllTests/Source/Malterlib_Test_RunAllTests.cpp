@@ -103,6 +103,8 @@ public:
 			NThread::CEventAutoReset DispatchEvent;
 			TCLinkedList<CProcessLaunchParams> NotLaunched;
 			mint nRunning = 0;
+			mint nDone = 0;
+			mint nTotalLaunches = 0;
 			mint nMaxRunning = NSys::fg_Thread_GetPhysicalCores();
 
 			{
@@ -131,27 +133,34 @@ public:
 					CStr Test = g_AllTests[i];
 					
 					NPtr::TCSharedPointer<bool> pFirst = fg_Construct(true);
+					NPtr::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
 					CStr LaunchPath = NFile::CFile::fs_AppendPath(NFile::CFile::fs_GetProgramDirectory(), Test);
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
 							LaunchPath
 							, NewCommandLine
 							, CFile::fs_GetPath(LaunchPath)
-							, [&, Test, pFirst](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
+							, [&, Test, pFirst, pClock](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 							{
 								if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
 								{
 									DMibConOut("Launched {}{\n}", Test);
+									pClock->f_Start();
 								}
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
 								{
-									--nRunning;								
-									CombinedExitCode = fg_Max(CombinedExitCode, _StateChange.f_Get<EProcessLaunchState_Exited>());
+									--nRunning;
+									++nDone;
+									auto ExitCode = _StateChange.f_Get<EProcessLaunchState_Exited>();
+									CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
+									if (ExitCode != 0)
+										DMibConOut("{} exited uncleanly with {}{\n}", Test << ExitCode);
 								}
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_LaunchFailed)
 								{
-									--nRunning;								
-									CombinedExitCode = fg_Max(CombinedExitCode, 255);
+									--nRunning;
+									++nDone;
+									CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
 									if (*pFirst)
 									{
 										DMibConOut("Failed to launch '{}': {}{\n}", Test << _StateChange.f_Get<EProcessLaunchState_LaunchFailed>());
@@ -168,11 +177,11 @@ public:
 						)
 					;
 
-					Params.m_fOnOutput = [pFirst, Test](EProcessLaunchOutputType _OutputType, CStr const &_Output)
+					Params.m_fOnOutput = [pFirst, Test, &nDone, &nTotalLaunches, pClock](EProcessLaunchOutputType _OutputType, CStr const &_Output)
 						{
 							if (*pFirst)
 							{
-								DMibConOut("Finished: {}{\n}", Test);
+								DMibConOut2("{}   {fe1} s   {}/{} done{\n}", Test, pClock->f_GetTime(), (nDone+1), nTotalLaunches);
 								*pFirst = false;
 							}
 
@@ -185,6 +194,7 @@ public:
 					
 					NotLaunched.f_Insert(fg_Move(Params));
 				}
+				nTotalLaunches = NotLaunched.f_GetLen();
 				while (fAddLaunches())
 					;
 				
