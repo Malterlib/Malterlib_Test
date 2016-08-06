@@ -88,7 +88,7 @@ namespace NMib
 			virtual ~CTest()
 			{
 			}
-			virtual void f_DoTests() pure;
+			virtual void f_DoTests() = 0;
 		};
 
 #		if DMibConfig_Tests_Enable
@@ -309,8 +309,8 @@ namespace NMib
 			{
 				return ETestReportFlag_None;
 			}
-			virtual void f_ReportHeader(ETestReportFlag _ReportFlags) pure;
-			virtual void f_ReportFooter(mint _nTestsTotal, mint _nSuccess, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored) pure;
+			virtual void f_ReportHeader(ETestReportFlag _ReportFlags) = 0;
+			virtual void f_ReportFooter(mint _nTestsTotal, mint _nSuccess, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored) = 0;
 			virtual void f_ReportResult
 			(
 				ETestResult _Result
@@ -323,11 +323,11 @@ namespace NMib
 				, ECheckType _CheckType
 				, ETestFlag _Flags
 				, const NStr::CStr &_ExtraMultiLineReportData
-			) pure;
-			virtual void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups) pure;
-			virtual ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) pure;
-			virtual void f_PerformanceResults(CTestPerformanceResults const &_Results) pure;
-			virtual void f_MemoryResults(CTestMemoryResults const &_Results) pure;
+			) = 0;
+			virtual void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups) = 0;
+			virtual ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) = 0;
+			virtual void f_PerformanceResults(CTestPerformanceResults const &_Results) = 0;
+			virtual void f_MemoryResults(CTestMemoryResults const &_Results) = 0;
 		};
 
 		class CTextTestResults : public CTestResults
@@ -345,7 +345,7 @@ namespace NMib
 				)
 			;
 			virtual void fp_AddReport(const NStr::CStr &_FileLocation, const NStr::CStr &_MessageStr, const NStr::CStr &_TestPath, const NStr::CStr &_Message, const NStr::CStr &_Values);
-			virtual void fp_ReportText(const NStr::CStr &_Text, NSys::EColor _Color = NSys::EColor_Default) pure;
+			virtual void fp_ReportText(const NStr::CStr &_Text, NSys::EColor _Color = NSys::EColor_Default) = 0;
 		public:
 
 			ETestReportFlag f_GetReportFlags() override
@@ -395,12 +395,12 @@ namespace NMib
 			NStr::CStr m_TextBuffer;
 			void fp_HandleRecord(NStr::CStr const &_Text);
 		public:
-			virtual void f_HandleHeader(NRegistry::CRegistry_CStr const &_Reg) pure;
-			virtual void f_HandleFooter(NRegistry::CRegistry_CStr const &_Reg) pure;
-			virtual void f_HandleCategory(NRegistry::CRegistry_CStr const &_Reg) pure;
-			virtual void f_HandleResult(NRegistry::CRegistry_CStr const &_Reg) pure;
-			virtual void f_HandlePerformanceResult(NRegistry::CRegistry_CStr const &_Reg) pure;
-			virtual void f_HandleMemoryResult(NRegistry::CRegistry_CStr const &_Reg) pure;
+			virtual void f_HandleHeader(NRegistry::CRegistry_CStr const &_Reg) = 0;
+			virtual void f_HandleFooter(NRegistry::CRegistry_CStr const &_Reg) = 0;
+			virtual void f_HandleCategory(NRegistry::CRegistry_CStr const &_Reg) = 0;
+			virtual void f_HandleResult(NRegistry::CRegistry_CStr const &_Reg) = 0;
+			virtual void f_HandlePerformanceResult(NRegistry::CRegistry_CStr const &_Reg) = 0;
+			virtual void f_HandleMemoryResult(NRegistry::CRegistry_CStr const &_Reg) = 0;
 			void f_FeedText(NStr::CStr const &_Text);
 
 			static NStr::CStr fs_MeasureTypeToStr(ETestMeasureType _MeasureType);

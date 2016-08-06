@@ -778,12 +778,12 @@ namespace NMib
 				virtual ~CExpressionInternal()
 				{
 				}
-				virtual bool f_Eval() const pure;
-				virtual NStr::CStr f_GetDesc() const pure;
-				virtual NStr::CStr f_GetDescRecursive() const pure;
-				virtual NStr::CStr f_GetValueDesc() const pure;
-				virtual bool f_GetDisableValues() const pure;
-				virtual NStr::CStr f_GetValueDescRecursive() const pure;
+				virtual bool f_Eval() const = 0;
+				virtual NStr::CStr f_GetDesc() const = 0;
+				virtual NStr::CStr f_GetDescRecursive() const = 0;
+				virtual NStr::CStr f_GetValueDesc() const = 0;
+				virtual bool f_GetDisableValues() const = 0;
+				virtual NStr::CStr f_GetValueDescRecursive() const = 0;
 			};
 
 			template <typename t_CImpl>
