@@ -302,6 +302,23 @@ namespace NMib
 			, ETestNeedReportFlag_AllowDuplicates = DMibBit(2)
 			, ETestNeedReportFlag_Abort = DMibBit(3)
 		};
+		
+		struct CTestLocation
+		{
+			CTestLocation()
+			{
+			}
+			
+			CTestLocation(NStr::CStr  const &_File, int _Line)
+				: m_File(_File)
+				, m_Line(_Line)
+			{
+			}
+			
+			NStr::CStr m_File;
+			int32 m_Line = -1;
+		};
+		
 		class CTestResults
 		{
 		public:
@@ -312,19 +329,19 @@ namespace NMib
 			virtual void f_ReportHeader(ETestReportFlag _ReportFlags) = 0;
 			virtual void f_ReportFooter(mint _nTestsTotal, mint _nSuccess, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored) = 0;
 			virtual void f_ReportResult
-			(
-				ETestResult _Result
-				, const NStr::CStr &_TestPath
-				, const NStr::CStr &_Message
-				, const NStr::CStr &_Values
-				, const NStr::CStr &_File
-				, int32 _Line
-				, ETest _FailureAction
-				, ECheckType _CheckType
-				, ETestFlag _Flags
-				, const NStr::CStr &_ExtraMultiLineReportData
-			) = 0;
-			virtual void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups) = 0;
+				(
+					ETestResult _Result
+					, const NStr::CStr &_TestPath
+					, const NStr::CStr &_Message
+					, const NStr::CStr &_Values
+					, CTestLocation const &_Location
+					, ETest _FailureAction
+					, ECheckType _CheckType
+					, ETestFlag _Flags
+					, const NStr::CStr &_ExtraMultiLineReportData
+				) = 0
+			;
+			virtual void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location) = 0;
 			virtual ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) = 0;
 			virtual void f_PerformanceResults(CTestPerformanceResults const &_Results) = 0;
 			virtual void f_MemoryResults(CTestMemoryResults const &_Results) = 0;
@@ -356,19 +373,19 @@ namespace NMib
 			void f_ReportFooter(mint _nTestsTotal, mint _nSuccessful, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored) override;
 			ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) override;
 			void f_ReportResult
-			(
-				ETestResult _Result
-				, const NStr::CStr &_TestPath
-				, const NStr::CStr &_Message
-				, const NStr::CStr &_Values
-				, const NStr::CStr &_File
-				, int32 _Line
-				, ETest _FailureAction
-				, ECheckType _CheckType
-				, ETestFlag _Flags
-				, const NStr::CStr &_ExtraMultiLineReportData
-			) override;
-			void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups) override;
+				(
+					ETestResult _Result
+					, const NStr::CStr &_TestPath
+					, const NStr::CStr &_Message
+					, const NStr::CStr &_Values
+					, CTestLocation const &_Location
+					, ETest _FailureAction
+					, ECheckType _CheckType
+					, ETestFlag _Flags
+					, const NStr::CStr &_ExtraMultiLineReportData
+				) override
+			;
+			void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location) override;
 			void f_PerformanceResults(CTestPerformanceResults const &_Results) override;
 			void f_MemoryResults(CTestMemoryResults const &_Results) override;
 

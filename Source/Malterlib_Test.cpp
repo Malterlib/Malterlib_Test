@@ -276,15 +276,15 @@ namespace NMib
 			
 
 			inline_small void fg_NeedReportImpl
-			(
-				CTestManager *_pTestManager
-				, ETestResult _Result
-				, ETest _FailureAction
-				, ECheckType _CheckType
-				, const ch8 *_pFile
-				, int32 _Line
-				, ETestFlag _Flags
-			)
+				(
+					CTestManager *_pTestManager
+					, ETestResult _Result
+					, ETest _FailureAction
+					, ECheckType _CheckType
+					, const ch8 *_pFile
+					, int32 _Line
+					, ETestFlag _Flags
+				)
 			{
 				_pTestManager->m_nTotalTests.f_FetchAdd(1);
 				if (_Result == ETestResult_Fail)
@@ -404,18 +404,18 @@ namespace NMib
 			}
 
 			void fg_ReportTestResult
-			(
-				ETestResult _Result
-				, const NStr::CStr &_Description
-				, const NStr::CStr &_Values
-				, ETest _FailureAction
-				, ECheckType _CheckType
-				, const NStr::CStr &_File
-				, int32 _Line
-				, const NStr::CStr &_ExtraMultiLineReportData
-				, ETestFlag _Flags
-				, ETestResultReportFlag _AlwaysReport
-			)
+				(
+					ETestResult _Result
+					, const NStr::CStr &_Description
+					, const NStr::CStr &_Values
+					, ETest _FailureAction
+					, ECheckType _CheckType
+					, const NStr::CStr &_File
+					, int32 _Line
+					, const NStr::CStr &_ExtraMultiLineReportData
+					, ETestFlag _Flags
+					, ETestResultReportFlag _AlwaysReport
+				)
 			{
 				if 
 					(
@@ -431,18 +431,18 @@ namespace NMib
 					auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 
 					pTestManager->f_GetResults(ThreadLocal)->f_ReportResult
-					(
-						_Result
-						, ThreadLocal.m_TestPath
-						, _Description
-						, _Values
-						, _File
-						, _Line
-						, _FailureAction
-						, _CheckType
-						, _Flags
-						, _ExtraMultiLineReportData
-					);
+						(
+							_Result
+							, ThreadLocal.m_TestPath
+							, _Description
+							, _Values
+							, CTestLocation(_File, _Line)
+							, _FailureAction
+							, _CheckType
+							, _Flags
+							, _ExtraMultiLineReportData
+						)
+					;
 				}
 				if (_AlwaysReport & ETestResultReportFlag_Abort)
 					throw CReportTestAbortException();
@@ -531,7 +531,7 @@ namespace NMib
 			void CTestCategoryScope::f_ReportLeafCategory()
 			{
 				auto& Manager = CTestManager::fs_GetManager();
-				Manager.f_GetResults(*Manager.m_ThreadLocal)->f_ReportSuite(Manager.m_ThreadLocal->m_TestPath, Manager.m_ThreadLocal->m_TestGroups);
+				Manager.f_GetResults(*Manager.m_ThreadLocal)->f_ReportSuite(Manager.m_ThreadLocal->m_TestPath, Manager.m_ThreadLocal->m_TestGroups, CTestLocation(mp_pFile, mp_Line));
 			}
 
 			NContainer::TCVector<NStr::CStr> fg_DumpTestException()

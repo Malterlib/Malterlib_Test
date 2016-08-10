@@ -49,6 +49,9 @@ Property
 	Property
 	{
 		MalterlibPostCopyProject "Tests"
+		{
+			!!MalterlibPostCopyProject ""
+		}
 		ProductName "Test @(Target:this.Identity->Replace('_',' '))"
 		MalterlibTest true
 		{
@@ -142,78 +145,8 @@ Property
 	
 }
 
-%Target "Exe_RunAllTests"
-{
-	Property
-	{
-		MalterlibPostCopyProject "Tests"
-		{
-			!!MalterlibPostCopyProject ""
-		}
-		
-	}
-	Property
-	{
-		MalterlibLinkWithOpenSSL true
-	}
-	
-	Target
-	{
-		BaseName RunAllTests
-	}
-	%Group "AllTests"
-	{
-		%GenerateFile "AllTests"
-		{
-			Property
-			{
-				Name "@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp"
-				AllTestsTemplate "		\"@(Builtin.Function->GetProperty('Property', 'MalterlibPostCopyDestination', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
-				{
-					&
-					{
-						!Explodee ""
-						"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
-					}
-				}
-				
-				AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
-
-				Contents	"ch8 const *g_AllTests[] = \n"\
-							"	{\n"\
-							"@(AllTests)"\
-							"	}\n"\
-							";\n"\
-							"\n"\
-							"mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n"\
-							"\n"
-				
-				Group "@(Platform) @(Architecture) @(FullConfiguration)"
-			}
-		}
-	}
-	%Group Source
-	{
-		%File "Tools/RunAllTests/Source/*"
-	}
-	
-	Property
-	{
-		AllTestsTemplate "@(Builtin.Function->GetProperty('Target', 'Name', '@(Explodee)'));"
-		{
-			&
-			{
-				!Explodee ""
-				true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
-			}
-		}
-		
-		AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
-	}
-	%Dependency "Lib_Malterlib"
-
-	%Dependency "@(AllTests)"
-}
+Import "Tools/RunAllTests/Malterlib_Test_RunAllTests.MTarget"
+Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 
 %Workspace "Tests"
 {
@@ -232,6 +165,7 @@ Property
 	}
 	
 	%Target Exe_RunAllTests
+	%Target Dll_TestXcodeIntegration
 }
 
 %Workspace "@(MalterlibTests)"

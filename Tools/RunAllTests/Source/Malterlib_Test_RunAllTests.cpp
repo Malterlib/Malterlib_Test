@@ -94,7 +94,6 @@ public:
 				;
 				
 				CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
-				
 			}
 		}
 		else

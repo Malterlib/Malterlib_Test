@@ -129,8 +129,7 @@ namespace NMib
 			, const NStr::CStr &_TestPath
 			, const NStr::CStr &_Message
 			, const NStr::CStr &_Values
-			, const NStr::CStr &_File
-			, int32 _Line
+			, CTestLocation const &_Location
 			, ETest _FailureAction
 			, ECheckType _CheckType
 			, ETestFlag _Flags
@@ -139,7 +138,7 @@ namespace NMib
 		{
 			auto f_Report = [&,this](NStr::CStr const &_MessageStr,NSys::EColor _Color)
 			{
-				NStr::CStr FileLocation = NStr::CStr::CFormat(DMibPFileLineFormat "") << _File << _Line;
+				NStr::CStr FileLocation = NStr::CStr::CFormat(DMibPFileLineFormat "") << _Location.m_File << _Location.m_Line;
 				if (mp_ReportFlags & ETestReportFlag_UseColor)
 					fp_AddReport(FileLocation, _MessageStr, _TestPath, _Message, _Values, _Color);
 				else
@@ -203,7 +202,7 @@ namespace NMib
 					f_Report("Ignored", NSys::EColor_Default);
 			}
 		}
-		void CTextTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups)
+		void CTextTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
 		{
 		}
 		void CTextTestResults::f_PerformanceResults(CTestPerformanceResults const &_Results)
@@ -1159,8 +1158,7 @@ namespace NMib
 				, const NStr::CStr &_TestPath
 				, const NStr::CStr &_Message
 				, const NStr::CStr &_Values
-				, const NStr::CStr &_File
-				, int32 _Line
+				, CTestLocation const &_Location
 				, ETest _FailureAction
 				, ECheckType _CheckType
 				, ETestFlag _Flags
@@ -1176,8 +1174,8 @@ namespace NMib
 				pReg->f_SetValue("Path", _TestPath);
 				pReg->f_SetValue("Message", _Message);
 				pReg->f_SetValue("Values", _Values);
-				pReg->f_SetValue("File", _File);
-				pReg->f_SetValue("Line", NStr::CStr::fs_ToStr(_Line));
+				pReg->f_SetValue("File", _Location.m_File);
+				pReg->f_SetValue("Line", NStr::CStr::fs_ToStr(_Location.m_Line));
 				pReg->f_SetValue("FailureAction", fs_FailureActionToStr(_FailureAction));
 				pReg->f_SetValue("TestResult", fs_TestResultToStr(_Result));
 				pReg->f_SetValue("CheckType", fs_CheckTypeToStr(_CheckType));
@@ -1185,11 +1183,13 @@ namespace NMib
 				pReg->f_SetValue("ExtraData", _ExtraMultiLineReportData);
 				DMibConOut("{}", Registry.f_GenerateStr());
 			}
-			void CRegistryTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups)
+			void CRegistryTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
 			{
 				NRegistry::CRegistry_CStr Registry;
 				NRegistry::CRegistry_CStr *pReg = Registry.f_CreateChild("Category");
 				pReg->f_SetValue("Path", _TestPath);
+				pReg->f_SetValue("File", _Location.m_File);
+				pReg->f_SetValue("Line", NStr::CStr::fs_ToStr(_Location.m_Line));
 				pReg->f_SetValue("Thread", NStr::CStr::fs_ToStr(NSys::fg_Thread_GetCurrentUID()));
 				NRegistry::CRegistry_CStr *pGroups = pReg->f_CreateChild("Groups", true);
 				NMisc::fg_ForEach
@@ -1335,8 +1335,7 @@ namespace NMib
 					, const NStr::CStr &_TestPath
 					, const NStr::CStr &_Message
 					, const NStr::CStr &_Values
-					, const NStr::CStr &_File
-					, int32 _Line
+					, CTestLocation const &_Location
 					, ETest _FailureAction
 					, ECheckType _CheckType
 					, ETestFlag _Flags
@@ -1344,7 +1343,7 @@ namespace NMib
 				)
 			{
 			}
-			void CCategoryLister::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups)
+			void CCategoryLister::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
 			{
 				NStr::CStr Groups;
 				NMisc::fg_ForEach

@@ -1,0 +1,86 @@
+// Copyright © 2015 Hansoft AB 
+// Distributed under the MIT license, see license text in LICENSE.Malterlib
+
+%Target "Dll_TestXcodeIntegration"
+{
+	Property
+	{
+		//RealConfiguration Release
+		MalterlibPostCopyProject "Tests"
+		{
+			!!MalterlibPostCopyProject ""
+		}
+	}
+	Property
+	{
+		MalterlibLinkWithOpenSSL true
+		MalterlibBundleDebugLogation "@(MalterlibOriginalModulePath)"
+	}
+	
+	Target
+	{
+		Type XcodeBundle
+		BaseName TestXcodeIntegration
+		FileName TestXcodeIntegration
+		FileExtension ".xctest"
+		ProductType "com.apple.product-type.bundle.unit-test"
+		GenerateScheme true
+		LinkWithLibraries "-framework XCTest @(Target.LinkWithLibraries)"
+	}
+	Compile
+	{
+		PreprocessorDefines "DMalterlibTestDeployPath=\"@(MalterlibDeployRoot)/@(MalterlibPostCopyProject)\";@(Compile.PreprocessorDefines)"
+	}
+	%Group "AllTests"
+	{
+		%GenerateFile "AllTests"
+		{
+			Property
+			{
+				Name "@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp"
+				AllTestsTemplate "		\"@(Builtin.Function->GetProperty('Property', 'MalterlibPostCopyDestination', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
+				{
+					&
+					{
+						!Explodee ""
+						"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+					}
+				}
+				
+				AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
+
+				Contents	"ch8 const *g_AllTests[] = \n"\
+							"	{\n"\
+							"@(AllTests)"\
+							"	}\n"\
+							";\n"\
+							"\n"\
+							"mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n"\
+							"\n"
+				
+				Group "@(Platform) @(Architecture) @(FullConfiguration)"
+			}
+		}
+	}
+	%Group Source
+	{
+		%File "Source/*"
+	}
+	
+	Property
+	{
+		AllTestsTemplate "@(Builtin.Function->GetProperty('Target', 'Name', '@(Explodee)'));"
+		{
+			&
+			{
+				!Explodee ""
+				true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+			}
+		}
+		
+		AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
+	}
+	%Dependency "Lib_Malterlib"
+
+	%Dependency "@(AllTests)"
+}
