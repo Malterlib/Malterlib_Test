@@ -1101,7 +1101,7 @@ namespace NMib
 #			if DMibConfig_Tests_Enable
 				return NPrivate::fg_RunTests(_pResults, _Options);
 #			else
-				_pResults->f_ReportResult(ETestResult_Fail, "Root", "Tests disabled", "", DMibPFile, DMibPLine, ETest_FailAndStop, ECheckType_Message, ETestFlag_None, "");
+				_pResults->f_ReportResult(ETestResult_Fail, "Root", "Tests disabled", "", CTestLocation(DMibPFile, DMibPLine), ETest_FailAndStop, ECheckType_Message, ETestFlag_None, "");
 				return 1;
 #			endif
 		}
@@ -1112,7 +1112,7 @@ namespace NMib
 #			if DMibConfig_Tests_Enable
 				return NPrivate::fg_RunTests(&Results, _Options);
 #			else
-				Results.f_ReportResult(ETestResult_Fail, "Root", "Tests disabled", "", DMibPFile, DMibPLine, ETest_FailAndStop, ECheckType_Message, ETestFlag_None, "");
+				Results.f_ReportResult(ETestResult_Fail, "Root", "Tests disabled", "", CTestLocation(DMibPFile, DMibPLine), ETest_FailAndStop, ECheckType_Message, ETestFlag_None, "");
 				return 1;
 #			endif
 		}
