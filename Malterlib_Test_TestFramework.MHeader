@@ -166,6 +166,9 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 	
 	%Target Exe_RunAllTests
 	%Target Dll_TestXcodeIntegration
+	{
+		!!GeneratorFamily Xcode
+	}
 }
 
 %Workspace "@(MalterlibTests)"
