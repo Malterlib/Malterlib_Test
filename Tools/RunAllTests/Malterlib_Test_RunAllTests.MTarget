@@ -14,6 +14,7 @@
 	Property
 	{
 		MalterlibLinkWithOpenSSL true
+		MalterlibTargetNameType "BaseName"
 	}
 	
 	Target
@@ -72,4 +73,11 @@
 	%Dependency "Lib_Malterlib"
 
 	%Dependency "@(AllTests)"
+	{
+		!!MalterlibAllTestsDependencies ""
+	}
+	%Dependency "@(MalterlibAllTestsDependencies)"
+	{
+		!MalterlibAllTestsDependencies ""
+	}
 }
