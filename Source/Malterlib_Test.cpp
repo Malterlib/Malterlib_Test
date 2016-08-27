@@ -240,21 +240,22 @@ namespace NMib
 				CTestManager *pTestManager = g_Tests;
 				pTestManager->m_ThreadLocal->m_bInsideTestSuite = _bInsideTestSuite;
 			}
-			void fg_PushCategory(const NStr::CStr &_Category)
+			NStr::CStr fg_PushCategory(const NStr::CStr &_Category)
 			{
 				CTestManager *pTestManager = g_Tests;
 				auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 				DMibLock(ThreadLocal.m_TestPathLock);
+				NStr::CStr PreviousPath = ThreadLocal.m_TestPath;
 				NStr::fg_StrAddWithSeparator(ThreadLocal.m_TestPath, _Category ,"/");				
+				return PreviousPath;
 			}
 
-			void fg_PopCategory()
+			void fg_PopCategory(NStr::CStr const &PreviousPath)
 			{
 				CTestManager *pTestManager = g_Tests;
 				CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
-				auto NewPath = NFile::CFile::fs_GetPath(ThreadLocal.m_TestPath);
 				DMibLock(ThreadLocal.m_TestPathLock);
-				ThreadLocal.m_TestPath = NewPath;
+				ThreadLocal.m_TestPath = PreviousPath;
 			}
 
 			NContainer::TCMap<NStr::CStr> fg_SetGroups(const NContainer::TCMap<NStr::CStr> &_Groups)

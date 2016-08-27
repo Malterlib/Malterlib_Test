@@ -196,14 +196,14 @@ namespace NMib
 
 
 			uint32 fg_RunTests(const NStr::CStr &_Path, CTestResults *_pResults);
-			void fg_PushCategory(const NStr::CStr &_Category);
+			NStr::CStr fg_PushCategory(const NStr::CStr &_Category);
             void fg_InsideTestSuite(bint _bInsideTestSuite);
             bint fg_InsideTestSuite();
 			bint fg_SetEnableValues(bint _bEnableValues);
 			bint fg_GetEnableValues();
 			bint fg_SetEnableExceptionFilter(bint _bEnableExceptionFilter);
 			bint fg_GetEnableExceptionFilter();
-			void fg_PopCategory();
+			void fg_PopCategory(NStr::CStr const &PreviousPath);
 			NContainer::TCMap<NStr::CStr> fg_SetGroups(const NContainer::TCMap<NStr::CStr> &_Groups);
 			NContainer::TCMap<NStr::CStr> fg_GetGroups();
 			NContainer::TCVector<NStr::CStr> fg_DumpTestException();
@@ -542,14 +542,15 @@ namespace NMib
 
 			class CTestPathScope
 			{
+				NStr::CStr m_PreviousPath;
 			public:
 				CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
 				{
-					NMib::NTest::NPrivate::fg_PushCategory(_Path);
+					m_PreviousPath = NMib::NTest::NPrivate::fg_PushCategory(_Path);
 				}
 				~CTestPathScope()
 				{
-					NMib::NTest::NPrivate::fg_PopCategory();
+					NMib::NTest::NPrivate::fg_PopCategory(m_PreviousPath);
 				}
 			};
 
@@ -600,7 +601,7 @@ namespace NMib
 					NContainer::TCMap<NStr::CStr> const &Groups = mp_Category.f_GetGroups();
 					NContainer::TCMap<NStr::CStr> OldGroups;
 
-					NMib::NTest::NPrivate::fg_PushCategory(mp_Category.f_GetCategory());
+					NStr::CStr PreviousPath = NMib::NTest::NPrivate::fg_PushCategory(mp_Category.f_GetCategory());
                     if (!Groups.f_IsEmpty())
 						OldGroups = NMib::NTest::NPrivate::fg_SetGroups(mp_Category.f_GetGroups());
 
@@ -698,7 +699,7 @@ namespace NMib
 
                     if (!Groups.f_IsEmpty())
 						NMib::NTest::NPrivate::fg_SetGroups(OldGroups);
-					NMib::NTest::NPrivate::fg_PopCategory();
+					NMib::NTest::NPrivate::fg_PopCategory(PreviousPath);
 				}
 			};
 #endif
