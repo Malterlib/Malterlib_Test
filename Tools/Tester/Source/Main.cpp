@@ -37,12 +37,12 @@ public:
 					, NTime::CTime const& _Time
 					, ESeverity _Sev
 					, CLogStr const& _Message
-					, DMibListLinkDS_List(CSysLogCatScope, m_Link) const &_Categories
-					, DMibListLinkDS_List(CSysLogOpScope, m_Link) const &_Operations
+					, NContainer::TCVector<NStr::CStr> const &_Categories
+					, NContainer::TCVector<NStr::CStr> const &_Operations
 					, CLogLocationTag const& _Loc
 				)
 				{
-					auto Category = (_Categories.f_IsEmpty() ? NStr::CStrNonTracked() : NStr::fg_Format<NStr::CStrNonTracked>("<{}>", _Categories.f_GetFirst()->m_pCategory));
+					auto Category = (_Categories.f_IsEmpty() ? NStr::CStrNonTracked() : NStr::fg_Format<NStr::CStrNonTracked>("<{}>", _Categories.f_GetFirst()));
 					fg_Dispatch
 						(
 							LoggerActor
