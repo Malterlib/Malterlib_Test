@@ -227,7 +227,7 @@ namespace NMib
 				{
 					fp_ReportText
 					(
-						NStr::CStr::CFormat("{sz20,a-}{sz14}{sz14}{sz14}{sz12}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine)
+						NStr::CStr::CFormat("{sz20,a-}{sz17}{sz17}{sz17}{sz12}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine)
 						<< _Name 
 						<< _Iterations 
 						<< _IterationsPerSec
@@ -351,6 +351,8 @@ namespace NMib
 						Counters[Iter.f_GetKey()];
 
 					NStr::CStr BaseLine;
+					auto IterationsPerSec = (fp64(1.0)/Result.m_Time.m_Median);
+					auto Throughput = (fp64(Result.m_nContributingThreads)/Result.m_Time.m_Median);
 					if (pBaseLine && (&Result != pBaseLine))
 						BaseLine = NStr::CStr::CFormat("{fe2,fn2}") << (pBaseLine->m_Cycles.m_Median / Result.m_Cycles.m_Median) * 100.0;
 					if (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result)
@@ -358,11 +360,11 @@ namespace NMib
 						fl_ReportRow0
 						(
 							Name
-							, NStr::CStr::CFormat("{}") << Result.m_nIterations
-							, NStr::CStr::CFormat("{fn0}") << fp64(1.0)/Result.m_Time.m_Median
-							, NStr::CStr::CFormat("{fn0}") << fp64(Result.m_nContributingThreads)/Result.m_Time.m_Median
+							, NStr::CStr::CFormat("{ns }") << Result.m_nIterations
+							, NStr::CStr::CFormat("{ns }.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
+							, NStr::CStr::CFormat("{ns }.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
 							, BaseLine
-							, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
+							, NStr::CStr::CFormat("{ns }") << Result.m_nRepetitions
 							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Median - pBaseLine->m_Cycles.m_Median)
 							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Average - pBaseLine->m_Cycles.m_Average)
 							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Min - pBaseLine->m_Cycles.m_Min)
@@ -375,9 +377,9 @@ namespace NMib
 						fl_ReportRow0
 						(
 							Name
-							, NStr::CStr::CFormat("{}") << Result.m_nIterations
-							, NStr::CStr::CFormat("{fn0}") << fp64(1.0)/Result.m_Time.m_Median
-							, NStr::CStr::CFormat("{fn0}") << fp64(Result.m_nContributingThreads)/Result.m_Time.m_Median
+							, NStr::CStr::CFormat("{ns }") << Result.m_nIterations
+							, NStr::CStr::CFormat("{ns }.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
+							, NStr::CStr::CFormat("{ns }.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
 							, BaseLine
 							, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
 							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Median
