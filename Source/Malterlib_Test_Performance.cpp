@@ -344,7 +344,7 @@ namespace NMib
 						CTestPerformanceResult const &Result = m_Results.m_Results[i];
 						if (Result.m_MeasureType == ETestMeasureType_Normal)
 						{
-							Throughput = fp64(Result.m_nContributingThreads) / Result.m_Time.m_Median;
+							Throughput = fp64(Result.m_nContributingThreads) / Result.m_Time.m_Min;
 							bFound = true;
 							break;
 						}
@@ -379,7 +379,7 @@ namespace NMib
 				}
 
 				if (pBest)
-					Output = NStr::CStr::CFormat("{fn3,fe3}   {} {sz9,fn1,fe1}   {} {sz9,fn1,fe1}") << BestValue << pBestRef->m_Name << pBestRef->m_Cycles.m_Median << pBest->m_Name << pBest->m_Cycles.m_Median;
+					Output = NStr::CStr::CFormat("{fn3,fe3}   {} {sz9,fn1,fe1}   {} {sz9,fn1,fe1}") << BestValue << pBestRef->m_Name << pBestRef->m_Cycles.m_Min << pBest->m_Name << pBest->m_Cycles.m_Min;
 				else
 					Output = "No value to compare reference to";
 			}

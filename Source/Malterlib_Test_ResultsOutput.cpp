@@ -234,9 +234,9 @@ namespace NMib
 						<< _ThroughputPerSec
 						<< _BaseLine
 						<< _Repetitions
+						<< _CyclesMin
 						<< _CyclesMedian
 						<< _CyclesAverage
-						<< _CyclesMin
 						<< _CyclesMax 
 						<< _CyclesStdDev
 					);
@@ -256,9 +256,9 @@ namespace NMib
 					(
 						NStr::CStr::CFormat("{sz20,a-}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine)
 						<< _Name 
+						<< _TimeMin
 						<< _TimeMedian
 						<< _TimeAverage
-						<< _TimeMin
 						<< _TimeMax 
 						<< _TimeStdDev
 					);
@@ -320,7 +320,7 @@ namespace NMib
 							if (_Left.m_MeasureType != ETestMeasureType_Debug && _Right.m_MeasureType == ETestMeasureType_Debug)
 								return true;
 
-							return _Left.m_Time.m_Median < _Right.m_Time.m_Median;
+							return _Left.m_Time.m_Min < _Right.m_Time.m_Min;
 						}
 					)
 				;
@@ -351,20 +351,20 @@ namespace NMib
 						Counters[Iter.f_GetKey()];
 
 					NStr::CStr BaseLine;
-					auto IterationsPerSec = (fp64(1.0)/Result.m_Time.m_Median);
-					auto Throughput = (fp64(Result.m_nContributingThreads)/Result.m_Time.m_Median);
+					auto IterationsPerSec = (fp64(1.0)/Result.m_Time.m_Min);
+					auto Throughput = (fp64(Result.m_nContributingThreads)/Result.m_Time.m_Min);
 					if (pBaseLine && (&Result != pBaseLine))
-						BaseLine = NStr::CStr::CFormat("{fe2,fn2}") << (pBaseLine->m_Cycles.m_Median / Result.m_Cycles.m_Median) * 100.0;
+						BaseLine = NStr::CStr::CFormat("{fe2,fn2}") << (pBaseLine->m_Cycles.m_Min / Result.m_Cycles.m_Min) * 100.0;
 					if (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result)
 					{
 						fl_ReportRow0
 						(
 							Name
-							, NStr::CStr::CFormat("{ns }") << Result.m_nIterations
-							, NStr::CStr::CFormat("{ns }.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
-							, NStr::CStr::CFormat("{ns }.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
+							, NStr::CStr::CFormat("{}") << Result.m_nIterations
+							, NStr::CStr::CFormat("{}.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
+							, NStr::CStr::CFormat("{}.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
 							, BaseLine
-							, NStr::CStr::CFormat("{ns }") << Result.m_nRepetitions
+							, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
 							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Median - pBaseLine->m_Cycles.m_Median)
 							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Average - pBaseLine->m_Cycles.m_Average)
 							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Min - pBaseLine->m_Cycles.m_Min)
@@ -377,9 +377,9 @@ namespace NMib
 						fl_ReportRow0
 						(
 							Name
-							, NStr::CStr::CFormat("{ns }") << Result.m_nIterations
-							, NStr::CStr::CFormat("{ns }.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
-							, NStr::CStr::CFormat("{ns }.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
+							, NStr::CStr::CFormat("{}") << Result.m_nIterations
+							, NStr::CStr::CFormat("{}.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
+							, NStr::CStr::CFormat("{}.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
 							, BaseLine
 							, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
 							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Median
@@ -397,8 +397,8 @@ namespace NMib
 					CTestPerformanceResult const &Result = Results.m_Results[i];
 					if (Result.m_MeasureType == ETestMeasureType_Baseline && nResults != 1)
 						continue; // Baseline is normally much smaller
-					if (Result.m_Time.m_Median < SmallestAverage)
-						SmallestAverage = Result.m_Time.m_Median;
+					if (Result.m_Time.m_Min < SmallestAverage)
+						SmallestAverage = Result.m_Time.m_Min;
 				}
 
 				NStr::CStr TimeUnit;
