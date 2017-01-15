@@ -30,6 +30,7 @@ public:
 		NSys::fg_Process_GetCommandLineArgs(CommandLine);
 		
 		bool bSingleCore = false;
+		bool bLoopTests = false;
 		
 		for (auto iArg = CommandLine.f_GetIterator(); iArg; ++iArg)
 		{
@@ -47,6 +48,11 @@ public:
 			if (*iArg == "--single-core")
 			{
 				bSingleCore = true;
+				continue;
+			}
+			if (*iArg == "--loop-tests")
+			{
+				bLoopTests = true;
 				continue;
 			}
 			if (*iArg == "--StdOutExit")
@@ -68,145 +74,149 @@ public:
 
 		uint32 CombinedExitCode = 0;
 
-		if (bSingleCore)
+		while (true)
 		{
-			for (mint i = 0; i < g_nAllTests; ++i)
+			if (bSingleCore)
 			{
-				CStr Test = g_AllTests[i];
-				
-				DMibConOut("Running: {}{\n}", Test);
-
-				uint32 ExitCode;
-				NProcess::CProcessLaunch::fs_LaunchBlock
-					(
-						NFile::CFile::fs_AppendPath(NFile::CFile::fs_GetProgramDirectory(), Test)
-						, NewCommandLine
-						, [&](CStr const &_Output)
-						{
-							DMibConOutRaw(_Output);
-						}
-						, [&](CStr const &_Output)
-						{
-							DMibConErrOutRaw(_Output);
-						}
-						, ExitCode
-					)
-				;
-				
-				CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
-			}
-		}
-		else
-		{
-			TCThreadSafeQueue<TCFunction<void ()>> ToDispatch;
-			NThread::CEventAutoReset DispatchEvent;
-			TCLinkedList<CProcessLaunchParams> NotLaunched;
-			mint nRunning = 0;
-			mint nDone = 0;
-			mint nTotalLaunches = 0;
-			mint nMaxRunning = NSys::fg_Thread_GetPhysicalCores();
-
-			{
-				CProcessLaunchHandler LaunchHandler;
-				auto fAddLaunches = [&]
-					{
-						if (NotLaunched.f_IsEmpty() || nRunning >= nMaxRunning)
-							return false;
-						auto Params = NotLaunched.f_Pop();
-						++nRunning;
-						LaunchHandler.f_AddLaunch
-							(
-								Params
-								, true
-								, [&](CProcessLaunchParams const &_Params, EProcessLaunchCloseFlag _DestructFlags) -> TCUniquePointer<CVirtualProcessLaunch>
-								{
-									return fg_Construct<CVirtualProcessLaunch_Default>(_Params, _DestructFlags);
-								}
-							)
-						;
-						return true;
-					}
-				;
 				for (mint i = 0; i < g_nAllTests; ++i)
 				{
 					CStr Test = g_AllTests[i];
-					
-					NPtr::TCSharedPointer<bool> pFirst = fg_Construct(true);
-					NPtr::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
-					CStr LaunchPath = NFile::CFile::fs_AppendPath(NFile::CFile::fs_GetProgramDirectory(), Test);
-					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
+				
+					DMibConOut("Running: {}{\n}", Test);
+
+					uint32 ExitCode;
+					NProcess::CProcessLaunch::fs_LaunchBlock
 						(
-							LaunchPath
+							NFile::CFile::fs_AppendPath(NFile::CFile::fs_GetProgramDirectory(), Test)
 							, NewCommandLine
-							, CFile::fs_GetPath(LaunchPath)
-							, [&, Test, pFirst, pClock](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
+							, [&](CStr const &_Output)
 							{
-								if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
-								{
-									DMibConOut("Launched {}{\n}", Test);
-									pClock->f_Start();
-								}
-								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
-								{
-									--nRunning;
-									++nDone;
-									auto ExitCode = _StateChange.f_Get<EProcessLaunchState_Exited>();
-									CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
-									if (ExitCode != 0)
-										DMibConOut("{} exited uncleanly with {}{\n}", Test << ExitCode);
-								}
-								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_LaunchFailed)
-								{
-									--nRunning;
-									++nDone;
-									CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
-									if (*pFirst)
-									{
-										DMibConOut("Failed to launch '{}': {}{\n}", Test << _StateChange.f_Get<EProcessLaunchState_LaunchFailed>());
-										*pFirst = false;
-									}
-								}
-								fAddLaunches();
+								DMibConOutRaw(_Output);
 							}
-							, [&ToDispatch, &DispatchEvent](NFunction::TCFunction<void ()> const &_Functor)
+							, [&](CStr const &_Output)
 							{
-								ToDispatch.f_Push(_Functor);
-								DispatchEvent.f_Signal();
+								DMibConErrOutRaw(_Output);
 							}
+							, ExitCode
 						)
 					;
+				
+					CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
+				}
+			}
+			else
+			{
+				TCThreadSafeQueue<TCFunction<void ()>> ToDispatch;
+				NThread::CEventAutoReset DispatchEvent;
+				TCLinkedList<CProcessLaunchParams> NotLaunched;
+				mint nRunning = 0;
+				mint nDone = 0;
+				mint nTotalLaunches = 0;
+				mint nMaxRunning = NSys::fg_Thread_GetPhysicalCores();
 
-					Params.m_fOnOutput = [pFirst, Test, &nDone, &nTotalLaunches, pClock](EProcessLaunchOutputType _OutputType, CStr const &_Output)
+				{
+					CProcessLaunchHandler LaunchHandler;
+					auto fAddLaunches = [&]
 						{
-							if (*pFirst)
-							{
-								DMibConOut2("{}   {fe1} s   {}/{} done{\n}", Test, pClock->f_GetTime(), (nDone+1), nTotalLaunches);
-								*pFirst = false;
-							}
-
-							if (_OutputType == EProcessLaunchOutputType_StdOut)
-								DMibConOutRaw(_Output);
-							else
-								DMibConErrOutRaw(_Output);
+							if (NotLaunched.f_IsEmpty() || nRunning >= nMaxRunning)
+								return false;
+							auto Params = NotLaunched.f_Pop();
+							++nRunning;
+							LaunchHandler.f_AddLaunch
+								(
+									Params
+									, true
+									, [&](CProcessLaunchParams const &_Params, EProcessLaunchCloseFlag _DestructFlags) -> TCUniquePointer<CVirtualProcessLaunch>
+									{
+										return fg_Construct<CVirtualProcessLaunch_Default>(_Params, _DestructFlags);
+									}
+								)
+							;
+							return true;
 						}
 					;
+					for (mint i = 0; i < g_nAllTests; ++i)
+					{
+						CStr Test = g_AllTests[i];
 					
-					NotLaunched.f_Insert(fg_Move(Params));
-				}
-				nTotalLaunches = NotLaunched.f_GetLen();
-				while (fAddLaunches())
-					;
+						NPtr::TCSharedPointer<bool> pFirst = fg_Construct(true);
+						NPtr::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
+						CStr LaunchPath = NFile::CFile::fs_AppendPath(NFile::CFile::fs_GetProgramDirectory(), Test);
+						auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
+							(
+								LaunchPath
+								, NewCommandLine
+								, CFile::fs_GetPath(LaunchPath)
+								, [&, Test, pFirst, pClock](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
+								{
+									if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
+									{
+										DMibConOut("Launched {}{\n}", Test);
+										pClock->f_Start();
+									}
+									else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
+									{
+										--nRunning;
+										++nDone;
+										auto ExitCode = _StateChange.f_Get<EProcessLaunchState_Exited>();
+										CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
+										if (ExitCode != 0)
+											DMibConOut("{} exited uncleanly with {}{\n}", Test << ExitCode);
+									}
+									else if (_StateChange.f_GetTypeID() == EProcessLaunchState_LaunchFailed)
+									{
+										--nRunning;
+										++nDone;
+										CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
+										if (*pFirst)
+										{
+											DMibConOut("Failed to launch '{}': {}{\n}", Test << _StateChange.f_Get<EProcessLaunchState_LaunchFailed>());
+											*pFirst = false;
+										}
+									}
+									fAddLaunches();
+								}
+								, [&ToDispatch, &DispatchEvent](NFunction::TCFunction<void ()> const &_Functor)
+								{
+									ToDispatch.f_Push(_Functor);
+									DispatchEvent.f_Signal();
+								}
+							)
+						;
+
+						Params.m_fOnOutput = [pFirst, Test, &nDone, &nTotalLaunches, pClock](EProcessLaunchOutputType _OutputType, CStr const &_Output)
+							{
+								if (*pFirst)
+								{
+									DMibConOut2("{}   {fe1} s   {}/{} done{\n}", Test, pClock->f_GetTime(), (nDone+1), nTotalLaunches);
+									*pFirst = false;
+								}
+
+								if (_OutputType == EProcessLaunchOutputType_StdOut)
+									DMibConOutRaw(_Output);
+								else
+									DMibConErrOutRaw(_Output);
+							}
+						;
+					
+						NotLaunched.f_Insert(fg_Move(Params));
+					}
+					nTotalLaunches = NotLaunched.f_GetLen();
+					while (fAddLaunches())
+						;
 				
-				while (!NotLaunched.f_IsEmpty() || nRunning > 0)
-				{
+					while (!NotLaunched.f_IsEmpty() || nRunning > 0)
+					{
+						while (auto Entry = ToDispatch.f_Pop())
+							(*Entry)();
+						DispatchEvent.f_WaitTimeout(1.0);
+					}
 					while (auto Entry = ToDispatch.f_Pop())
 						(*Entry)();
-					DispatchEvent.f_WaitTimeout(1.0);
 				}
-				while (auto Entry = ToDispatch.f_Pop())
-					(*Entry)();
 			}
-			
+			if (!bLoopTests)
+				break;
 		}
 		return CombinedExitCode;
 	}
