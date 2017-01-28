@@ -509,14 +509,14 @@ namespace NMib
 #		endif
 		
 
-#		define DMibTestCategory(d_TestCategory) NMib::NTest::CTestCategoryScope(d_TestCategory, DMibPFile, DMibPLine) % [&] ()
-#		define DMibTestSuite(d_TestCategory) NMib::NTest::CTestCategoryScope(d_TestCategory, DMibPFile, DMibPLine, NMib::NTest::ETestCategoryFlag_Tests) % [&] ()
-#		define DMibTestCategoryFlags(d_TestCategory, d_Flags) NMib::NTest::CTestCategoryScope(d_TestCategory, DMibPFile, DMibPLine, d_Flags) % [&] ()
-#		define DMibTestPath(d_Path) NMib::NTest::CTestPathScope MalterlibTestPathScope(d_Path, DMibPFile, DMibPLine)
+#		define DMibTestCategory(d_TestCategory) ::NMib::NTest::CTestCategoryScope(d_TestCategory, DMibPFile, DMibPLine) % [&] ()
+#		define DMibTestSuite(d_TestCategory) ::NMib::NTest::CTestCategoryScope(d_TestCategory, DMibPFile, DMibPLine, ::NMib::NTest::ETestCategoryFlag_Tests) % [&] ()
+#		define DMibTestCategoryFlags(d_TestCategory, d_Flags) ::NMib::NTest::CTestCategoryScope(d_TestCategory, DMibPFile, DMibPLine, d_Flags) % [&] ()
+#		define DMibTestPath(d_Path) ::NMib::NTest::CTestPathScope MalterlibTestPathScope(d_Path, DMibPFile, DMibPLine)
 #		if DMibConfig_Tests_Enable
-#			define DMibTest false ? false : NMib::NTest::CTestFunctionHelper(DMibPFile, DMibPLine, NMib::NTest::NPrivate::CDummyExpression())
-#			define DMibTestExpr(d_Expression) false ? false : NMib::NTest::CTestFunctionHelper(DMibPFile, DMibPLine, NMib::NTest::NPrivate::CDummyExpression())(DMibExpr(d_Expression))
-#			define DMibTestOnlyFail false ? false : NMib::NTest::CTestFunctionHelperOnlyFailure(DMibPFile, DMibPLine, NMib::NTest::NPrivate::CDummyExpression()) 
+#			define DMibTest false ? false : ::NMib::NTest::CTestFunctionHelper(DMibPFile, DMibPLine, ::NMib::NTest::NPrivate::CDummyExpression())
+#			define DMibTestExpr(d_Expression) false ? false : ::NMib::NTest::CTestFunctionHelper(DMibPFile, DMibPLine, ::NMib::NTest::NPrivate::CDummyExpression())(DMibExpr(d_Expression))
+#			define DMibTestOnlyFail false ? false : ::NMib::NTest::CTestFunctionHelperOnlyFailure(DMibPFile, DMibPLine, ::NMib::NTest::NPrivate::CDummyExpression()) 
 #		else
 			enum {DMibTestHelperExpression_A, DMibTestHelperExpression_B };
 			#define DMibTestHelperExpression_B(_Expression) DMibTestHelperExpression_OP(_Expression, A)
@@ -529,15 +529,15 @@ namespace NMib
 
 #		endif
 		
-#		define DMibAssert(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))(ETest_FailAndStop)
-#		define DMibAssertException(d_Expression, d_Exception) DMibTest(DMibExpr(NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))(ETest_FailAndStop)
-#		define DMibAssertExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))(ETest_FailAndStop)
-#		define DMibAssertTrue(d_Right) DMibTest(DMibExpr(d_Right))(ETest_FailAndStop)
-#		define DMibAssertFalse(d_Right) DMibTest(!DMibExpr(d_Right))(ETest_FailAndStop)
+#		define DMibAssert(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
+#		define DMibAssertException(d_Expression, d_Exception) DMibTest(DMibExpr(NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
+#		define DMibAssertExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
+#		define DMibAssertTrue(d_Right) DMibTest(DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
+#		define DMibAssertFalse(d_Right) DMibTest(!DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
 		
 #		define DMibExpect(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))
-#		define DMibExpectException(d_Expression, d_Exception) DMibTest(DMibExpr(NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))
-#		define DMibExpectExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))
+#		define DMibExpectException(d_Expression, d_Exception) DMibTest(DMibExpr(::NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))
+#		define DMibExpectExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(::NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))
 #		define DMibExpectTrue(d_Right) DMibTest(DMibExpr(d_Right))
 #		define DMibExpectFalse(d_Right) DMibTest(!DMibExpr(d_Right))
 

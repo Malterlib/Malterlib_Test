@@ -142,7 +142,6 @@ Property
 	{
 		!!MalterlibTestAutoAddWorkspace ""
 	}
-	
 }
 
 Import "Tools/RunAllTests/Malterlib_Test_RunAllTests.MTarget"
@@ -150,10 +149,16 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 
 %Workspace "Tests"
 {
-	Property.EnableTestConfigs true
-	Property.OnlyTestConfigs true
+	Property
 	{
-		!!OnlyTestConfigs ""
+		TestingWorkspace true
+		MalterlibAppTestPostCopyProject "Tests"
+		MalterlibAppTestPostCopyDestination "TestApps/@(Target.BaseFileName)/"
+		EnableTestConfigs true
+		OnlyTestConfigs true
+		{
+			!!OnlyTestConfigs ""
+		}
 	}
 	
 	%Group "Tests"
@@ -187,10 +192,17 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 		MalterlibTestAutoAddWorkspace true
 	}
 	
-	Property.EnableTestConfigs true
-	Property.OnlyTestConfigs true
+	Property
 	{
-		!!OnlyTestConfigs ""
+		EnableTestConfigs true
+		OnlyTestConfigs true
+		{
+			!!OnlyTestConfigs ""
+		}
+		
+		TestingWorkspace true
+		MalterlibAppTestPostCopyProject "Tests"
+		MalterlibAppTestPostCopyDestination "TestApps/@(Target.BaseFileName)/"
 	}
 	
 	Workspace
@@ -205,4 +217,22 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 	}
 }
 
+%Group "{Malterlib}/{TestApp}"
+{
+	Property
+	{
+		MalterlibPostCopyProject "@(MalterlibAppTestPostCopyProject)"
+		{
+			!MalterlibAppTestPostCopyProject ""
+		}
+		MalterlibPostCopyDestination "@(MalterlibAppTestPostCopyDestination)"
+		{
+			!MalterlibAppTestPostCopyDestination ""
+		}
+	}
+}
 
+Target.ExtraGroups "{Malterlib}/{TestApp};@(Target.ExtraGroups)"
+{
+	!!MalterlibTestApp true
+}
