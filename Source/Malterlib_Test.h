@@ -63,8 +63,8 @@ namespace NMib
 			ETestReportFlag_CompareToBaseline = DMibBit(13),
 			ETestReportFlag_CrashOnException = DMibBit(14),
 
-			ETestReportFlag_Default = constenum(ETestReportFlag_Warning) | constenum(ETestReportFlag_Fail) | constenum(ETestReportFlag_FailAndStop),
-			ETestReportFlag_All = constenum(ETestReportFlag_Default) | constenum(ETestReportFlag_Success) | constenum(ETestReportFlag_ExpectFail) | constenum(ETestReportFlag_ExpectFailAndStop) | constenum(ETestReportFlag_Ignored)
+			ETestReportFlag_Default = ETestReportFlag_Warning | ETestReportFlag_Fail | ETestReportFlag_FailAndStop,
+			ETestReportFlag_All = ETestReportFlag_Default | ETestReportFlag_Success | ETestReportFlag_ExpectFail | ETestReportFlag_ExpectFailAndStop | ETestReportFlag_Ignored
 		};
 
 		enum ETestResult
