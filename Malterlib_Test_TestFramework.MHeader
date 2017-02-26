@@ -151,6 +151,7 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 {
 	Property
 	{
+		MalterlibEnableFastLink false
 		TestingWorkspace true
 		MalterlibAppTestPostCopyProject "Tests"
 		MalterlibAppTestPostCopyDestination "TestApps/@(Target.BaseFileName)/"
@@ -194,6 +195,7 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 	
 	Property
 	{
+		MalterlibEnableFastLink false
 		EnableTestConfigs true
 		OnlyTestConfigs true
 		{
