@@ -503,8 +503,8 @@ namespace NMib
 					CStackTraceInfo *pInfo = NSys::fg_Debug_AquireStackTraceInfo(Stack[i]);
 					if (pInfo)
 					{
-						if (*pInfo->m_pSourceFileName && NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core\\runtime") < 0
-							&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core/runtime") < 0
+						if (*pInfo->m_pSourceFileName && NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core\\source\\platform") < 0
+							&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core/source/platform") < 0
 							&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "throw.cpp") < 0
 							&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_test.cpp") < 0
 							&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_contract.cpp") < 0
