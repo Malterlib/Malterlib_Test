@@ -18,11 +18,11 @@ BuildTarget "Tests - Malterlib"
 		Command "../../Shared/BuildScripts/Prebuild.sh"
 		{
 			Platform Windows
-			Platform ZDriveDeploy
 			Platform OSX
 			Platform Test_Windows
 			Platform Test_OSX10.7
 			Platform Test_Linux2.6
+			Platform ZDeploy
 			Params "Malterlib Malterlib"
 		}
 	}
@@ -56,7 +56,7 @@ BuildTarget "Tests - Malterlib"
 		{
 			Command "../../Shared/BuildScripts/DeployFiles.sh"
 			{
-				Platform ZDriveDeploy
+				Platform ZDeploy
 				Params "Test/* Tests/Malterlib"
 			}
 		}
