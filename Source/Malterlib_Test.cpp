@@ -828,20 +828,15 @@ namespace NMib
 			}
 
 
-			aint fg_MatchPattern(const NStr::CStr &_String, NContainer::TCVector<NStr::CStr> const &_PathPatterns)
+			NStr::EMatchWildcardResult fg_MatchPattern(const NStr::CStr &_String, NContainer::TCVector<NStr::CStr> const &_PathPatterns)
 			{
-				aint Ret = 0;
+				NStr::EMatchWildcardResult Ret = NStr::EMatchWildcardResult_NotMatched;
 
-				mint nPatterns = _PathPatterns.f_GetLen();
-				if (nPatterns == 0)
-					return 2;
+				if (_PathPatterns.f_IsEmpty())
+					return NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted;
 
-				NStr::CStr MatchStr = _String;
-
-				for (mint i = 0; i < nPatterns; ++i)
-				{
-					Ret = fg_Max(Ret, NStr::fg_StrMatchWildcard(MatchStr.f_GetStr(), _PathPatterns[i].f_GetStr()));
-				}
+				for (auto &Pattern : _PathPatterns)
+					Ret = fg_Max(Ret, NStr::fg_StrMatchWildcard(_String.f_GetStr(), Pattern.f_GetStr()));
 
 				return Ret;
 			}
@@ -859,13 +854,13 @@ namespace NMib
 
 				CTestManager::CThreadLocal &ThreadLocal = *pManager->m_ThreadLocal;
 
-				aint Result = fg_MatchPattern(ThreadLocal.m_TestPath, pManager->m_PathPatterns);
-				if (Result <= 0)
+				NStr::EMatchWildcardResult Result = fg_MatchPattern(ThreadLocal.m_TestPath, pManager->m_PathPatterns);
+				if (!(Result & NStr::EMatchWildcardResult_WholeStringMatched))
 					return false;
 
 				if (_bLeaf)
 				{
-					if (Result != 2)
+					if (Result != NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted)
 						return false;
 				}
 				
@@ -992,7 +987,7 @@ namespace NMib
 						if (iFindTest >= 0)
 						{
 							FullName = FullName.f_Extract(ToFind.f_GetLen());
-							bint bFound = fg_MatchPattern(FullName, pManager->m_PathPatterns) != 0;
+							bint bFound = fg_MatchPattern(FullName, pManager->m_PathPatterns) & NStr::EMatchWildcardResult_WholeStringMatched;
 
 							if (bFound)
 							{
