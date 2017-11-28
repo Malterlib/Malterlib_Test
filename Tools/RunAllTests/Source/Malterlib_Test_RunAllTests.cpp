@@ -31,6 +31,7 @@ public:
 		
 		bool bSingleCore = false;
 		bool bLoopTests = false;
+		bool bQuiet = false;
 		
 		for (auto iArg = CommandLine.f_GetIterator(); iArg; ++iArg)
 		{
@@ -48,6 +49,11 @@ public:
 			if (*iArg == "--single-core")
 			{
 				bSingleCore = true;
+				continue;
+			}
+			if (*iArg == "--quiet")
+			{
+				bQuiet = true;
 				continue;
 			}
 			if (*iArg == "--loop-tests")
@@ -81,8 +87,9 @@ public:
 				for (mint i = 0; i < g_nAllTests; ++i)
 				{
 					CStr Test = g_AllTests[i];
-				
-					DMibConOut("Running: {}{\n}", Test);
+
+					if (!bQuiet)
+						DMibConOut("Running: {}{\n}", Test);
 
 					uint32 ExitCode;
 					NProcess::CProcessLaunch::fs_LaunchBlock
@@ -101,7 +108,7 @@ public:
 						)
 					;
 				
-					CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
+					CombinedExitCode = fg_Max(CombinedExitCode, fg_Min(ExitCode, 254));
 				}
 			}
 			else
@@ -112,7 +119,7 @@ public:
 				mint nRunning = 0;
 				mint nDone = 0;
 				mint nTotalLaunches = 0;
-				mint nMaxRunning = NSys::fg_Thread_GetPhysicalCores();
+				mint nMaxRunning = NSys::fg_Thread_GetVirtualCores();
 
 				{
 					CProcessLaunchHandler LaunchHandler;
@@ -125,7 +132,7 @@ public:
 							LaunchHandler.f_AddLaunch
 								(
 									Params
-									, true
+									, false
 									, [&](CProcessLaunchParams const &_Params, EProcessLaunchCloseFlag _DestructFlags) -> TCUniquePointer<CVirtualProcessLaunch>
 									{
 										return fg_Construct<CVirtualProcessLaunch_Default>(_Params, _DestructFlags);
@@ -135,44 +142,72 @@ public:
 							return true;
 						}
 					;
+					TCVector<TCFunction<void ()>> OutputDeferredOutput;
+					mint MaxTestLen = 0;
+					for (mint i = 0; i < g_nAllTests; ++i)
+					{
+						CStr Test = g_AllTests[i];
+						MaxTestLen = fg_Max(MaxTestLen, Test.f_GetLen());
+					}
+
 					for (mint i = 0; i < g_nAllTests; ++i)
 					{
 						CStr Test = g_AllTests[i];
 					
-						NPtr::TCSharedPointer<bool> pFirst = fg_Construct(true);
 						NPtr::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
 						CStr LaunchPath = NFile::CFile::fs_AppendPath(NFile::CFile::fs_GetProgramDirectory(), Test);
+
+						TCSharedPointer<CStr> pOutput = fg_Construct();
+
+						auto fOutputThisTest = [pOutput, Test, MaxTestLen]
+							{
+								for (auto &Line : pOutput->f_Trim().f_SplitLine())
+									DMibConOut2(" {sz*,a-}  {}\n", Test, MaxTestLen, Line);
+								pOutput->f_Clear();
+							}
+						;
+
 						auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 							(
 								LaunchPath
 								, NewCommandLine
 								, CFile::fs_GetPath(LaunchPath)
-								, [&, Test, pFirst, pClock](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
+								, [&, Test, pClock, pOutput, fOutputThisTest](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 								{
 									if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
 									{
-										DMibConOut("Launched {}{\n}", Test);
+										if (!bQuiet)
+											DMibConOut2(" {sz*,a-}  Launched{\n}", Test, MaxTestLen);
 										pClock->f_Start();
 									}
 									else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
 									{
 										--nRunning;
 										++nDone;
+
 										auto ExitCode = _StateChange.f_Get<EProcessLaunchState_Exited>();
 										CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
 										if (ExitCode != 0)
-											DMibConOut("{} exited uncleanly with {}{\n}", Test << ExitCode);
+										{
+											DMibConOut2(" {sz*,a-}  Exited uncleanly with {}{\n}", Test, MaxTestLen, ExitCode);
+											fOutputThisTest();
+										}
+										else if (!bQuiet)
+										{
+											fOutputThisTest();
+											DMibConOut2(" {sz*,a-}  {fe1} s   {}/{} done{\n}", Test, MaxTestLen, pClock->f_GetTime(), (nDone), nTotalLaunches);
+										}
+
+										fAddLaunches();
+
+										return;
 									}
 									else if (_StateChange.f_GetTypeID() == EProcessLaunchState_LaunchFailed)
 									{
 										--nRunning;
 										++nDone;
-										CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
-										if (*pFirst)
-										{
-											DMibConOut("Failed to launch '{}': {}{\n}", Test << _StateChange.f_Get<EProcessLaunchState_LaunchFailed>());
-											*pFirst = false;
-										}
+										CombinedExitCode = fg_Max(CombinedExitCode, uint32(254));
+										DMibConOut2(" {sz*,a-}  Failed to launch: {}{\n}", Test, MaxTestLen, _StateChange.f_Get<EProcessLaunchState_LaunchFailed>());
 									}
 									fAddLaunches();
 								}
@@ -184,18 +219,13 @@ public:
 							)
 						;
 
-						Params.m_fOnOutput = [pFirst, Test, &nDone, &nTotalLaunches, pClock](EProcessLaunchOutputType _OutputType, CStr const &_Output)
-							{
-								if (*pFirst)
-								{
-									DMibConOut2("{}   {fe1} s   {}/{} done{\n}", Test, pClock->f_GetTime(), (nDone+1), nTotalLaunches);
-									*pFirst = false;
-								}
+						Params.m_bCreateNewProcessGroup = true;
 
-								if (_OutputType == EProcessLaunchOutputType_StdOut)
-									DMibConOutRaw(_Output);
-								else
-									DMibConErrOutRaw(_Output);
+						OutputDeferredOutput.f_Insert() = fOutputThisTest;
+
+						Params.m_fOnOutput = [&, pOutput, pClock, Test](EProcessLaunchOutputType _OutputType, CStr const &_Output)
+							{
+								*pOutput += _Output;
 							}
 						;
 					
@@ -204,15 +234,59 @@ public:
 					nTotalLaunches = NotLaunched.f_GetLen();
 					while (fAddLaunches())
 						;
-				
-					while (!NotLaunched.f_IsEmpty() || nRunning > 0)
+
 					{
-						while (auto Entry = ToDispatch.f_Pop())
-							(*Entry)();
-						DispatchEvent.f_WaitTimeout(1.0);
+						static auto *s_pEvent = &DispatchEvent;
+						static bool s_bSignalled = false;
+						CClock SigtalClock;
+						fp64 LastSignal = 0.0;
+						SigtalClock.f_Start();
+
+						auto fSigTermHandler = [](int const _Signal)
+							{
+								s_bSignalled = true;
+								s_pEvent->f_Signal();
+							}
+						;
+
+						auto pSigterm = signal(SIGTERM, (sig_t)fSigTermHandler);
+						auto pSigint = signal(SIGINT, (sig_t)fSigTermHandler);
+
+						auto Cleanup
+							= g_OnScopeExit > [&]
+							{
+								signal(SIGTERM, pSigterm);
+								signal(SIGINT, pSigint);
+							}
+						;
+
+						while (!NotLaunched.f_IsEmpty() || nRunning > 0)
+						{
+							while (auto Entry = ToDispatch.f_Pop())
+								(*Entry)();
+							DispatchEvent.f_WaitTimeout(1.0);
+
+							if (s_bSignalled)
+							{
+								s_bSignalled = false;
+
+								for (auto &fOutput : OutputDeferredOutput)
+									fOutput();
+
+								if (SigtalClock.f_GetTime() - LastSignal < 1.0)
+								{
+									DConOut2("\nTerminating launched tests\n");
+									CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
+									break;
+								}
+								LastSignal = SigtalClock.f_GetTime();
+							}
+						}
 					}
 					while (auto Entry = ToDispatch.f_Pop())
 						(*Entry)();
+
+					LaunchHandler.f_TerminateAll();
 				}
 			}
 			if (!bLoopTests)
