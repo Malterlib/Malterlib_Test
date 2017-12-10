@@ -108,7 +108,7 @@ public:
 						)
 					;
 				
-					CombinedExitCode = fg_Max(CombinedExitCode, fg_Min(ExitCode, 254));
+					CombinedExitCode = fg_Max(CombinedExitCode, fg_Min(ExitCode, 254u));
 				}
 			}
 			else
@@ -147,8 +147,15 @@ public:
 					for (mint i = 0; i < g_nAllTests; ++i)
 					{
 						CStr Test = g_AllTests[i];
-						MaxTestLen = fg_Max(MaxTestLen, Test.f_GetLen());
+						MaxTestLen = fg_Max(MaxTestLen, (mint)Test.f_GetLen());
 					}
+
+					TCSharedPointer<bool> pExited = fg_Construct(false);
+					auto CleanupExited = g_OnScopeExit > [&]
+						{
+							*pExited = true;
+						}
+					;
 
 					for (mint i = 0; i < g_nAllTests; ++i)
 					{
@@ -172,8 +179,10 @@ public:
 								LaunchPath
 								, NewCommandLine
 								, CFile::fs_GetPath(LaunchPath)
-								, [&, Test, pClock, pOutput, fOutputThisTest](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
+								, [&, pExited, Test, pClock, pOutput, fOutputThisTest](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 								{
+									if (*pExited)
+										return;
 									if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
 									{
 										if (!bQuiet)
@@ -211,8 +220,10 @@ public:
 									}
 									fAddLaunches();
 								}
-								, [&ToDispatch, &DispatchEvent](NFunction::TCFunction<void ()> const &_Functor)
+								, [pExited, &ToDispatch, &DispatchEvent](NFunction::TCFunction<void ()> const &_Functor)
 								{
+									if (*pExited)
+										return;
 									ToDispatch.f_Push(_Functor);
 									DispatchEvent.f_Signal();
 								}
@@ -236,28 +247,19 @@ public:
 						;
 
 					{
-						static auto *s_pEvent = &DispatchEvent;
-						static bool s_bSignalled = false;
+						bool bSignalled = false;
 						CClock SigtalClock;
 						fp64 LastSignal = 0.0;
 						SigtalClock.f_Start();
 
-						auto fSigTermHandler = [](int const _Signal)
-							{
-								s_bSignalled = true;
-								s_pEvent->f_Signal();
-							}
-						;
-
-						auto pSigterm = signal(SIGTERM, (sig_t)fSigTermHandler);
-						auto pSigint = signal(SIGINT, (sig_t)fSigTermHandler);
-
-						auto Cleanup
-							= g_OnScopeExit > [&]
-							{
-								signal(SIGTERM, pSigterm);
-								signal(SIGINT, pSigint);
-							}
+						auto Cleaunup = NProcess::NPlatform::fg_Process_WaitForTermination
+							(
+								[&]
+								{
+									bSignalled = true;
+									DispatchEvent.f_Signal();
+								}
+							)
 						;
 
 						while (!NotLaunched.f_IsEmpty() || nRunning > 0)
@@ -266,9 +268,9 @@ public:
 								(*Entry)();
 							DispatchEvent.f_WaitTimeout(1.0);
 
-							if (s_bSignalled)
+							if (bSignalled)
 							{
-								s_bSignalled = false;
+								bSignalled = false;
 
 								for (auto &fOutput : OutputDeferredOutput)
 									fOutput();
@@ -286,7 +288,9 @@ public:
 					while (auto Entry = ToDispatch.f_Pop())
 						(*Entry)();
 
-					LaunchHandler.f_TerminateAll();
+					LaunchHandler.f_StopAll();
+					LaunchHandler.f_BlockOnExit(1.0);
+					LaunchHandler.f_TerminateAll(true);
 				}
 			}
 			if (!bLoopTests)
