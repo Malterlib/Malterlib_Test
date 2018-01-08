@@ -169,7 +169,7 @@ public:
 						auto fOutputThisTest = [pOutput, Test, MaxTestLen]
 							{
 								for (auto &Line : pOutput->f_Trim().f_SplitLine())
-									DMibConOut2(" {sz*,a-}  {}\n", Test, MaxTestLen, Line);
+									DMibConOut2(" {sz*,a-}  {}\n", "", MaxTestLen, Line);
 								pOutput->f_Clear();
 							}
 						;
@@ -203,8 +203,8 @@ public:
 										}
 										else if (!bQuiet)
 										{
-											fOutputThisTest();
 											DMibConOut2(" {sz*,a-}  {fe1} s   {}/{} done{\n}", Test, MaxTestLen, pClock->f_GetTime(), (nDone), nTotalLaunches);
+											fOutputThisTest();
 										}
 
 										fAddLaunches();
