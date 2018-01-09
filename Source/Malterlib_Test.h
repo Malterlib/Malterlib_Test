@@ -1,4 +1,4 @@
-﻿// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB 
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #pragma once
@@ -106,6 +106,7 @@ namespace NMib
 				, m_StdDev(0.0)
 			{
 			}
+
 			CTestStats(fp64 _Stat)
 				: m_Min(_Stat)
 				, m_Max(_Stat)
@@ -114,19 +115,30 @@ namespace NMib
 				, m_StdDev(0.0)
 			{
 			}
-			fp64 m_Min;
-			fp64 m_Max;
-			fp64 m_Average;
-			fp64 m_Median;
-			fp64 m_StdDev;
 
 			fp64 f_StdDevFraction() const
 			{
 				if (m_Average != 0.0)
 					return m_StdDev / m_Average;
-				else 
+				else
 					return 0.0;
 			}
+
+			template <typename tf_CStream>
+			void f_Stream(tf_CStream &_Stream)
+			{
+				_Stream % m_Min;
+				_Stream % m_Max;
+				_Stream % m_Average;
+				_Stream % m_Median;
+				_Stream % m_StdDev;
+			}
+
+			fp64 m_Min;
+			fp64 m_Max;
+			fp64 m_Average;
+			fp64 m_Median;
+			fp64 m_StdDev;
 		};
 
 		struct CTestResult
