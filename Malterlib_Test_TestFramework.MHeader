@@ -79,7 +79,7 @@ Property
 		!!MalterlibInternalTestTarget true
 		!!MalterlibInternalTestHelperTarget true
 		
-		MalterlibExeIcon "@(Builtin.BasePath)/Malterlib/Core/Resources/MSVC/icon1.ico"
+		MalterlibExeIcon "@(Builtin.BasePathAbsolute)/Malterlib/Core/Resources/MSVC/icon1.ico"
 		{
 			!!PlatformFamily Windows			
 		}
