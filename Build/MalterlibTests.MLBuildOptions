@@ -8,6 +8,7 @@ BuildTarget "Tests - Malterlib"
 		MalterlibBuildServerTest true
 		MalterlibDeploySymbols false
 		MalterlibSigning false
+		MalterlibRepositoryHardReset true
 	}
 	DynamicOptions
 	{
