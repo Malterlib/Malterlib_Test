@@ -1,4 +1,4 @@
-﻿// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB 
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #pragma once
@@ -411,11 +411,27 @@ namespace NMib
 					ETestResultReportFlag ReportFlags = fg_NeedReport(Desc, Result, m_FailureAction, ECheckType_Predicate, m_pFile, m_Line, m_Flags);
 					if (ReportFlags)
 					{
+						bool bIsSuccess =
+							Result == ETestResult_Success
+							|| ((Result == ETestResult_Fail) && (m_FailureAction == ETest_ExpectFail || m_FailureAction == ETest_ExpectFailAndStop))
+						;
+
+						bool bNeedValues =
+							fg_GetEnableValues()
+							&& !(m_Flags & ETestFlag_NoValues)
+							&& !m_Expression.f_GetDisableValues()
+							&&
+							(
+							 	!(m_Flags & ETestFlag_NoValuesOnSuccess)
+							 	|| !bIsSuccess
+							)
+						;
+
 						fg_ReportTestResult
 							(
 								Result
 								, Desc
-								, (fg_GetEnableValues() && !(m_Flags & ETestFlag_NoValues) && !m_Expression.f_GetDisableValues()) ? m_Expression.f_GetValueDesc() : NStr::CStr()
+								, bNeedValues ? m_Expression.f_GetValueDesc() : NStr::CStr()
 								, m_FailureAction
 								, ECheckType_Predicate
 								, m_pFile

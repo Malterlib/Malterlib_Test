@@ -26,6 +26,7 @@ namespace NMib
 			ETestFlag_NoValues = DMibBit(0),
 			ETestFlag_NoExceptionFilter = DMibBit(1),
 			ETestFlag_Aggregated = DMibBit(2),
+			ETestFlag_NoValuesOnSuccess = DMibBit(3),
 		};
 
 		enum ETestCategoryFlag
