@@ -1,4 +1,4 @@
-﻿// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB 
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Test/Test>
@@ -103,19 +103,13 @@ namespace NMib
 				class CThreadLocal
 				{
 				public:
-					CThreadLocal()
-						: m_bEnableValues(true)
-						, m_bEnableExceptionFilter(true)
-						, m_pResults(nullptr)
-						, m_bEnumerating(false)
-						, m_bInsideTestSuite(false)
-					{
-					}
+					CThreadLocal() = default;
 					CThreadLocal(CThreadLocal const &_Inherit)
-						: m_bEnableValues(_Inherit.m_bEnableValues)
-						, m_pResults(nullptr)
-						, m_bEnableExceptionFilter(_Inherit.m_bEnableExceptionFilter)
-						, m_bInsideTestSuite(_Inherit.m_bInsideTestSuite)
+						: m_bEnableValues{_Inherit.m_bEnableValues}
+						, m_bEnableExceptionFilter{_Inherit.m_bEnableExceptionFilter}
+						, m_bInsideTestSuite{_Inherit.m_bInsideTestSuite}
+						, m_pLastTestFile{_Inherit.m_pLastTestFile}
+						, m_LastTestLine{_Inherit.m_LastTestLine}
 					{
 						{
 							DMibLock(_Inherit.m_TestPathLock);
@@ -163,11 +157,14 @@ namespace NMib
 					NStr::CStr m_TestPath;
 					mutable NThread::CMutual m_TestPathLock;
 					NContainer::TCMap<NStr::CStr> m_TestGroups;
-					CTestResults *m_pResults;
-					bint m_bEnableValues;
-					bint m_bEnableExceptionFilter;
-					bint m_bEnumerating;
-					bint m_bInsideTestSuite;
+					CTestResults *m_pResults = nullptr;
+					const ch8 *m_pLastTestFile = nullptr;
+					int32 m_LastTestLine = 0;
+
+					bint m_bEnableValues = true;
+					bint m_bEnableExceptionFilter = true;
+					bint m_bEnumerating = false;
+					bint m_bInsideTestSuite = false;
 					mutable NThread::CMutual m_UniqueTestsLock;
 					mutable NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bint>>> m_UniqueTests;
 					DMibAutoClearPtrDeclare;
@@ -248,6 +245,22 @@ namespace NMib
 				NStr::CStr PreviousPath = ThreadLocal.m_TestPath;
 				NStr::fg_StrAddWithSeparator(ThreadLocal.m_TestPath, _Category ,"/");				
 				return PreviousPath;
+			}
+
+			void fg_SetTestLastLocation(const ch8 *_pFile, int32 _Line)
+			{
+				CTestManager *pTestManager = g_Tests;
+				auto &ThreadLocal = *pTestManager->m_ThreadLocal;
+				ThreadLocal.m_pLastTestFile = _pFile;
+				ThreadLocal.m_LastTestLine = _Line;
+			}
+
+			void fg_GetTestLastLocation(const ch8 *&o_pFile, int32 &o_Line)
+			{
+				CTestManager *pTestManager = g_Tests;
+				auto &ThreadLocal = *pTestManager->m_ThreadLocal;
+				o_pFile = ThreadLocal.m_pLastTestFile;
+				o_Line = ThreadLocal.m_LastTestLine;
 			}
 
 			void fg_PopCategory(NStr::CStr const &PreviousPath)
@@ -544,14 +557,23 @@ namespace NMib
 
 			void fg_ReportTestException(const NContainer::TCVector<NStr::CStr> &_DumpFiles, const ch8 *_pFile, int32 _Line)
 			{
+				using namespace NStr;
+
+				const ch8 *pFile = nullptr;
+				int32 Line = 0;
+				fg_GetTestLastLocation(pFile, Line);
 				NStr::CStr ExtraReportData;
+
+				if (pFile)
+					ExtraReportData += DMibPFileLineFormat " Last know test location{\n}"_f << pFile << Line;
+
 				mint nLogs = _DumpFiles.f_GetLen();
 				if (nLogs != 0)
 				{
 					ExtraReportData += "The following crash dump files were generated:" DMibNewLine;
 					for (mint i = 0; i < nLogs; ++i)
 					{
-						ExtraReportData += NStr::CStr(_DumpFiles[i]) + DMibNewLine;
+						ExtraReportData += "{}{\n}"_f << _DumpFiles[i];
 					}
 				}
 
@@ -563,246 +585,174 @@ namespace NMib
 					}
 					catch (NContract::CContractException_Require const &_Exception) 
 					{
-						ExtraReportData =
-						(
-							NStr::CStr
-							(	
-								NStr::CStr::CFormat(DMibPFileLineFormat " {}" DMibNewLine DMibNewLine) 
-								<< _Exception.f_GetFile() 
-								<< _Exception.f_GetLine() 
-								<< _Exception.f_GetErrorStr()
-							) 
-							+ ExtraReportData
-						);
-
+						CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Require contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, "Require contract violation"
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (NContract::CContractException_Check const &_Exception) 
 					{
-						ExtraReportData = 
-						(
-							NStr::CStr
-							(
-								NStr::CStr::CFormat(DMibPFileLineFormat " {}" DMibNewLine DMibNewLine) 
-								<< _Exception.f_GetFile() 
-								<< _Exception.f_GetLine() 
-								<< _Exception.f_GetErrorStr()
-							) 
-							+ ExtraReportData
-						);
+						CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Check contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, "Check contract violation"
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (NContract::CContractException_Ensure const &_Exception) 
 					{
-						ExtraReportData = 
-						(
-							NStr::CStr
-							(
-								NStr::CStr::CFormat(DMibPFileLineFormat " {}" DMibNewLine DMibNewLine) 
-								<< _Exception.f_GetFile() 
-								<< _Exception.f_GetLine() 
-								<< _Exception.f_GetErrorStr()
-							) 
-							+ ExtraReportData
-						);
+						CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Ensure contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, "Ensure contract violation"
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (NContract::CContractException_Invariant const &_Exception) 
 					{
-						ExtraReportData = 
-						(
-							NStr::CStr
-							(
-								NStr::CStr::CFormat(DMibPFileLineFormat " {}" DMibNewLine DMibNewLine) 
-								<< _Exception.f_GetFile() 
-								<< _Exception.f_GetLine() 
-								<< _Exception.f_GetErrorStr()
-							)
-							+ ExtraReportData
-						);
+						CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Invariant contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, "Invariant contract violation"
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (NContract::CContractException_NeverGetHere const &_Exception) 
 					{
-						ExtraReportData = 
-						(
-							NStr::CStr
-							(
-								NStr::CStr::CFormat(DMibPFileLineFormat " {}" DMibNewLine DMibNewLine) 
-								<< _Exception.f_GetFile() 
-								<< _Exception.f_GetLine() 
-								<< _Exception.f_GetErrorStr()
-							)
-							+ ExtraReportData
-						);
+						CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Never get here contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, "Never get here contract violation"
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (NContract::CContractException const &_Exception) 
 					{
-						ExtraReportData = 
-						(
-							NStr::CStr
-							(
-								NStr::CStr::CFormat(DMibPFileLineFormat " {}" DMibNewLine DMibNewLine) 
-								<< _Exception.f_GetFile() 
-								<< _Exception.f_GetLine() 
-								<< _Exception.f_GetErrorStr()
-							)
-							+ ExtraReportData
-						);
+						CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, NStr::CStr::CFormat("Contract violation: {}") << _Exception.f_GetClass()
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, NStr::CStr::CFormat("Contract violation: {}") << _Exception.f_GetClass()
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (NException::CExceptionSafeCheck const &_Exception) 
 					{
-						ExtraReportData = 
-						(
-							NStr::CStr
-							(
-								NStr::CStr::CFormat(DMibPFileLineFormat " {}" DMibNewLine DMibNewLine) 
-								<< _Exception.f_GetFile() 
-								<< _Exception.f_GetLine() 
-								<< _Exception.f_GetErrorStr()
-							)
-							+ ExtraReportData
-						);
+						CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, NStr::CStr::CFormat("Assert violation")
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, NStr::CStr::CFormat("Assert violation")
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (NException::CException const &_Exception) 
 					{
-						ExtraReportData = 
-						(
-							NStr::CStr
-							(
-								NStr::CStr::CFormat(DMibPFileLineFormat " Uncaught {} exception: {}" DMibNewLine DMibNewLine) 
-								<< _Exception.f_GetFile() 
-								<< _Exception.f_GetLine() 
-								<< _Exception.f_GetClass() 
-								<< _Exception.f_GetErrorStr()
-							) 
-							+ ExtraReportData
-						);
+						CStr ReportData = DMibPFileLineFormat " Uncaught {} exception: {}{\n}{\n}{}"_f
+							<< _Exception.f_GetFile()
+							<< _Exception.f_GetLine()
+							<< _Exception.f_GetClass()
+							<< _Exception.f_GetErrorStr()
+							<< ExtraReportData
+						;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, NStr::CStr::CFormat("Uncaught exception")
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, NStr::CStr::CFormat("Uncaught exception")
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (std::exception const& _Exception) 
 					{
-						ExtraReportData = 
-						(
-							NStr::CStr
-							(
-								NStr::CStr::CFormat("Uncaught {} exception" DMibNewLine DMibNewLine) 
-								<< NStr::CStr(_Exception.what())
-							)
-							+ ExtraReportData
-						);
+						CStr ReportData = " Uncaught {} exception{\n}{\n}{}"_f
+							<< NStr::CStr(_Exception.what())
+							<< ExtraReportData
+						;
 						fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, NStr::CStr("Uncaught exception")
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						);
+							(
+								ETestResult_Fail
+								, NStr::CStr("Uncaught exception")
+								, ""
+								, ETest_FailAndStop
+								, ECheckType_Message
+								, _pFile
+								, _Line
+								, ReportData
+								, ETestFlag_None
+								, ETestResultReportFlag_AskReport
+							)
+						;
 					}
 					catch (...)
 					{

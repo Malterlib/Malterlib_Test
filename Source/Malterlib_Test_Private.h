@@ -194,7 +194,8 @@ namespace NMib
 				, ETestResultReportFlag_Abort = DMibBit(2)
 			};
 
-
+			void fg_SetTestLastLocation(const ch8 *_pFile, int32 _Line);
+			void fg_GetTestLastLocation(const ch8 *&o_pFile, int32 &o_Line);
 			uint32 fg_RunTests(const NStr::CStr &_Path, CTestResults *_pResults);
 			NStr::CStr fg_PushCategory(const NStr::CStr &_Category);
             void fg_InsideTestSuite(bint _bInsideTestSuite);
@@ -458,6 +459,7 @@ namespace NMib
 					, m_bValid(false)
 					, m_bOnlyCustom(false)
 				{
+					fg_SetTestLastLocation(_pFile, _Line);
 				}
 
 				TCTestFunctionHelper(TCTestFunctionHelper &&_Right)
@@ -562,6 +564,7 @@ namespace NMib
 			public:
 				CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
 				{
+					fg_SetTestLastLocation(_pFile, _Line);
 					m_PreviousPath = NMib::NTest::NPrivate::fg_PushCategory(_Path);
 				}
 				~CTestPathScope()
@@ -587,6 +590,8 @@ namespace NMib
 					, mp_Line(_Line)
 					, mp_Flags(_Flags)
 				{
+					fg_SetTestLastLocation(_pFile, _Line);
+
 					DMibFastCheck(_Category.f_GetCategory().f_FindChar('/') < 0 && _Category.f_GetCategory().f_FindChar('\\') < 0);
                     DMibFastCheck(!NMib::NTest::NPrivate::fg_InsideTestSuite());
                     NMib::NTest::NPrivate::fg_InsideTestSuite(mp_Flags & ETestCategoryFlag_Tests);
