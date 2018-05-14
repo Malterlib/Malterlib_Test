@@ -5,11 +5,11 @@ Property
 {
 	MalterlibTestMain "@('Tools/Tester/Source/Main.cpp'->MakeAbsolute())"
 	
-	MalterlibEnableInternalTests false // User: Enable internal Malterlib tests
+	MalterlibEnableInternalTests false // User(Tests)=true: Enable internal Malterlib tests
 	{
 		!!MalterlibEnableInternalTests ""
 	}
-	MalterlibSeparateTestWorkspaces false // User: Enable generation of separate workspaces for all tests, either true for all tests, or list the test you want to be separate
+	MalterlibSeparateTestWorkspaces false // User(Tests)=true: Enable generation of separate workspaces for all tests, either true for all tests, or list the test you want to be separate
 	{
 		!!MalterlibSeparateTestWorkspaces ""
 	}
