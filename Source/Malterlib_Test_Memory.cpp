@@ -873,8 +873,8 @@ namespace NMib
 		{
 			CTestMemoryResult const *pBestRef = nullptr;
 			CTestMemoryResult const *pBest = nullptr;
-			fp64 BestRef = TCLimitsInt<mint>::mc_Max;
-			fp64 Best = TCLimitsInt<mint>::mc_Max;
+			fp64 BestRef = fp64::fs_LimitMax();
+			fp64 Best = fp64::fs_LimitMax();
 			mint nResults = mp_Results.m_Results.f_GetLen();
 			for (mint i = 0; i < nResults; ++i)
 			{
