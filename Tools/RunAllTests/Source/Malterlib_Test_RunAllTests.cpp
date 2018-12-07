@@ -161,7 +161,7 @@ public:
 					{
 						CStr Test = g_AllTests[i];
 					
-						NPtr::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
+						NStorage::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
 						CStr LaunchPath = NFile::CFile::fs_AppendPath(NFile::CFile::fs_GetProgramDirectory(), Test);
 
 						TCSharedPointer<CStr> pOutput = fg_Construct();

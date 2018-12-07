@@ -103,13 +103,13 @@ static void fg_RunTests
 			, mp_fOnTestResult(_fOnTestResult) 
 		{
 		}
-		virtual void f_HandleHeader(NMib::NRegistry::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleHeader(NMib::NContainer::CRegistry_CStr const &_Reg) override
 		{
 		}
-		virtual void f_HandleFooter(NMib::NRegistry::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleFooter(NMib::NContainer::CRegistry_CStr const &_Reg) override
 		{
 		}
-		virtual void f_HandleCategory(NMib::NRegistry::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleCategory(NMib::NContainer::CRegistry_CStr const &_Reg) override
 		{
 			CStr TestPath = _Reg.f_GetValue("Path", "");
 			CTestLocation Location;
@@ -124,16 +124,16 @@ static void fg_RunTests
 			}
 			mp_fOnCategory(TestPath, Location, Thread, Groups);
 		}
-		virtual void f_HandleResult(NMib::NRegistry::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleResult(NMib::NContainer::CRegistry_CStr const &_Reg) override
 		{
 			CTestResult Result;
 			CTestResultParser::fs_DecodeResult(_Reg, Result);
 			mp_fOnTestResult(Result);
 		}
-		virtual void f_HandlePerformanceResult(NMib::NRegistry::CRegistry_CStr const &_Reg) override
+		virtual void f_HandlePerformanceResult(NMib::NContainer::CRegistry_CStr const &_Reg) override
 		{
 		}
-		virtual void f_HandleMemoryResult(NMib::NRegistry::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleMemoryResult(NMib::NContainer::CRegistry_CStr const &_Reg) override
 		{
 		}
 	private:
@@ -178,7 +178,7 @@ static void fg_RunTests
 		)
 	;
 	
-	NMib::NPtr::TCUniquePointer<CProcessLaunch> pProcessLaunch;
+	NMib::NStorage::TCUniquePointer<CProcessLaunch> pProcessLaunch;
 	
 	Params.m_fOnOutput = 
 		[&](EProcessLaunchOutputType _OutputType, NMib::NStr::CStr const &_Output)
