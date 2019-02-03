@@ -1,4 +1,4 @@
-﻿// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB 
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Test/Test>
@@ -101,9 +101,9 @@ namespace
 
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100 where note: 'Should be'")) == DMibLExpr(Object.f_Contract2(200)));
 
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesAssert()) == DMibLExpr(Object.f_Assert(200)));
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesAssert("_Value < 100")) == DMibLExpr(Object.f_Assert(200)));
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesAssert("_Value < 100 'Should be'")) == DMibLExpr(Object.f_Assert2(200)));
+				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck()) == DMibLExpr(Object.f_Assert(200)));
+				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck("_Value < 100")) == DMibLExpr(Object.f_Assert(200)));
+				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck("_Value < 100 'Should be'")) == DMibLExpr(Object.f_Assert2(200)));
 			};
 			DMibTestCategory("Performance")
 			{

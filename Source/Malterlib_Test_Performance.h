@@ -77,7 +77,6 @@ namespace NMib::NTest
 		{
 			m_Timer.f_Stop(m_Iterations);
 		}
-
 	};
 
 	template <typename t_CTimer, typename t_CIterations>

@@ -219,10 +219,10 @@ namespace NMib::NTest
 #endif
 
 #if DMibEnableSafeCheck > 0
-	TCThrowsException<NException::CExceptionSafeCheck> fg_ViolatesAssert();
-	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesAssert(const ch8 *_pError);
+	TCThrowsException<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck();
+	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck(const ch8 *_pError);
 #else
-	TCThrowsException<> fg_ViolatesAssert();
-	TCThrowsException<> fg_ViolatesAssert(const ch8 *_pError);
+	TCThrowsException<> fg_ViolatesSafeCheck();
+	TCThrowsException<> fg_ViolatesSafeCheck(const ch8 *_pError);
 #endif
 }

@@ -540,12 +540,16 @@ namespace NMib::NTest
 #	define DMibAssert(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertException(d_Expression, d_Exception) DMibTest(DMibExpr(NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertViolatesRequire(d_Expression, ...) DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire(__VA_ARGS__)) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertViolatesSafeCheck(d_Expression, ...) DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck(__VA_ARGS__)) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertTrue(d_Right) DMibTest(DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertFalse(d_Right) DMibTest(!DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
 
 #	define DMibExpect(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))
 #	define DMibExpectException(d_Expression, d_Exception) DMibTest(DMibExpr(::NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))
 #	define DMibExpectExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(::NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))
+#	define DMibExpectViolatesRequire(d_Expression, ...) DMibTest(DMibExpr(::NMib::NTest::fg_ViolatesRequire(__VA_ARGS__)) == DMibLExpr(d_Expression))
+#	define DMibExpectViolatesSafeCheck(d_Expression, ...) DMibTest(DMibExpr(::NMib::NTest::fg_ViolatesSafeCheck(__VA_ARGS__)) == DMibLExpr(d_Expression))
 #	define DMibExpectTrue(d_Right) DMibTest(DMibExpr(d_Right))
 #	define DMibExpectFalse(d_Right) DMibTest(!DMibExpr(d_Right))
 
@@ -553,11 +557,15 @@ namespace NMib::NTest
 #		define DTest DMibTest
 #		define DAssert DMibAssert
 #		define DAssertException DMibAssertException
+#		define DAssertViolatesRequire DMibAssertViolatesRequire
+#		define DAssertViolatesSafeCheck DMibAssertViolatesSafeCheck
 #		define DAssertExceptionType DMibAssertExceptionType
 #		define DAssertTrue DMibAssertTrue
 #		define DAssertFalse DMibAssertFalse
 #		define DExpect DMibExpect
 #		define DExpectException DMibExpectException
+#		define DExpectViolatesRequire DMibExpectViolatesRequire
+#		define DExpectViolatesSafeCheck DMibExpectViolatesSafeCheck
 #		define DExpectExceptionType DMibExpectExceptionType
 #		define DExpectTrue DMibExpectTrue
 #		define DExpectFalse DMibExpectFalse

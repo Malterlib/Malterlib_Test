@@ -29,21 +29,21 @@ namespace NMib::NTest
 #endif
 
 #if DMibEnableSafeCheck > 0
-	TCThrowsException<NException::CExceptionSafeCheck> fg_ViolatesAssert()
+	TCThrowsException<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck()
 	{
 		return TCThrowsException<NException::CExceptionSafeCheck>();
 	}
 
-	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesAssert(const ch8 *_pError)
+	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck(const ch8 *_pError)
 	{
 		return NException::CExceptionSafeCheck("CExceptionSafeCheck", DMibPFile, DMibPLine, DMibPFunction, _pError, true);
 	}
 #else
-	TCThrowsException<> fg_ViolatesAssert()
+	TCThrowsException<> fg_ViolatesSafeCheck()
 	{
 		return TCThrowsException<>();
 	}
-	TCThrowsException<> fg_ViolatesAssert(const ch8 *_pError)
+	TCThrowsException<> fg_ViolatesSafeCheck(const ch8 *_pError)
 	{
 		return TCThrowsException<>();
 	}
