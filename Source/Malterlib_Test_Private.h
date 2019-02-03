@@ -241,11 +241,13 @@ namespace NMib::NTest::NPrivate
 	public:
 		CTestReporterScope(CTestResults &_NewResults)
 		{
+			DMibThreadLocalScopeEnter;
 			m_pOldResults = fg_SetResultReporter(&_NewResults);
 		}
 		~CTestReporterScope()
 		{
 			fg_SetResultReporter(m_pOldResults);
+			DMibThreadLocalScopeExit;
 		}
 	};
 
@@ -560,12 +562,14 @@ namespace NMib::NTest::NPrivate
 	public:
 		CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
 		{
+			DMibThreadLocalScopeEnter;
 			fg_SetTestLastLocation(_pFile, _Line);
 			m_PreviousPath = NMib::NTest::NPrivate::fg_PushCategory(_Path);
 		}
 		~CTestPathScope()
 		{
 			NMib::NTest::NPrivate::fg_PopCategory(m_PreviousPath);
+			DMibThreadLocalScopeExit;
 		}
 	};
 
@@ -586,6 +590,7 @@ namespace NMib::NTest::NPrivate
 			, mp_Line(_Line)
 			, mp_Flags(_Flags)
 		{
+			DMibThreadLocalScopeEnter;
 			fg_SetTestLastLocation(_pFile, _Line);
 
 			DMibFastCheck(_Category.f_GetCategory().f_FindChar('/') < 0 && _Category.f_GetCategory().f_FindChar('\\') < 0);
@@ -610,6 +615,7 @@ namespace NMib::NTest::NPrivate
 			if (mp_Flags & (ETestCategoryFlag_DisableExceptionFilter | ETestCategoryFlag_EnableExceptionFilter))
 				NMib::NTest::NPrivate::fg_SetEnableExceptionFilter(mp_bOldEnableExceptionFilter);
 			NMib::NTest::NPrivate::fg_InsideTestSuite(false);
+			DMibThreadLocalScopeExit;
 		}
 
 		void operator % (NFunction::TCFunction<void ()> const &_Function)
