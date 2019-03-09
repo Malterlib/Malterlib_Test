@@ -237,18 +237,19 @@ namespace NMib::NTest::NPrivate
 
 	class CTestReporterScope
 	{
-		CTestResults *m_pOldResults;
 	public:
 		CTestReporterScope(CTestResults &_NewResults)
 		{
-			DMibThreadLocalScopeEnter;
 			m_pOldResults = fg_SetResultReporter(&_NewResults);
 		}
 		~CTestReporterScope()
 		{
 			fg_SetResultReporter(m_pOldResults);
-			DMibThreadLocalScopeExit;
 		}
+
+	private:
+		DMibThreadLocalScopeDebugMember;
+		CTestResults *m_pOldResults;
 	};
 
 	class CTest;
@@ -558,29 +559,24 @@ namespace NMib::NTest::NPrivate
 
 	class CTestPathScope
 	{
-		NStr::CStr m_PreviousPath;
 	public:
 		CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
 		{
-			DMibThreadLocalScopeEnter;
 			fg_SetTestLastLocation(_pFile, _Line);
 			m_PreviousPath = NMib::NTest::NPrivate::fg_PushCategory(_Path);
 		}
 		~CTestPathScope()
 		{
 			NMib::NTest::NPrivate::fg_PopCategory(m_PreviousPath);
-			DMibThreadLocalScopeExit;
 		}
+
+	private:
+		DMibThreadLocalScopeDebugMember;
+		NStr::CStr m_PreviousPath;
 	};
 
 	class CTestCategoryScope
 	{
-		CTestCategory mp_Category;
-		bint mp_bOldEnableValues;
-		bint mp_bOldEnableExceptionFilter;
-		const ch8 *mp_pFile;
-		int32 mp_Line;
-		ETestCategoryFlag mp_Flags;
 		bool f_ContinueEnumerating() const;
 		void f_ReportLeafCategory();
 	public:
@@ -590,7 +586,6 @@ namespace NMib::NTest::NPrivate
 			, mp_Line(_Line)
 			, mp_Flags(_Flags)
 		{
-			DMibThreadLocalScopeEnter;
 			fg_SetTestLastLocation(_pFile, _Line);
 
 			DMibFastCheck(_Category.f_GetCategory().f_FindChar('/') < 0 && _Category.f_GetCategory().f_FindChar('\\') < 0);
@@ -615,7 +610,6 @@ namespace NMib::NTest::NPrivate
 			if (mp_Flags & (ETestCategoryFlag_DisableExceptionFilter | ETestCategoryFlag_EnableExceptionFilter))
 				NMib::NTest::NPrivate::fg_SetEnableExceptionFilter(mp_bOldEnableExceptionFilter);
 			NMib::NTest::NPrivate::fg_InsideTestSuite(false);
-			DMibThreadLocalScopeExit;
 		}
 
 		void operator % (NFunction::TCFunction<void ()> const &_Function)
@@ -724,6 +718,15 @@ namespace NMib::NTest::NPrivate
 				NMib::NTest::NPrivate::fg_SetGroups(OldGroups);
 			NMib::NTest::NPrivate::fg_PopCategory(PreviousPath);
 		}
+
+	private:
+		DMibThreadLocalScopeDebugMember;
+		CTestCategory mp_Category;
+		bint mp_bOldEnableValues;
+		bint mp_bOldEnableExceptionFilter;
+		const ch8 *mp_pFile;
+		int32 mp_Line;
+		ETestCategoryFlag mp_Flags;
 	};
 #endif
 }
