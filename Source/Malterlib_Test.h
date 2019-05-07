@@ -265,7 +265,17 @@ namespace NMib::NTest
 		CTestGroup(NStr::CStr const &_Group)
 			: mp_Group(_Group)
 		{
-			DMibRequire(_Group == "Performance" || _Group == "Torture" || _Group == "Memory" || _Group == "Unfinished" || _Group == "Expensive" || _Group == "Manual");
+			DMibRequire
+				(
+				 	_Group == "Performance"
+				 	|| _Group == "Torture"
+				 	|| _Group == "Memory"
+				 	|| _Group == "Unfinished"
+				 	|| _Group == "Expensive"
+				 	|| _Group == "Manual"
+				 	|| _Group == "SuperUser"
+				)
+			;
 		}
 		NStr::CStr const &f_GetGroup() const
 		{

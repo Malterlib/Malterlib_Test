@@ -1136,19 +1136,19 @@ namespace NMib::NTest
 			{
 				using namespace NMib::NCommandLine;
 
-				COption Tests("Tests","t","run tests contained in this binary");
+				COption Tests("Tests", "t", "run tests contained in this binary");
 				Tests.f_Add(CValue("Path"));
 				Parser.f_Add(Tests);
 
-				COption TestsList("TestsList","l","list test categories contained in this binary");
+				COption TestsList("TestsList", "l", "list test categories contained in this binary");
 				TestsList.f_Add(CValue("Path"));
 				Parser.f_Add(TestsList);
 
-				COption TestData("TestData","d","supply extra general data to tests");
+				COption TestData("TestData", "d", "supply extra general data to tests");
 				TestData.f_Add(CValue("Data"));
 				Parser.f_Add(TestData);
 
-				COption TestResults("TestResults","r","filter test results");
+				COption TestResults("TestResults", "r", "filter test results");
 				{
 					CValue::CValidValues Valid;
 					Valid.f_Insert("All");
@@ -1171,7 +1171,7 @@ namespace NMib::NTest
 				}
 				Parser.f_Add(TestResults);
 
-				COption TestLogger("TestLogger","L","specify the logger to use");
+				COption TestLogger("TestLogger", "L", "specify the logger to use");
 				{
 					CValue::CValidValues Valid;
 					Valid.f_Insert("Default");
@@ -1182,34 +1182,18 @@ namespace NMib::NTest
 				}
 				Parser.f_Add(TestLogger);
 
-				COption TestGroups("TestGroups","G","specify the groups to include in test");
-				{
-					CValue::CValidValues Valid;
-					Valid.f_Insert("Default");
-					Valid.f_Insert("Performance");
-					Valid.f_Insert("Torture");
-					Valid.f_Insert("Memory");
-					Valid.f_Insert("Unfinished");
-					Valid.f_Insert("Expensive");
-					Valid.f_Insert("Manual");
-					Valid.f_Insert("");
-					TestGroups.f_AddList(CValue("Groups", Valid));
-				}
+				auto fGroups = []() -> CValue::CValidValues
+					{
+						return {"Default", "Performance", "Torture", "Memory", "Unfinished", "Expensive", "Manual", "SuperUser", ""};
+					}
+				;
+
+				COption TestGroups("TestGroups", "G", "specify the groups to include in test");
+				TestGroups.f_AddList(CValue("Groups", fGroups()));
 				Parser.f_Add(TestGroups);
 
-				COption TestExcludeGroups("TestExcludeGroups","E","specify the groups to exclude from test");
-				{
-					CValue::CValidValues Valid;
-					Valid.f_Insert("Default");
-					Valid.f_Insert("Performance");
-					Valid.f_Insert("Torture");
-					Valid.f_Insert("Memory");
-					Valid.f_Insert("Unfinished");
-					Valid.f_Insert("Expensive");
-					Valid.f_Insert("Manual");
-					Valid.f_Insert("");
-					TestExcludeGroups.f_AddList(CValue("Groups", Valid));
-				}
+				COption TestExcludeGroups("TestExcludeGroups", "E", "specify the groups to exclude from test");
+				TestExcludeGroups.f_AddList(CValue("Groups", fGroups()));
 				Parser.f_Add(TestExcludeGroups);
 
 				try
@@ -1238,39 +1222,39 @@ namespace NMib::NTest
 		RunOptions.m_ReportFlags = ETestReportFlag_None;
 		if (Options.f_IsSet("TestResults"))
 		{
-			if (Options.f_HasList("TestResults","Display"))
+			if (Options.f_HasList("TestResults", "Display"))
 			{
-				if (Options.f_HasListItem("TestResults","Display","All"))
+				if (Options.f_HasListItem("TestResults", "Display", "All"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_All;
-				if (Options.f_HasListItem("TestResults","Display","Default"))
+				if (Options.f_HasListItem("TestResults", "Display", "Default"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_Default;
-				if (Options.f_HasListItem("TestResults","Display","Success"))
+				if (Options.f_HasListItem("TestResults", "Display", "Success"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_Success;
-				if (Options.f_HasListItem("TestResults","Display","Warning"))
+				if (Options.f_HasListItem("TestResults", "Display", "Warning"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_Warning;
-				if (Options.f_HasListItem("TestResults","Display","Fail"))
+				if (Options.f_HasListItem("TestResults", "Display", "Fail"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_Fail;
-				if (Options.f_HasListItem("TestResults","Display","FailAndStop"))
+				if (Options.f_HasListItem("TestResults", "Display", "FailAndStop"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_FailAndStop;
-				if (Options.f_HasListItem("TestResults","Display","ExpectFail"))
+				if (Options.f_HasListItem("TestResults", "Display", "ExpectFail"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_ExpectFail;
-				if (Options.f_HasListItem("TestResults","Display","ExectFailAndStop"))
+				if (Options.f_HasListItem("TestResults", "Display", "ExectFailAndStop"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_ExpectFailAndStop;
-				if (Options.f_HasListItem("TestResults","Display","UseColor"))
+				if (Options.f_HasListItem("TestResults", "Display", "UseColor"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_UseColor;
-				if (Options.f_HasListItem("TestResults","Display","DetailedPerformance"))
+				if (Options.f_HasListItem("TestResults", "Display", "DetailedPerformance"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_DetailedPerformance;
-				if (Options.f_HasListItem("TestResults","Display","Ignored"))
+				if (Options.f_HasListItem("TestResults", "Display", "Ignored"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_Ignored;
-				if (Options.f_HasListItem("TestResults","Display","DetailedMemory"))
+				if (Options.f_HasListItem("TestResults", "Display", "DetailedMemory"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_DetailedMemory;
-				if (Options.f_HasListItem("TestResults","Display","BreakOnFail"))
+				if (Options.f_HasListItem("TestResults", "Display", "BreakOnFail"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_BreakOnFail;
-				if (Options.f_HasListItem("TestResults","Display","ProcessRecursive"))
+				if (Options.f_HasListItem("TestResults", "Display", "ProcessRecursive"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_ProcessRecursive;
-				if (Options.f_HasListItem("TestResults","Display","CompareToBaseline"))
+				if (Options.f_HasListItem("TestResults", "Display", "CompareToBaseline"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_CompareToBaseline;
-				if (Options.f_HasListItem("TestResults","Display","CrashOnException"))
+				if (Options.f_HasListItem("TestResults", "Display", "CrashOnException"))
 					RunOptions.m_ReportFlags |= ETestReportFlag_CrashOnException;
 
 
@@ -1280,68 +1264,72 @@ namespace NMib::NTest
 			RunOptions.m_ReportFlags = ETestReportFlag_Default;
 		if (Options.f_IsSet("TestGroups"))
 		{
-			if (Options.f_HasList("TestGroups","Groups"))
+			if (Options.f_HasList("TestGroups", "Groups"))
 			{
-				if (Options.f_HasListItem("TestGroups","Groups","Default"))
+				if (Options.f_HasListItem("TestGroups", "Groups", "Default"))
 					RunOptions.m_IncludeGroups.f_Insert("");
-				if (Options.f_HasListItem("TestGroups","Groups","Performance"))
+				if (Options.f_HasListItem("TestGroups", "Groups", "Performance"))
 					RunOptions.m_IncludeGroups.f_Insert("Performance");
-				if (Options.f_HasListItem("TestGroups","Groups","Torture"))
+				if (Options.f_HasListItem("TestGroups", "Groups", "Torture"))
 					RunOptions.m_IncludeGroups.f_Insert("Torture");
-				if (Options.f_HasListItem("TestGroups","Groups","Memory"))
+				if (Options.f_HasListItem("TestGroups", "Groups", "Memory"))
 					RunOptions.m_IncludeGroups.f_Insert("Memory");
-				if (Options.f_HasListItem("TestGroups","Groups","Unfinished"))
+				if (Options.f_HasListItem("TestGroups", "Groups", "Unfinished"))
 					RunOptions.m_IncludeGroups.f_Insert("Unfinished");
-				if (Options.f_HasListItem("TestGroups","Groups","Expensive"))
+				if (Options.f_HasListItem("TestGroups", "Groups", "Expensive"))
 					RunOptions.m_IncludeGroups.f_Insert("Expensive");
-				if (Options.f_HasListItem("TestGroups","Groups","Manual"))
+				if (Options.f_HasListItem("TestGroups", "Groups", "Manual"))
 					RunOptions.m_IncludeGroups.f_Insert("Manual");
-				if (Options.f_HasListItem("TestGroups","Groups",""))
+				if (Options.f_HasListItem("TestGroups", "Groups", "SuperUser"))
+					RunOptions.m_IncludeGroups.f_Insert("SuperUser");
+				if (Options.f_HasListItem("TestGroups", "Groups", ""))
 					RunOptions.m_IncludeGroups.f_Insert("");
 			}
 		}
 		if (Options.f_IsSet("TestExcludeGroups"))
 		{
-			if (Options.f_HasList("TestExcludeGroups","Groups"))
+			if (Options.f_HasList("TestExcludeGroups", "Groups"))
 			{
-				if (Options.f_HasListItem("TestExcludeGroups","Groups","Default"))
+				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Default"))
 					RunOptions.m_ExcludeGroups.f_Insert("");
-				if (Options.f_HasListItem("TestExcludeGroups","Groups","Performance"))
+				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Performance"))
 					RunOptions.m_ExcludeGroups.f_Insert("Performance");
-				if (Options.f_HasListItem("TestExcludeGroups","Groups","Torture"))
+				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Torture"))
 					RunOptions.m_ExcludeGroups.f_Insert("Torture");
-				if (Options.f_HasListItem("TestExcludeGroups","Groups","Memory"))
+				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Memory"))
 					RunOptions.m_ExcludeGroups.f_Insert("Memory");
-				if (Options.f_HasListItem("TestExcludeGroups","Groups","Unfinished"))
+				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Unfinished"))
 					RunOptions.m_ExcludeGroups.f_Insert("Unfinished");
-				if (Options.f_HasListItem("TestExcludeGroups","Groups","Expensive"))
+				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Expensive"))
 					RunOptions.m_ExcludeGroups.f_Insert("Expensive");
-				if (Options.f_HasListItem("TestExcludeGroups","Groups","Manual"))
+				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Manual"))
 					RunOptions.m_ExcludeGroups.f_Insert("Manual");
-				if (Options.f_HasListItem("TestGroups","Groups",""))
+				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "SuperUser"))
+					RunOptions.m_ExcludeGroups.f_Insert("SuperUser");
+				if (Options.f_HasListItem("TestGroups", "Groups", ""))
 					RunOptions.m_IncludeGroups.f_Insert("");
 			}
 		}
 
 		if (Options.f_IsSet("TestsList"))
 		{
-			if (Options.f_HasValue("TestsList","Path") )
-				RunOptions.m_Paths.f_Insert(fg_StrSplit(Options.f_GetValue("TestsList","Path"), ";"));
+			if (Options.f_HasValue("TestsList", "Path"))
+				RunOptions.m_Paths.f_Insert(fg_StrSplit(Options.f_GetValue("TestsList", "Path"), ";"));
 			RunOptions.m_ReportFlags |= ETestReportFlag_ReportCategories;
 			pResults = &CategoryResults;
 		}
 		else if (Options.f_IsSet("Tests"))
 		{
 			NContainer::TCVector<NStr::CStr> Paths;
-			if (Options.f_HasValue("Tests","Path") )
-				RunOptions.m_Paths.f_Insert(fg_StrSplit(Options.f_GetValue("Tests","Path"), ";"));
-			//auto Path = Options.f_HasValue("TestsList","Path") ? Options.f_GetValue("TestsList","Path") : "";
+			if (Options.f_HasValue("Tests", "Path"))
+				RunOptions.m_Paths.f_Insert(fg_StrSplit(Options.f_GetValue("Tests", "Path"), ";"));
+			//auto Path = Options.f_HasValue("TestsList", "Path") ? Options.f_GetValue("TestsList", "Path") : "";
 		}
 
 		if (Options.f_IsSet("TestData"))
 		{
-			if (Options.f_HasValue("TestData","Data") )
-				RunOptions.m_ExtraData = Options.f_GetValue("TestData","Data");
+			if (Options.f_HasValue("TestData", "Data") )
+				RunOptions.m_ExtraData = Options.f_GetValue("TestData", "Data");
 		}
 		if (Options.f_IsSet("TestLogger"))
 		{
