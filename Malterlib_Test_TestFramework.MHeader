@@ -156,6 +156,10 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 		MalterlibAppTestPostCopyProject "Tests"
 		MalterlibAppTestPostCopyDestination "TestApps/@(Target.BaseFileName)/"
 		EnableTestConfigs true
+		MalterlibLog_Severities "Error;Critical;Warning;Info"
+		{
+			!!MalterlibLog_EnableVerboseDebugLog false
+		}
 		OnlyTestConfigs true
 		{
 			!!OnlyTestConfigs ""
@@ -197,6 +201,10 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 	{
 		MalterlibEnableFastLink false
 		EnableTestConfigs true
+		MalterlibLog_Severities "Error;Critical;Warning;Info"
+		{
+			!!MalterlibLog_EnableVerboseDebugLog false
+		}
 		OnlyTestConfigs true
 		{
 			!!OnlyTestConfigs ""
