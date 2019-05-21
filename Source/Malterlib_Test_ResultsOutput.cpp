@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Test/Test>
@@ -739,7 +739,7 @@ namespace NMib::NTest
 	namespace NPrivate
 	{
 
-		void CRegistryTestResults::fsp_DecodeStatistics(NContainer::CRegistry_CStr const &_ParentReg, CTestStats &_Stats)
+		void CRegistryTestResults::fsp_DecodeStatistics(NContainer::CRegistry const &_ParentReg, CTestStats &_Stats)
 		{
 			_Stats.m_Min = _ParentReg.f_GetValueNoPath("Min").f_ToFloat(_Stats.m_Min);
 			_Stats.m_Max = _ParentReg.f_GetValueNoPath("Max").f_ToFloat(_Stats.m_Max);
@@ -748,9 +748,9 @@ namespace NMib::NTest
 			_Stats.m_StdDev = _ParentReg.f_GetValueNoPath("StdDev").f_ToFloat(_Stats.m_StdDev);
 		}
 
-		NContainer::CRegistry_CStr *CRegistryTestResults::fsp_AddStatistics(NContainer::CRegistry_CStr *_pParentReg, NStr::CStr const &_Name, CTestStats const &_Stats)
+		NContainer::CRegistry *CRegistryTestResults::fsp_AddStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestStats const &_Stats)
 		{
-			NContainer::CRegistry_CStr *pStat = _pParentReg->f_CreateChild("Stat", true);
+			NContainer::CRegistry *pStat = _pParentReg->f_CreateChild("Stat", true);
 			pStat->f_SetThisValue(_Name);
 
 			pStat->f_SetValue("Min", NStr::CStr::fs_ToStr(_Stats.m_Min));
@@ -762,7 +762,7 @@ namespace NMib::NTest
 			return pStat;
 		}
 
-		void CRegistryTestResults::fsp_DecodeMemoryStatistics(NContainer::CRegistry_CStr const &_ParentReg, CTestMemoryStats &_Stats)
+		void CRegistryTestResults::fsp_DecodeMemoryStatistics(NContainer::CRegistry const &_ParentReg, CTestMemoryStats &_Stats)
 		{
 			for (auto Iter = _ParentReg.f_GetChildIterator("Stat"); Iter && Iter->f_GetName() == "Stat"; ++Iter)
 			{
@@ -813,9 +813,9 @@ namespace NMib::NTest
 			}
 		}
 
-		NContainer::CRegistry_CStr *CRegistryTestResults::fsp_AddMemoryStatistics(NContainer::CRegistry_CStr *_pParentReg, NStr::CStr const &_Name, CTestMemoryStats const &_Stats)
+		NContainer::CRegistry *CRegistryTestResults::fsp_AddMemoryStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestMemoryStats const &_Stats)
 		{
-			NContainer::CRegistry_CStr *pAllocationType = _pParentReg->f_CreateChild("AllocationType", true);
+			NContainer::CRegistry *pAllocationType = _pParentReg->f_CreateChild("AllocationType", true);
 			pAllocationType->f_SetThisValue(_Name);
 
 			fsp_AddStatistics(pAllocationType, "Num allocations", _Stats.m_nAllocations);
@@ -1059,8 +1059,8 @@ namespace NMib::NTest
 		void CRegistryTestResults::f_ReportHeader(ETestReportFlag _ReportFlags)
 		{
 			mp_ReportFlags = _ReportFlags;
-			NContainer::CRegistry_CStr Registry;
-			NContainer::CRegistry_CStr *pReg = Registry.f_CreateChild("Header");
+			NContainer::CRegistry Registry;
+			NContainer::CRegistry *pReg = Registry.f_CreateChild("Header");
 			pReg->f_SetValue("Executable", NFile::CFile::fs_GetProgramPath());
 			pReg->f_SetValue("Command Line", NSys::fg_CommandLineParameters());
 			pReg->f_SetValue("Domain", NProcess::NPlatform::fg_Process_GetComputerDomain());
@@ -1071,8 +1071,8 @@ namespace NMib::NTest
 
 		void CRegistryTestResults::f_ReportFooter(mint _nTestsTotal, mint _nSuccessful, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored)
 		{
-			NContainer::CRegistry_CStr Registry;
-			NContainer::CRegistry_CStr *pReg = Registry.f_CreateChild("Footer");
+			NContainer::CRegistry Registry;
+			NContainer::CRegistry *pReg = Registry.f_CreateChild("Footer");
 			pReg->f_SetValue("TestsTotal", NStr::CStr::fs_ToStr(_nTestsTotal));
 			pReg->f_SetValue("TestsSuccessful", NStr::CStr::fs_ToStr(_nSuccessful));
 			pReg->f_SetValue("TestsSuccessUnexpected", NStr::CStr::fs_ToStr(_nSuccessUnexpected));
@@ -1134,7 +1134,7 @@ namespace NMib::NTest
 				return ETestNeedReportFlag_Count;
 		}
 
-		void CRegistryTestResults::fs_DecodeResult(NContainer::CRegistry_CStr const &_Registry, CTestResult &_Results)
+		void CRegistryTestResults::fs_DecodeResult(NContainer::CRegistry const &_Registry, CTestResult &_Results)
 		{
 			_Results.m_ResultID = _Registry.f_GetThisValue().f_ToInt(_Results.m_ResultID);
 			_Results.m_ThreadID = _Registry.f_GetValueNoPath("Thread").f_ToInt(_Results.m_ThreadID);
@@ -1166,8 +1166,8 @@ namespace NMib::NTest
 		{
 			uint32 &CurrentID = *m_CurrentID;
 			CurrentID = m_NextID.f_FetchAdd(1);
-			NContainer::CRegistry_CStr Registry;
-			NContainer::CRegistry_CStr *pReg = Registry.f_CreateChild("Result");
+			NContainer::CRegistry Registry;
+			NContainer::CRegistry *pReg = Registry.f_CreateChild("Result");
 			pReg->f_SetThisValue(NStr::CStr::fs_ToStr(CurrentID));
 			pReg->f_SetValue("Thread", NStr::CStr::fs_ToStr(NSys::fg_Thread_GetCurrentUID()));
 			pReg->f_SetValue("Path", _TestPath);
@@ -1184,19 +1184,19 @@ namespace NMib::NTest
 		}
 		void CRegistryTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
 		{
-			NContainer::CRegistry_CStr Registry;
-			NContainer::CRegistry_CStr *pReg = Registry.f_CreateChild("Category");
+			NContainer::CRegistry Registry;
+			NContainer::CRegistry *pReg = Registry.f_CreateChild("Category");
 			pReg->f_SetValue("Path", _TestPath);
 			pReg->f_SetValue("File", _Location.m_File);
 			pReg->f_SetValue("Line", NStr::CStr::fs_ToStr(_Location.m_Line));
 			pReg->f_SetValue("Thread", NStr::CStr::fs_ToStr(NSys::fg_Thread_GetCurrentUID()));
-			NContainer::CRegistry_CStr *pGroups = pReg->f_CreateChild("Groups", true);
+			NContainer::CRegistry *pGroups = pReg->f_CreateChild("Groups", true);
 			NMisc::fg_ForEach
 				(
 					_TestGroups
 					, [&](NContainer::CMapNoData const &_Group)
 					{
-						NContainer::CRegistry_CStr *pGroup = pGroups->f_CreateChild("Group", true);
+						NContainer::CRegistry *pGroup = pGroups->f_CreateChild("Group", true);
 						pGroup->f_SetThisValue(NContainer::TCMap<NStr::CStr>::fs_GetKey(_Group));
 					}
 				)
@@ -1204,7 +1204,7 @@ namespace NMib::NTest
 			DMibConOut("{}", Registry.f_GenerateStr());
 		}
 
-		void CRegistryTestResults::fs_DecodePerformanceResults(NContainer::CRegistry_CStr const &_Registry, CTestPerformanceResults &_Results)
+		void CRegistryTestResults::fs_DecodePerformanceResults(NContainer::CRegistry const &_Registry, CTestPerformanceResults &_Results)
 		{
 			_Results.m_Tolerance = _Registry.f_GetValueNoPath("Tolerance").f_ToFloat(fp64(1.0));
 
@@ -1234,8 +1234,8 @@ namespace NMib::NTest
 		{
 			uint32 const &CurrentID = *m_CurrentID;
 
-			NContainer::CRegistry_CStr Registry;
-			NContainer::CRegistry_CStr *pReg = Registry.f_CreateChild("ResultsPerformance");
+			NContainer::CRegistry Registry;
+			NContainer::CRegistry *pReg = Registry.f_CreateChild("ResultsPerformance");
 			pReg->f_SetThisValue(NStr::CStr::fs_ToStr(CurrentID));
 			pReg->f_SetValue("Tolerance", NStr::CStr::fs_ToStr(_Results.m_Tolerance));
 
@@ -1243,14 +1243,14 @@ namespace NMib::NTest
 			for (mint i = 0; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = _Results.m_Results[i];
-				NContainer::CRegistry_CStr *pResultReg = pReg->f_CreateChild("Result", true);
+				NContainer::CRegistry *pResultReg = pReg->f_CreateChild("Result", true);
 				pResultReg->f_SetThisValue(Result.m_Name);
 				pResultReg->f_SetValue("MeasureType", fs_MeasureTypeToStr(Result.m_MeasureType));
 				pResultReg->f_SetValue("NumIterations", NStr::CStr::fs_ToStr(Result.m_nIterations));
 				pResultReg->f_SetValue("NumRepetitions", NStr::CStr::fs_ToStr(Result.m_nRepetitions));
 				pResultReg->f_SetValue("NumContributingThreads", NStr::CStr::fs_ToStr(Result.m_nContributingThreads));
 
-				NContainer::CRegistry_CStr *pPerfReg = pResultReg->f_CreateChild("PerformanceStats", true);
+				NContainer::CRegistry *pPerfReg = pResultReg->f_CreateChild("PerformanceStats", true);
 				fsp_AddStatistics(pPerfReg, "Time", Result.m_Time);
 				fsp_AddStatistics(pPerfReg, "Cycles", Result.m_Cycles);
 
@@ -1263,7 +1263,7 @@ namespace NMib::NTest
 			DMibConOut("{}", Registry.f_GenerateStr());
 		}
 
-		void CRegistryTestResults::fs_DecodeMemoryResults(NContainer::CRegistry_CStr const &_Registry, CTestMemoryResults &_Results)
+		void CRegistryTestResults::fs_DecodeMemoryResults(NContainer::CRegistry const &_Registry, CTestMemoryResults &_Results)
 		{
 			_Results.m_Tolerance = _Registry.f_GetValueNoPath("Tolerance").f_ToFloat(fp64(1.0));
 
@@ -1290,8 +1290,8 @@ namespace NMib::NTest
 		{
 			uint32 const &CurrentID = *m_CurrentID;
 
-			NContainer::CRegistry_CStr Registry;
-			NContainer::CRegistry_CStr *pReg = Registry.f_CreateChild("ResultsMemory");
+			NContainer::CRegistry Registry;
+			NContainer::CRegistry *pReg = Registry.f_CreateChild("ResultsMemory");
 			pReg->f_SetThisValue(NStr::CStr::fs_ToStr(CurrentID));
 			pReg->f_SetValue("Tolerance", NStr::CStr::fs_ToStr(_Results.m_Tolerance));
 
@@ -1299,12 +1299,12 @@ namespace NMib::NTest
 			for (mint i = 0; i < nResults; ++i)
 			{
 				CTestMemoryResult const &Result = _Results.m_Results[i];
-				NContainer::CRegistry_CStr *pResultReg = pReg->f_CreateChild("Result", true);
+				NContainer::CRegistry *pResultReg = pReg->f_CreateChild("Result", true);
 				pResultReg->f_SetThisValue(Result.m_Name);
 				pResultReg->f_SetValue("MeasureType", fs_MeasureTypeToStr(Result.m_MeasureType));
 				pResultReg->f_SetValue("NumIterations", NStr::CStr::fs_ToStr(Result.m_nIterations));
 				pResultReg->f_SetValue("NumRepetitions", NStr::CStr::fs_ToStr(Result.m_nRepetitions));
-				NContainer::CRegistry_CStr *pPerfReg = pResultReg->f_CreateChild("MemoryStats", true);
+				NContainer::CRegistry *pPerfReg = pResultReg->f_CreateChild("MemoryStats", true);
 				fsp_AddMemoryStatistics(pPerfReg, "All", Result.m_AllAllocations);
 
 				for (auto Iter = Result.m_PerAllocationType.f_GetIterator(); Iter; ++Iter)

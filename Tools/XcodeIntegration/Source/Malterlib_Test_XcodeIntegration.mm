@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Core/Core>
@@ -56,12 +56,12 @@ TCAggregate<TCVector<CStr>> g_FilteredCommandLine = {DAggregateInit};
 
 @implementation MalterlibTestCase
 
-+ (NSBundle *)bundleForClass 
++ (NSBundle *)bundleForClass
 {
     return [NSBundle bundleForClass:[MalterlibTestLoader class]];
 }
 
-+ (NSArray *)testInvocations 
++ (NSArray *)testInvocations
 {
     NSMutableArray *invocations = [NSMutableArray array];
 
@@ -100,16 +100,16 @@ static void fg_RunTests
 				, TCFunction<void (CTestResult const &_TestResult)> const &_fOnTestResult
 			)
 			: mp_fOnCategory(_fOnCategory)
-			, mp_fOnTestResult(_fOnTestResult) 
+			, mp_fOnTestResult(_fOnTestResult)
 		{
 		}
-		virtual void f_HandleHeader(NMib::NContainer::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleHeader(NMib::NContainer::CRegistry const &_Reg) override
 		{
 		}
-		virtual void f_HandleFooter(NMib::NContainer::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleFooter(NMib::NContainer::CRegistry const &_Reg) override
 		{
 		}
-		virtual void f_HandleCategory(NMib::NContainer::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleCategory(NMib::NContainer::CRegistry const &_Reg) override
 		{
 			CStr TestPath = _Reg.f_GetValue("Path", "");
 			CTestLocation Location;
@@ -124,16 +124,16 @@ static void fg_RunTests
 			}
 			mp_fOnCategory(TestPath, Location, Thread, Groups);
 		}
-		virtual void f_HandleResult(NMib::NContainer::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleResult(NMib::NContainer::CRegistry const &_Reg) override
 		{
 			CTestResult Result;
 			CTestResultParser::fs_DecodeResult(_Reg, Result);
 			mp_fOnTestResult(Result);
 		}
-		virtual void f_HandlePerformanceResult(NMib::NContainer::CRegistry_CStr const &_Reg) override
+		virtual void f_HandlePerformanceResult(NMib::NContainer::CRegistry const &_Reg) override
 		{
 		}
-		virtual void f_HandleMemoryResult(NMib::NContainer::CRegistry_CStr const &_Reg) override
+		virtual void f_HandleMemoryResult(NMib::NContainer::CRegistry const &_Reg) override
 		{
 		}
 	private:
@@ -177,10 +177,10 @@ static void fg_RunTests
 			}
 		)
 	;
-	
+
 	NMib::NStorage::TCUniquePointer<CProcessLaunch> pProcessLaunch;
-	
-	Params.m_fOnOutput = 
+
+	Params.m_fOnOutput =
 		[&](EProcessLaunchOutputType _OutputType, NMib::NStr::CStr const &_Output)
 		{
 			if (_OutputType == EProcessLaunchOutputType_StdOut)
@@ -192,7 +192,7 @@ static void fg_RunTests
 	{
 		pProcessLaunch = NMib::fg_Construct(Params, EProcessLaunchCloseFlag_BlockOnExit);
 	}
-	
+
 	Exited.f_Wait();
 
 	pProcessLaunch.f_Clear();
@@ -217,15 +217,15 @@ CStr fg_MakeNiceName(CUStr const &_String)
 	return Return;
 }
 
-static void fg_RunTest(XCTestCase *_pSelf, SEL _Command) 
+static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 {
 	CStr TestPath = [NSStringFromSelector(_Command) UTF8String];
-	
+
 	auto pTestExecutable = (*g_TestClassToExecutable).f_FindEqual([_pSelf class]);
 	auto self = _pSelf;
 	XCTAssertTrue(pTestExecutable, @"No test executable found for class %@", [_pSelf class]);
 	auto &TestExecutable = **pTestExecutable;
-	
+
 	auto *pTestPath = TestExecutable.m_NameToPath.f_FindEqual(TestPath);
 	XCTAssertTrue(pTestPath, @"No test path found for function name %@", NSStringFromSelector(_Command));
 	TestPath = *pTestPath;
@@ -236,11 +236,11 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 	TestParams.f_Insert("--TestLogger");
 	TestParams.f_Insert("Registry");
 	TestParams.f_Insert(*g_FilteredCommandLine);
-	
+
 	fg_RunTests
 		(
 			TestExecutable.m_Executable
-			, TestParams 
+			, TestParams
 			, [&](CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)
 			{
 			}
@@ -265,7 +265,7 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 						fReportText(fg_Format("{}   {}   [{}]", _Result, _Expression, _Values));
 					}
 				;
-				
+
 				auto fReport = [&](NStr::CStr const &_MessageStr)
 					{
 						fAddReport(_MessageStr, _TestResult.m_TestPath, _TestResult.m_Message, _TestResult.m_Values);
@@ -298,7 +298,7 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 					}
 				}
 				else if (_TestResult.m_Result == ETestResult_Success)
-				{ 
+				{
 					switch (_TestResult.m_FailureAction)
 					{
 					case ETest_ExpectFail:
@@ -314,7 +314,7 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 					NSString *pPath = pFileName ? [@(pFileName) stringByStandardizingPath] : nil;
 					NSString *pDescription = @(OutputText.f_GetStr());
 					[
-						_pSelf 
+						_pSelf
 						recordFailureWithDescription: pDescription
 						inFile: pPath
 						atLine: (LineNumber >= 0 ? (NSUInteger)LineNumber : 0)
@@ -333,14 +333,14 @@ namespace NMib::NSys
 	void fg_CreateSystem();
 }
 
-+ (void)load 
++ (void)load
 {
 	NMib::NSys::fg_CreateSystem();
-	
+
 	TCVector<CStr> CommandLine = fg_GetSys()->f_GetCommandLineArgs();
 
 	CommandLine.f_Remove(0);
-	
+
 	for (auto iCommand = CommandLine.f_GetIterator(); iCommand;)
 	{
 		if (*iCommand == "-NSTreatUnknownArgumentsAsOpen")
@@ -360,32 +360,32 @@ namespace NMib::NSys
 		(*g_FilteredCommandLine).f_Insert(*iCommand);
 		++iCommand;
 	}
-	
+
 	TCVector<CStr> TestParams;
 	TestParams.f_Insert("--TestsList");
 	TestParams.f_Insert("--TestLogger");
 	TestParams.f_Insert("Registry");
 	TestParams.f_Insert(*g_FilteredCommandLine);
-	
+
 	NTime::CClock Clock{true};
 
 	TCActorResultVector<CTestExecutable> ConcurrentTests;
 
 	CStr ConfigSuffix = DConfigSuffix;
-	
+
 	for (mint i = 0; i < g_nAllTests; ++i)
 	{
 		CTestExecutable TestExecutable;
 		TestExecutable.m_Executable = CFile::fs_AppendPath(CStr(DMalterlibTestDeployPath), g_AllTests[i]);
-		CStr FileName = CFile::fs_GetFile(CStr(g_AllTests[i])); 
+		CStr FileName = CFile::fs_GetFile(CStr(g_AllTests[i]));
 		CStr Path = CFile::fs_GetPath(CStr(g_AllTests[i]));
 		if (FileName.f_StartsWith("Test_"))
 			FileName = FileName.f_Extract(5);
 		if (FileName.f_FindReverse(ConfigSuffix) == (FileName.f_GetLen() - ConfigSuffix.f_GetLen()))
 			FileName = FileName.f_Left(FileName.f_GetLen() - ConfigSuffix.f_GetLen());
-		
+
 		TestExecutable.m_Name = fg_MakeNiceName(CFile::fs_AppendPath(Path, FileName));
-		
+
 		fg_ConcurrentDispatch
 			(
 				[TestExecutable, &TestParams]() mutable
@@ -393,7 +393,7 @@ namespace NMib::NSys
 					fg_RunTests
 						(
 							TestExecutable.m_Executable
-							, TestParams 
+							, TestParams
 							, [&](CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)
 							{
 								auto &Test = TestExecutable.m_Tests.f_Insert();
@@ -414,13 +414,13 @@ namespace NMib::NSys
 			> ConcurrentTests.f_AddResult()
 		;
 	}
-	
+
 	for (auto &Results : ConcurrentTests.f_GetResults().f_CallSync())
 		g_TestExecutables->f_Insert(*Results);
-	
+
 	fp64 Runtime = Clock.f_GetTime();
 	DConErrOut("Enumerated tests in {} s\n", Runtime);
-	
+
 	for (auto &Executable : *g_TestExecutables)
 	{
 		DConErrOut("Register test executable: {}\n", Executable.m_Name);
@@ -448,7 +448,7 @@ namespace NMib::NSys
 			CStr Name = fg_MakeNiceName(Test.m_TestPath);
 			while (!UsedNames(Name).f_WasCreated())
 				Name = fg_MakeNiceName(fg_Format("{}{}", Distinguisher++, Test.m_TestPath));
-			Executable.m_NameToPath[Name] = Test.m_TestPath; 
+			Executable.m_NameToPath[Name] = Test.m_TestPath;
             SEL selector = sel_registerName(Name.f_GetStr());
             NSAssert1(selector, @"Failed to register select \"%@\"", @(Name.f_GetStr()));
             BOOL bAdded = class_addMethod(pTestClass, selector, (IMP)fg_RunTest, "v@:");

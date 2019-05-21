@@ -1,10 +1,11 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #pragma once
 
 #include "Malterlib_Test_Expression.h"
 #include <Mib/Core/RuntimeType>
+#include <Mib/Container/Registry>
 
 namespace NMib::NTest
 {
@@ -433,12 +434,12 @@ namespace NMib::NTest
 		NStr::CStr m_TextBuffer;
 		void fp_HandleRecord(NStr::CStr const &_Text);
 	public:
-		virtual void f_HandleHeader(NContainer::CRegistry_CStr const &_Reg) = 0;
-		virtual void f_HandleFooter(NContainer::CRegistry_CStr const &_Reg) = 0;
-		virtual void f_HandleCategory(NContainer::CRegistry_CStr const &_Reg) = 0;
-		virtual void f_HandleResult(NContainer::CRegistry_CStr const &_Reg) = 0;
-		virtual void f_HandlePerformanceResult(NContainer::CRegistry_CStr const &_Reg) = 0;
-		virtual void f_HandleMemoryResult(NContainer::CRegistry_CStr const &_Reg) = 0;
+		virtual void f_HandleHeader(NContainer::CRegistry const &_Reg) = 0;
+		virtual void f_HandleFooter(NContainer::CRegistry const &_Reg) = 0;
+		virtual void f_HandleCategory(NContainer::CRegistry const &_Reg) = 0;
+		virtual void f_HandleResult(NContainer::CRegistry const &_Reg) = 0;
+		virtual void f_HandlePerformanceResult(NContainer::CRegistry const &_Reg) = 0;
+		virtual void f_HandleMemoryResult(NContainer::CRegistry const &_Reg) = 0;
 		void f_FeedText(NStr::CStr const &_Text);
 
 		static NStr::CStr fs_MeasureTypeToStr(ETestMeasureType _MeasureType);
@@ -454,9 +455,9 @@ namespace NMib::NTest
 		static NStr::CStr fs_TestFlagsToStr(ETestFlag _Flags);
 		static ETestFlag fs_TestFlagsFromStr(NStr::CStr const &_Flags);
 
-		static void fs_DecodeMemoryResults(NContainer::CRegistry_CStr const &_Registry, CTestMemoryResults &_Results);
-		static void fs_DecodePerformanceResults(NContainer::CRegistry_CStr const &_Registry, CTestPerformanceResults &_Results);
-		static void fs_DecodeResult(NContainer::CRegistry_CStr const &_Registry, CTestResult &_Results);
+		static void fs_DecodeMemoryResults(NContainer::CRegistry const &_Registry, CTestMemoryResults &_Results);
+		static void fs_DecodePerformanceResults(NContainer::CRegistry const &_Registry, CTestPerformanceResults &_Results);
+		static void fs_DecodeResult(NContainer::CRegistry const &_Registry, CTestResult &_Results);
 	};
 
 	struct CRunTestOptions

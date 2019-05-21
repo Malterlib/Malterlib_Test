@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Test/Test>
@@ -1350,9 +1350,9 @@ namespace NMib::NTest
 
 	void CTestResultParser::fp_HandleRecord(NStr::CStr const &_Text)
 	{
-		NContainer::CRegistry_CStr Registry;
+		NContainer::CRegistry Registry;
 		Registry.f_ParseStr(_Text);
-		NContainer::CRegistry_CStr *pChild = nullptr;
+		NContainer::CRegistry *pChild = nullptr;
 		if ((pChild = Registry.f_GetChild("Header")))
 		{
 			f_HandleHeader(*pChild);
@@ -1469,15 +1469,15 @@ namespace NMib::NTest
 		return NPrivate::CRegistryTestResults::fs_CheckTypeFromStr(_CheckType);
 	}
 
-	void CTestResultParser::fs_DecodeMemoryResults(NContainer::CRegistry_CStr const &_Registry, CTestMemoryResults &_Results)
+	void CTestResultParser::fs_DecodeMemoryResults(NContainer::CRegistry const &_Registry, CTestMemoryResults &_Results)
 	{
 		return NPrivate::CRegistryTestResults::fs_DecodeMemoryResults(_Registry, _Results);
 	}
-	void CTestResultParser::fs_DecodePerformanceResults(NContainer::CRegistry_CStr const &_Registry, CTestPerformanceResults &_Results)
+	void CTestResultParser::fs_DecodePerformanceResults(NContainer::CRegistry const &_Registry, CTestPerformanceResults &_Results)
 	{
 		return NPrivate::CRegistryTestResults::fs_DecodePerformanceResults(_Registry, _Results);
 	}
-	void CTestResultParser::fs_DecodeResult(NContainer::CRegistry_CStr const &_Registry, CTestResult &_Results)
+	void CTestResultParser::fs_DecodeResult(NContainer::CRegistry const &_Registry, CTestResult &_Results)
 	{
 		return NPrivate::CRegistryTestResults::fs_DecodeResult(_Registry, _Results);
 	}

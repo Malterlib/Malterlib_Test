@@ -1,7 +1,9 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #pragma once
+
+#include <Mib/Container/Registry>
 
 namespace NMib::NTest::NPrivate
 {
@@ -59,11 +61,11 @@ namespace NMib::NTest::NPrivate
 		NAtomic::TCAtomic<int32> m_NextID;
 		NThread::TCThreadLocal<uint32> m_CurrentID;
 
-		static NContainer::CRegistry_CStr *fsp_AddStatistics(NContainer::CRegistry_CStr *_pParentReg, NStr::CStr const &_Name, CTestStats const &_Stats);
-		static NContainer::CRegistry_CStr *fsp_AddMemoryStatistics(NContainer::CRegistry_CStr *_pParentReg, NStr::CStr const &_Name, CTestMemoryStats const &_Stats);
+		static NContainer::CRegistry *fsp_AddStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestStats const &_Stats);
+		static NContainer::CRegistry *fsp_AddMemoryStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestMemoryStats const &_Stats);
 
-		static void fsp_DecodeStatistics(NContainer::CRegistry_CStr const &_ParentReg, CTestStats &_Stats);
-		static void fsp_DecodeMemoryStatistics(NContainer::CRegistry_CStr const &_ParentReg, CTestMemoryStats &_Stats);
+		static void fsp_DecodeStatistics(NContainer::CRegistry const &_ParentReg, CTestStats &_Stats);
+		static void fsp_DecodeMemoryStatistics(NContainer::CRegistry const &_ParentReg, CTestMemoryStats &_Stats);
 
 	public:
 
@@ -79,9 +81,9 @@ namespace NMib::NTest::NPrivate
 		static ETestResult fs_TestResultFromStr(NStr::CStr const &_TestResult);
 		static NStr::CStr fs_CheckTypeToStr(ECheckType _CheckType);
 		static ECheckType fs_CheckTypeFromStr(NStr::CStr const &_CheckType);
-		static void fs_DecodeMemoryResults(NContainer::CRegistry_CStr const &_Registry, CTestMemoryResults &_Results);
-		static void fs_DecodePerformanceResults(NContainer::CRegistry_CStr const &_Registry, CTestPerformanceResults &_Results);
-		static void fs_DecodeResult(NContainer::CRegistry_CStr const &_Registry, CTestResult &_Results);
+		static void fs_DecodeMemoryResults(NContainer::CRegistry const &_Registry, CTestMemoryResults &_Results);
+		static void fs_DecodePerformanceResults(NContainer::CRegistry const &_Registry, CTestPerformanceResults &_Results);
+		static void fs_DecodeResult(NContainer::CRegistry const &_Registry, CTestResult &_Results);
 
 		void f_ReportHeader(ETestReportFlag _ReportFlags) override;
 		void f_ReportFooter(mint _nTestsTotal, mint _nSuccessful, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored) override;
