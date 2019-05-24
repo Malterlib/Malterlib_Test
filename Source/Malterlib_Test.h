@@ -532,10 +532,12 @@ namespace NMib::NTest
 #	define DMibTestSuite(d_TestCategory) ::NMib::NTest::CTestCategoryScope(d_TestCategory, DMibPFile, DMibPLine, ::NMib::NTest::ETestCategoryFlag_Tests) % [&] ()
 #	define DMibTestCategoryFlags(d_TestCategory, d_Flags) ::NMib::NTest::CTestCategoryScope(d_TestCategory, DMibPFile, DMibPLine, d_Flags) % [&] ()
 #	define DMibTestPath(d_Path) ::NMib::NTest::CTestPathScope MalterlibTestPathScope(d_Path, DMibPFile, DMibPLine)
+
 #	if DMibConfig_Tests_Enable
 #		define DMibTest false ? false : ::NMib::NTest::CTestFunctionHelper(DMibPFile, DMibPLine, ::NMib::NTest::NPrivate::CDummyExpression())
 #		define DMibTestExpr(d_Expression) false ? false : ::NMib::NTest::CTestFunctionHelper(DMibPFile, DMibPLine, ::NMib::NTest::NPrivate::CDummyExpression())(DMibExpr(d_Expression))
 #		define DMibTestOnlyFail false ? false : ::NMib::NTest::CTestFunctionHelperOnlyFailure(DMibPFile, DMibPLine, ::NMib::NTest::NPrivate::CDummyExpression())
+#		define DMibTestMark ::NMib::NTest::NPrivate::fg_SetTestLastLocation(DMibPFile, DMibPLine)
 #	else
 		enum {DMibTestHelperExpression_A, DMibTestHelperExpression_B };
 		#define DMibTestHelperExpression_B(_Expression) DMibTestHelperExpression_OP(_Expression, A)
@@ -545,7 +547,7 @@ namespace NMib::NTest
 		#define DMibTest false ? false : DMibTestHelperExpression_A
 		#define DMibTestExpr(d_Expression) false ? false : DMibTestHelperExpression_A
 		#define DMibTestOnlyFail false ? false : DMibTestHelperExpression_A
-
+		#define DMibTestMark
 #	endif
 
 #	define DMibAssert(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
@@ -566,6 +568,7 @@ namespace NMib::NTest
 
 #	ifndef DMibPNoShortCuts
 #		define DTest DMibTest
+#		define DTestMark DMibTestMark
 #		define DAssert DMibAssert
 #		define DAssertException DMibAssertException
 #		define DAssertViolatesRequire DMibAssertViolatesRequire
