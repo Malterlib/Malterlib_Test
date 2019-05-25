@@ -243,7 +243,9 @@ public:
 					{
 						while (auto Entry = ToDispatch.f_Pop())
 							(*Entry)();
-						DispatchEvent.f_WaitTimeout(1.0);
+
+						if (!NotLaunched.f_IsEmpty() || nRunning > 0)
+							DispatchEvent.f_WaitTimeout(1.0);
 
 						if (bSignalled)
 						{
