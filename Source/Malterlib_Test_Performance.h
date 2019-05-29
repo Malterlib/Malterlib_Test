@@ -31,7 +31,7 @@ namespace NMib::NTest
 
 		static NTime::TCCycles<false> ms_CyclesCorrection;
 		static NTime::CTimer ms_TimerCorrection;
-		static bint ms_CalculateCorrection;
+		static bool ms_CalculateCorrection;
 
 		void fp_CalcRepetition();
 
@@ -113,14 +113,14 @@ namespace NMib::NTest
 	{
 		CTestPerformanceResults m_Results;
 		NContainer::TCMap<fp64, mint> m_References;
-		bint m_bModifyDescription;
+		bool m_bModifyDescription;
 		CTestPerformanceResult &fp_Add(CTestPerformanceMeasure &_Timer);
 		NStr::CStr fp_GetOutput() const;
 	public:
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
-		bint f_IsIgnored() const;
+		bool f_IsIgnored() const;
 #endif
-		CTestPerformance(fp64 const &_Tolerance, bint _bModifyDescription = true);
+		CTestPerformance(fp64 const &_Tolerance, bool _bModifyDescription = true);
 		void f_AddBaseline(CTestPerformanceMeasure &_Timer);
 		void f_AddReference(CTestPerformanceMeasure &_Timer);
 		void f_AddDebug(CTestPerformanceMeasure &_Timer);

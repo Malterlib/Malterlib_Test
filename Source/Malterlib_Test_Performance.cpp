@@ -16,7 +16,7 @@ namespace NMib::NTest
 
 	NTime::TCCycles<false> CTestPerformanceMeasure::ms_CyclesCorrection;
 	NTime::CTimer CTestPerformanceMeasure::ms_TimerCorrection;
-	bint CTestPerformanceMeasure::ms_CalculateCorrection = true;
+	bool CTestPerformanceMeasure::ms_CalculateCorrection = true;
 
 	CTestPerformanceMeasure::CTestPerformanceMeasure(NStr::CStr const &_Name)
 		: m_MinCycles(fp64::fs_Inf())
@@ -247,12 +247,12 @@ namespace NMib::NTest
 	}
 
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
-	bint CTestPerformance::f_IsIgnored() const
+	bool CTestPerformance::f_IsIgnored() const
 	{
 		return true;
 	}
 #endif
-	CTestPerformance::CTestPerformance(fp64 const &_Tolerance, bint _bModifyDescription)
+	CTestPerformance::CTestPerformance(fp64 const &_Tolerance, bool _bModifyDescription)
 	{
 		m_bModifyDescription = _bModifyDescription;
 		m_Results.m_Tolerance = _Tolerance;

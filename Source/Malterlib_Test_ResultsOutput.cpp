@@ -71,7 +71,7 @@ namespace NMib::NTest
 
 	ETestNeedReportFlag CTextTestResults::f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags)
 	{
-		bint bReport = false;
+		bool bReport = false;
 		if (_Result == ETestResult_Fail)
 		{
 			switch (_FailureAction)
@@ -1085,7 +1085,7 @@ namespace NMib::NTest
 
 		ETestNeedReportFlag CRegistryTestResults::f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags)
 		{
-			bint bReport = false;
+			bool bReport = false;
 			if (_Result == ETestResult_Fail)
 			{
 				switch (_FailureAction)

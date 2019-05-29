@@ -40,7 +40,7 @@ namespace NMib::NTest
 				if (_ReportFlags & ETestReportFlag_BreakOnFail)
 					mp_ReportFlags |= ETestReportFlag_BreakOnFail;
 			}
-			bint m_bSuccess;
+			bool m_bSuccess;
 			NStr::CStr m_ReportText;
 
 			ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) override

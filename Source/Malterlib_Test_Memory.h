@@ -151,7 +151,7 @@ namespace NMib::NTest
 		{
 			mint m_MemoryAllocator;
 			mint m_Address;
-			bint operator < (CAllocationKey const &_Right) const
+			bool operator < (CAllocationKey const &_Right) const
 			{
 				if (m_MemoryAllocator < _Right.m_MemoryAllocator)
 					return true;
@@ -253,23 +253,23 @@ namespace NMib::NTest
 	class CTestMemory
 	{
 		CTestMemoryResults mp_Results;
-		bint mp_bCompareNumAllocations;
+		bool mp_bCompareNumAllocations;
 
 		CTestMemoryResult &fp_Add(CTestMemoryMeasure &_Measure);
 		NStr::CStr fp_GetOutput() const;
 		void fp_GetBest(CTestMemoryResult const *&_pBestRef, CTestMemoryResult const *&_pBest) const;
 	public:
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
-		bint f_IsIgnored() const;
+		bool f_IsIgnored() const;
 #endif
-		CTestMemory(fp64 const &_Tolerance, bint _bCompareNumAllocations);
+		CTestMemory(fp64 const &_Tolerance, bool _bCompareNumAllocations);
 		void f_AddBaseline(CTestMemoryMeasure &_Measure);
 		void f_AddReference(CTestMemoryMeasure &_Measure);
 		void f_AddDebug(CTestMemoryMeasure &_Measure);
 		void f_Add(CTestMemoryMeasure &_Measure);
 		void f_Add(CTestMemoryResult const &_Measure);
 
-		bint f_IsEmpty();
+		bool f_IsEmpty();
 
 		void f_TestReport(CTestResults &_Results) const;
 

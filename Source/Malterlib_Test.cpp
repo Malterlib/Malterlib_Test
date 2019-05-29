@@ -88,7 +88,7 @@ namespace NMib::NTest
 			public:
 				const ch8 *m_pFile;
 				int32 m_Line;
-				bint operator < (CUniqueTest const &_Other) const
+				bool operator < (CUniqueTest const &_Other) const
 				{
 					auto Ret = NStr::fg_StrCmp(m_pFile, _Other.m_pFile);
 					if (Ret < 0)
@@ -122,7 +122,7 @@ namespace NMib::NTest
 
 				~CThreadLocal()
 				{
-					NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bint>>> UniqueTests;
+					NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>>> UniqueTests;
 					{
 						DMibLock(m_UniqueTestsLock);
 						UniqueTests = m_UniqueTests;
@@ -135,9 +135,9 @@ namespace NMib::NTest
 								DMibLock(m_pInherit->m_UniqueTestsLock);
 								for (auto Iter = UniqueTests.f_GetIterator(); Iter; ++Iter)
 								{
-									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bint>> const &Aggregated = *Iter;
-									bint bCreated = false;
-									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bint>> &AggregatedNew = m_pInherit->m_UniqueTests.f_Map(Iter.f_GetKey(), bCreated);
+									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> const &Aggregated = *Iter;
+									bool bCreated = false;
+									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> &AggregatedNew = m_pInherit->m_UniqueTests.f_Map(Iter.f_GetKey(), bCreated);
 									AggregatedNew += Aggregated;
 									if (!bCreated && Aggregated.f_IsEmpty())
 									{
@@ -159,12 +159,12 @@ namespace NMib::NTest
 				const ch8 *m_pLastTestFile = nullptr;
 				int32 m_LastTestLine = 0;
 
-				bint m_bEnableValues = true;
-				bint m_bEnableExceptionFilter = true;
-				bint m_bEnumerating = false;
-				bint m_bInsideTestSuite = false;
+				bool m_bEnableValues = true;
+				bool m_bEnableExceptionFilter = true;
+				bool m_bEnumerating = false;
+				bool m_bInsideTestSuite = false;
 				mutable NThread::CMutual m_UniqueTestsLock;
-				mutable NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bint>>> m_UniqueTests;
+				mutable NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>>> m_UniqueTests;
 				DMibAutoClearPtrDeclare;
 			};
 
@@ -197,40 +197,40 @@ namespace NMib::NTest
 			return *g_Tests;
 		}
 
-		bint fg_SetEnableValues(bint _bEnableValues)
+		bool fg_SetEnableValues(bool _bEnableValues)
 		{
 			CTestManager *pTestManager = g_Tests;
-			bint bReturn = pTestManager->m_ThreadLocal->m_bEnableValues;
+			bool bReturn = pTestManager->m_ThreadLocal->m_bEnableValues;
 			pTestManager->m_ThreadLocal->m_bEnableValues = _bEnableValues;
 			return bReturn;
 		}
 
-		bint fg_GetEnableValues()
+		bool fg_GetEnableValues()
 		{
 			CTestManager *pTestManager = g_Tests;
 			return pTestManager->m_ThreadLocal->m_bEnableValues;
 		}
 
-		bint fg_SetEnableExceptionFilter(bint _bEnableExceptionFilter)
+		bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter)
 		{
 			CTestManager *pTestManager = g_Tests;
-			bint bReturn = pTestManager->m_ThreadLocal->m_bEnableExceptionFilter;
+			bool bReturn = pTestManager->m_ThreadLocal->m_bEnableExceptionFilter;
 			pTestManager->m_ThreadLocal->m_bEnableExceptionFilter = _bEnableExceptionFilter;
 			return bReturn;
 		}
 
-		bint fg_GetEnableExceptionFilter()
+		bool fg_GetEnableExceptionFilter()
 		{
 			CTestManager *pTestManager = g_Tests;
 			return pTestManager->m_ThreadLocal->m_bEnableExceptionFilter;
 		}
 
-		bint fg_InsideTestSuite()
+		bool fg_InsideTestSuite()
 		{
 			CTestManager *pTestManager = g_Tests;
 			return pTestManager->m_ThreadLocal->m_bInsideTestSuite;
 		}
-		void fg_InsideTestSuite(bint _bInsideTestSuite)
+		void fg_InsideTestSuite(bool _bInsideTestSuite)
 		{
 			CTestManager *pTestManager = g_Tests;
 			pTestManager->m_ThreadLocal->m_bInsideTestSuite = _bInsideTestSuite;
@@ -358,17 +358,17 @@ namespace NMib::NTest
 				NStr::CStr FullPath = ThreadLocal.m_TestPath + "/" +_Description;
 				{
 					DMibLock(ThreadLocal.m_UniqueTestsLock);
-					bint bCreated = false;
-					NContainer::TCMap<CTestManager::CUniqueTest, TCAutoClearInt<bint>> &AggregatedTests = ThreadLocal.m_UniqueTests.f_Map(FullPath, bCreated);
-					bint bAllowNonUnique = false;
+					bool bCreated = false;
+					NContainer::TCMap<CTestManager::CUniqueTest, TCAutoClearInt<bool>> &AggregatedTests = ThreadLocal.m_UniqueTests.f_Map(FullPath, bCreated);
+					bool bAllowNonUnique = false;
 					if (_Flags & ETestFlag_Aggregated)
 					{
-						bint bCreated = false;
+						bool bCreated = false;
 						CTestManager::CUniqueTest Key;
 						Key.m_pFile = _pFile;
 						Key.m_Line = _Line;
 
-						TCAutoClearInt<bint> &bValue = AggregatedTests.f_Map(Key, bCreated);
+						TCAutoClearInt<bool> &bValue = AggregatedTests.f_Map(Key, bCreated);
 						if (bCreated)
 						{
 							bValue = _Result != ETestResult_Fail;
@@ -789,14 +789,14 @@ namespace NMib::NTest
 			return Ret;
 		}
 
-		bint fg_GroupActive(NStr::CStr const &_Group)
+		bool fg_GroupActive(NStr::CStr const &_Group)
 		{
 			CTestManager *pManager = g_Tests;
 
 			return pManager->m_IncludeGroups.f_FindEqual(_Group) && !pManager->m_ExcludeGroups.f_FindEqual(_Group);
 		}
 
-		bint fg_ShouldRunSubTest(bint _bLeaf)
+		bool fg_ShouldRunSubTest(bool _bLeaf)
 		{
 			CTestManager *pManager = g_Tests;
 
@@ -812,7 +812,7 @@ namespace NMib::NTest
 					return false;
 			}
 
-			bint bIncluded = pManager->m_IncludeGroups.f_IsEmpty() && ThreadLocal.m_TestGroups.f_IsEmpty();
+			bool bIncluded = pManager->m_IncludeGroups.f_IsEmpty() && ThreadLocal.m_TestGroups.f_IsEmpty();
 			if (!_bLeaf && ThreadLocal.m_TestGroups.f_IsEmpty())
 				bIncluded = true;
 
@@ -852,7 +852,7 @@ namespace NMib::NTest
 
 			return bIncluded;
 		}
-		void fg_StepIntoSuites(bint _Step)
+		void fg_StepIntoSuites(bool _Step)
 		{
 			auto& Manager = CTestManager::fs_GetManager();
 			Manager.m_ThreadLocal->m_bEnumerating = _Step;
@@ -864,9 +864,9 @@ namespace NMib::NTest
 
 			if (_Options.m_ReportFlags & ETestReportFlag_ReportCategories)
 				fg_StepIntoSuites(true);
-			bint bOldEnableExceptionTrace = NException::fg_SetEnableExceptionTrace(false);
+			bool bOldEnableExceptionTrace = NException::fg_SetEnableExceptionTrace(false);
 #			if DMibEnableSafeCheck > 0
-				bint bOldAssethThrow = NContract::fg_MibSafeCheckSetThrowsException(true);
+				bool bOldAssethThrow = NContract::fg_MibSafeCheckSetThrowsException(true);
 #			endif
 
 			CTestManager *pManager = g_Tests;
@@ -935,7 +935,7 @@ namespace NMib::NTest
 					if (iFindTest >= 0)
 					{
 						FullName = FullName.f_Extract(ToFind.f_GetLen());
-						bint bFound = fg_MatchPattern(FullName, pManager->m_PathPatterns) & NStr::EMatchWildcardResult_WholeStringMatched;
+						bool bFound = fg_MatchPattern(FullName, pManager->m_PathPatterns) & NStr::EMatchWildcardResult_WholeStringMatched;
 
 						if (bFound)
 						{
@@ -1132,7 +1132,7 @@ namespace NMib::NTest
 		NCommandLine::CCommandArguments Options;
 		if
 		(
-			![&]() -> bint
+			![&]() -> bool
 			{
 				using namespace NMib::NCommandLine;
 
@@ -1388,7 +1388,7 @@ namespace NMib::NTest
 		{
 			ch8 const *pParse = m_TextBuffer;
 			ch8 const *pParseStart = pParse;
-			bint bFound = false;
+			bool bFound = false;
 			while (*pParse)
 			{
 				if (*pParse == '}')
@@ -1482,7 +1482,7 @@ namespace NMib::NTest
 		return NPrivate::CRegistryTestResults::fs_DecodeResult(_Registry, _Results);
 	}
 
-	bint fg_GroupActive(NStr::CStr const &_Group)
+	bool fg_GroupActive(NStr::CStr const &_Group)
 	{
 #if DMibConfig_Tests_Enable
 		return NPrivate::fg_GroupActive(_Group);

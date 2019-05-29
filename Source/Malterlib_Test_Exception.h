@@ -12,7 +12,7 @@ namespace NMib::NTest
 	{
 	public:
 		template <typename t_CObject>
-		bint operator == (t_CObject const &_FunctionObject) const
+		bool operator == (t_CObject const &_FunctionObject) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
@@ -104,7 +104,7 @@ namespace NMib::NTest
 		}
 
 		template <typename t_CObject>
-		bint operator == (t_CObject const &_FunctionObject) const
+		bool operator == (t_CObject const &_FunctionObject) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;

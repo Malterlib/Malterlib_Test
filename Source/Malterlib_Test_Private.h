@@ -143,7 +143,7 @@ namespace NMib::NTest::NPrivate
 			: m_Magic(mcp_Magic)
 		{
 		}
-		bint f_IsValid() const
+		bool f_IsValid() const
 		{
 			return m_Magic == mcp_Magic;
 		}
@@ -196,12 +196,12 @@ namespace NMib::NTest::NPrivate
 	void fg_GetTestLastLocation(const ch8 *&o_pFile, int32 &o_Line);
 	uint32 fg_RunTests(const NStr::CStr &_Path, CTestResults *_pResults);
 	NStr::CStr fg_PushCategory(const NStr::CStr &_Category);
-	void fg_InsideTestSuite(bint _bInsideTestSuite);
-	bint fg_InsideTestSuite();
-	bint fg_SetEnableValues(bint _bEnableValues);
-	bint fg_GetEnableValues();
-	bint fg_SetEnableExceptionFilter(bint _bEnableExceptionFilter);
-	bint fg_GetEnableExceptionFilter();
+	void fg_InsideTestSuite(bool _bInsideTestSuite);
+	bool fg_InsideTestSuite();
+	bool fg_SetEnableValues(bool _bEnableValues);
+	bool fg_GetEnableValues();
+	bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter);
+	bool fg_GetEnableExceptionFilter();
 	void fg_PopCategory(NStr::CStr const &PreviousPath);
 	NContainer::TCMap<NStr::CStr> fg_SetGroups(const NContainer::TCMap<NStr::CStr> &_Groups);
 	NContainer::TCMap<NStr::CStr> fg_GetGroups();
@@ -234,8 +234,8 @@ namespace NMib::NTest::NPrivate
 			, ETestFlag _Flags
 		)
 	;
-	bint fg_ShouldRunSubTest(bint _bLeaf);
-	void fg_StepIntoSuites(bint _Step);
+	bool fg_ShouldRunSubTest(bool _bLeaf);
+	void fg_StepIntoSuites(bool _Step);
 
 	class CTestReporterScope
 	{
@@ -266,7 +266,7 @@ namespace NMib::NTest::NPrivate
 	{
 	};
 
-	template <bint t_bFailureOnly, typename t_CExpression = CDummyExpression>
+	template <bool t_bFailureOnly, typename t_CExpression = CDummyExpression>
 	class TCTestFunctionHelper
 	{
 	public:
@@ -296,7 +296,7 @@ namespace NMib::NTest::NPrivate
 		-> typename TCEnableIf
 		<
 			TCHasMember_f_IsIgnored<typename TCIsMemberCallableWith_f_GetVariable<tf_CExpression, void ()>::CReturnType>::mc_Value
-			, bint
+			, bool
 		>::CType
 		{
 			return _Expression.f_GetVariable().f_IsIgnored();
@@ -306,7 +306,7 @@ namespace NMib::NTest::NPrivate
 		-> typename TCEnableIf
 		<
 			!TCHasMember_f_IsIgnored<typename TCIsMemberCallableWith_f_GetVariable<tf_CExpression, void ()>::CReturnType>::mc_Value
-			, bint
+			, bool
 		>::CType
 		{
 			return false;
@@ -361,8 +361,8 @@ namespace NMib::NTest::NPrivate
 		const ch8 *m_pFile;
 		int32 m_Line;
 		NStr::CStr m_CustomMessage;
-		bint m_bValid;
-		bint m_bOnlyCustom;
+		bool m_bValid;
+		bool m_bOnlyCustom;
 
 		template <typename tf_CExpression>
 		typename TCEnableIf<NTraits::TCIsSame<tf_CExpression, bool>::mc_Value, bool>::CType fp_Evaluate() const
@@ -475,7 +475,7 @@ namespace NMib::NTest::NPrivate
 		{
 		}
 
-		template <bint tf_bFailureOnly, typename tf_CExpression>
+		template <bool tf_bFailureOnly, typename tf_CExpression>
 		TCTestFunctionHelper(TCTestFunctionHelper<tf_bFailureOnly, tf_CExpression> &&_Right, t_CExpression const &_NewExpression)
 			: m_Expression(_NewExpression)
 			, m_FailureAction(_Right.m_FailureAction)
@@ -616,7 +616,7 @@ namespace NMib::NTest::NPrivate
 
 		void operator % (NFunction::TCFunction<void ()> const &_Function)
 		{
-			bint bLeaf = (mp_Flags & ETestCategoryFlag_Tests) != 0;
+			bool bLeaf = (mp_Flags & ETestCategoryFlag_Tests) != 0;
 			NContainer::TCMap<NStr::CStr> const &Groups = mp_Category.f_GetGroups();
 			NContainer::TCMap<NStr::CStr> OldGroups;
 
@@ -724,8 +724,8 @@ namespace NMib::NTest::NPrivate
 	private:
 		DMibThreadLocalScopeDebugMember;
 		CTestCategory mp_Category;
-		bint mp_bOldEnableValues;
-		bint mp_bOldEnableExceptionFilter;
+		bool mp_bOldEnableValues;
+		bool mp_bOldEnableExceptionFilter;
 		const ch8 *mp_pFile;
 		int32 mp_Line;
 		ETestCategoryFlag mp_Flags;

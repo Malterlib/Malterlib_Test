@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Test/Test>
@@ -172,7 +172,7 @@ namespace
 			{
 				DMibTestSuite("SuccessConditions")
 				{
-					bint bARun = 0, bBRun = 0;
+					bool bARun = 0, bBRun = 0;
 
 					if (DMibTest(DMibExpr(bARun = 1) == DMibExpr(1)))
 					{
@@ -184,7 +184,7 @@ namespace
 				};
 				DMibTestSuite("FailureConditions")
 				{
-					bint bARun = 0, bBRun = 0;
+					bool bARun = 0, bBRun = 0;
 
 					if (DMibTest(DMibExpr(bARun = 1) != DMibExpr(1)) (ETest_ExpectFail))
 					{
@@ -197,7 +197,7 @@ namespace
 			};
 			DMibTestSuite("DMibTestExpr")
 			{
-				bint bTrue = true;
+				bool bTrue = true;
 				DMibTestExpr(bTrue);
 				bTrue = false;
 				DMibTestExpr(bTrue) ("Second") (ETest_ExpectFail);
@@ -206,14 +206,14 @@ namespace
 			{
 				auto fTest = []
 					{
-						bint bShouldNotBeVisible = true;
+						bool bShouldNotBeVisible = true;
 						DMibTestExpr(bShouldNotBeVisible);
 					}
 				;
 				DMibTest(DMibExpr(fg_TestRecursive([&]{fTest();})));
 				auto fTestFail = []
 					{
-						bint bShouldNotBeVisible = false;
+						bool bShouldNotBeVisible = false;
 						DMibTestExpr(bShouldNotBeVisible);
 						DMibTestExpr(bShouldNotBeVisible && 2);
 						DMibTestExpr(bShouldNotBeVisible && 3);
@@ -227,7 +227,7 @@ namespace
 		}
 
 	};
-	
+
 	DMibTestRegister(CTest_Tests, Malterlib::Test);
 }
 

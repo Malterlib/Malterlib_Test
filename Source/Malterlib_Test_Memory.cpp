@@ -368,7 +368,7 @@ namespace NMib::NTest
 		if (_AllocatorDepth != 1)
 			return;
 		DMibLock(mp_Lock);
-		bint bCreated = false;
+		bool bCreated = false;
 		CAllocatorStats &AllocatorStats = fp_GetActiveStats(_MemoryAllocator, _pAllocatorName);
 
 		CAllocationKey Key;
@@ -425,7 +425,7 @@ namespace NMib::NTest
 		CAllocationKey Key;
 		Key.m_MemoryAllocator = _MemoryAllocator;
 		Key.m_Address = _Address;
-		bint bCreated = false;
+		bool bCreated = false;
 		CAllocation &Alloc = mp_Allocations.f_Map(Key, bCreated);
 		DMibFastCheck(bCreated);
 		DMibFastCheck(_ReturnedSize >= _RequestedSize);
@@ -475,7 +475,7 @@ namespace NMib::NTest
 		CAllocationKey Key;
 		Key.m_MemoryAllocator = _MemoryAllocator;
 		Key.m_Address = _Address;
-		bint bCreated = false;
+		bool bCreated = false;
 		CAllocation &Alloc = mp_Allocations.f_Map(Key, bCreated);
 		DMibFastCheck(bCreated);
 		DMibFastCheck(_ReturnedSize >= _RequestedSize);
@@ -780,12 +780,12 @@ namespace NMib::NTest
 	}
 
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
-	bint CTestMemory::f_IsIgnored() const
+	bool CTestMemory::f_IsIgnored() const
 	{
 		return true;
 	}
 #endif
-	CTestMemory::CTestMemory(fp64 const &_Tolerance, bint _bCompareNumAllocations)
+	CTestMemory::CTestMemory(fp64 const &_Tolerance, bool _bCompareNumAllocations)
 	{
 		mp_Results.m_Tolerance = _Tolerance;
 		mp_bCompareNumAllocations = _bCompareNumAllocations;
@@ -815,7 +815,7 @@ namespace NMib::NTest
 		/*CTestMemoryResult &Result =*/ mp_Results.m_Results.f_Insert(_Measure);
 	}
 
-	bint CTestMemory::f_IsEmpty()
+	bool CTestMemory::f_IsEmpty()
 	{
 		return mp_Results.m_Results.f_IsEmpty();
 	}
