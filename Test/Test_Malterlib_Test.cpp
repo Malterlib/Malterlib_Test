@@ -172,7 +172,7 @@ namespace
 			{
 				DMibTestSuite("SuccessConditions")
 				{
-					bool bARun = 0, bBRun = 0;
+					int bARun = 0, bBRun = 0;
 
 					if (DMibTest(DMibExpr(bARun = 1) == DMibExpr(1)))
 					{
@@ -184,7 +184,7 @@ namespace
 				};
 				DMibTestSuite("FailureConditions")
 				{
-					bool bARun = 0, bBRun = 0;
+					int bARun = 0, bBRun = 0;
 
 					if (DMibTest(DMibExpr(bARun = 1) != DMibExpr(1)) (ETest_ExpectFail))
 					{
