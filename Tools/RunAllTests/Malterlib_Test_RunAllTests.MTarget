@@ -5,6 +5,7 @@
 {
 	Property
 	{
+		ProductName "Malterlib Run All Tests"
 		MalterlibPostCopyProject "Tests"
 		{
 			!!MalterlibPostCopyProject ""

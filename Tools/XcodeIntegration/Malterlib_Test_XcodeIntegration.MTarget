@@ -6,6 +6,7 @@
 	Property
 	{
 		//RealConfiguration Release
+		ProductName "Malterlib Xcode Test Integration"
 		MalterlibPostCopyProject "Tests"
 		{
 			!!MalterlibPostCopyProject ""
