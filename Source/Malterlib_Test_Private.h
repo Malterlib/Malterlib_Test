@@ -522,7 +522,7 @@ namespace NMib::NTest::NPrivate
 		{
 			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
 			m_CustomMessage = _pMessage;
-			if (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
+			if constexpr (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
 				m_bOnlyCustom = true;
 			return *this;
 		}
@@ -531,7 +531,7 @@ namespace NMib::NTest::NPrivate
 		{
 			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
 			m_CustomMessage = _Message;
-			if (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
+			if constexpr (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
 				m_bOnlyCustom = true;
 			return *this;
 		}
@@ -540,7 +540,7 @@ namespace NMib::NTest::NPrivate
 		{
 			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
 			m_CustomMessage = fg_Move(_Message);
-			if (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
+			if constexpr (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
 				m_bOnlyCustom = true;
 			return *this;
 		}

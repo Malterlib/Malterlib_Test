@@ -132,15 +132,15 @@ namespace NMib::NTest
 			template <CStatAffectFlagUnderlaying tf_Flags>
 			static void fsp_TransferStat(CTestStats &_Stat, fp64 _Value)
 			{
-				if (tf_Flags & EStatAffectFlag_Average)
+				if constexpr (tf_Flags & EStatAffectFlag_Average)
 					_Stat.m_Average = _Value;
-				if (tf_Flags & EStatAffectFlag_Min)
+				if constexpr ((tf_Flags & EStatAffectFlag_Min) != 0)
 					_Stat.m_Min = _Value;
-				if (tf_Flags & EStatAffectFlag_Max)
+				if constexpr ((tf_Flags & EStatAffectFlag_Max) != 0)
 					_Stat.m_Max = _Value;
-				if (tf_Flags & EStatAffectFlag_StdDev)
+				if constexpr ((tf_Flags & EStatAffectFlag_StdDev) != 0)
 					_Stat.m_StdDev = _Value;
-				if (tf_Flags & EStatAffectFlag_Median)
+				if constexpr ((tf_Flags & EStatAffectFlag_Median) != 0)
 					_Stat.m_Median = _Value;
 			}
 

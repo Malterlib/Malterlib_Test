@@ -17,15 +17,15 @@ namespace NMib::NTest
 		template <CStatAffectFlagUnderlaying tf_Flags, typename tf_CFunctor>
 		static void fg_OperateOnStatUnary(CTestStats &_Stat, tf_CFunctor &&_Functor)
 		{
-			if (tf_Flags & EStatAffectFlag_Average)
+			if constexpr ((tf_Flags & EStatAffectFlag_Average) != 0)
 				_Functor(_Stat.m_Average);
-			if (tf_Flags & EStatAffectFlag_Min)
+			if constexpr ((tf_Flags & EStatAffectFlag_Min) != 0)
 				_Functor(_Stat.m_Min);
-			if (tf_Flags & EStatAffectFlag_Max)
+			if constexpr ((tf_Flags & EStatAffectFlag_Max) != 0)
 				_Functor(_Stat.m_Max);
-			if (tf_Flags & EStatAffectFlag_StdDev)
+			if constexpr ((tf_Flags & EStatAffectFlag_StdDev) != 0)
 				_Functor(_Stat.m_StdDev);
-			if (tf_Flags & EStatAffectFlag_Median)
+			if constexpr ((tf_Flags & EStatAffectFlag_Median) != 0)
 				_Functor(_Stat.m_Median);
 		}
 
@@ -57,42 +57,42 @@ namespace NMib::NTest
 		template <CStatAffectFlagUnderlaying tf_LeftFlags, CStatAffectFlagUnderlaying tf_RightFlags, typename tf_CFunctor>
 		static void fg_OperateOnStatBinary(CTestStats &_StatLeft, CTestStats &_StatRight, tf_CFunctor &&_Functor)
 		{
-			if (tf_LeftFlags == tf_RightFlags)
+			if constexpr (tf_LeftFlags == tf_RightFlags)
 			{
-				if (tf_LeftFlags & EStatAffectFlag_Average)
+				if constexpr ((tf_LeftFlags & EStatAffectFlag_Average) != 0)
 					_Functor(_StatLeft.m_Average, _StatRight.m_Average);
-				if (tf_LeftFlags & EStatAffectFlag_Min)
+				if constexpr ((tf_LeftFlags & EStatAffectFlag_Min) != 0)
 					_Functor(_StatLeft.m_Min, _StatRight.m_Min);
-				if (tf_LeftFlags & EStatAffectFlag_Max)
+				if constexpr ((tf_LeftFlags & EStatAffectFlag_Max) != 0)
 					_Functor(_StatLeft.m_Max, _StatRight.m_Max);
-				if (tf_LeftFlags & EStatAffectFlag_StdDev)
+				if constexpr ((tf_LeftFlags & EStatAffectFlag_StdDev) != 0)
 					_Functor(_StatLeft.m_StdDev, _StatRight.m_StdDev);
-				if (tf_LeftFlags & EStatAffectFlag_Median)
+				if constexpr ((tf_LeftFlags & EStatAffectFlag_Median) != 0)
 					_Functor(_StatLeft.m_Median, _StatRight.m_Median);
 			}
 			else
 			{
 				fp64 *pLeft = nullptr;
 				fp64 *pRight = nullptr;
-				if (tf_LeftFlags == EStatAffectFlag_Average)
+				if constexpr (tf_LeftFlags == EStatAffectFlag_Average)
 					pLeft = &_StatLeft.m_Average;
-				if (tf_LeftFlags == EStatAffectFlag_Min)
+				if constexpr (tf_LeftFlags == EStatAffectFlag_Min)
 					pLeft = &_StatLeft.m_Min;
-				if (tf_LeftFlags == EStatAffectFlag_Max)
+				if constexpr (tf_LeftFlags == EStatAffectFlag_Max)
 					pLeft = &_StatLeft.m_Max;
-				if (tf_LeftFlags == EStatAffectFlag_StdDev)
+				if constexpr (tf_LeftFlags == EStatAffectFlag_StdDev)
 					pLeft = &_StatLeft.m_StdDev;
-				if (tf_LeftFlags == EStatAffectFlag_Median)
+				if constexpr (tf_LeftFlags == EStatAffectFlag_Median)
 					pLeft = &_StatLeft.m_Median;
-				if (tf_RightFlags == EStatAffectFlag_Average)
+				if constexpr (tf_RightFlags == EStatAffectFlag_Average)
 					pRight = &_StatRight.m_Average;
-				if (tf_RightFlags == EStatAffectFlag_Min)
+				if constexpr (tf_RightFlags == EStatAffectFlag_Min)
 					pRight = &_StatRight.m_Min;
-				if (tf_RightFlags == EStatAffectFlag_Max)
+				if constexpr (tf_RightFlags == EStatAffectFlag_Max)
 					pRight = &_StatRight.m_Max;
-				if (tf_RightFlags == EStatAffectFlag_StdDev)
+				if constexpr (tf_RightFlags == EStatAffectFlag_StdDev)
 					pRight = &_StatRight.m_StdDev;
-				if (tf_RightFlags == EStatAffectFlag_Median)
+				if constexpr (tf_RightFlags == EStatAffectFlag_Median)
 					pRight = &_StatRight.m_Median;
 				_Functor(*pLeft, *pRight);
 			}
