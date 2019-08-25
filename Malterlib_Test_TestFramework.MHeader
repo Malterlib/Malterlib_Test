@@ -73,6 +73,7 @@ Property
 				!MalterlibHelperTest true
 			}
 		}
+		MalterlibBuildSystemEmbedCMake false
 	}
 	Property
 	{
@@ -164,6 +165,7 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 		{
 			!!OnlyTestConfigs ""
 		}
+		MalterlibBuildSystemEmbedCMake false
 	}
 	
 	%Group "Tests"
