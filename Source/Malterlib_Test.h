@@ -53,15 +53,15 @@ namespace NMib::NTest
 		ETestReportFlag_FailAndStop = DMibBit(3),
 		ETestReportFlag_ExpectFail = DMibBit(4),
 		ETestReportFlag_ExpectFailAndStop = DMibBit(5),
-		ETestReportFlag_UseColor = DMibBit(6),
-		ETestReportFlag_ReportCategories = DMibBit(7),
-		ETestReportFlag_DetailedPerformance = DMibBit(8),
-		ETestReportFlag_Ignored = DMibBit(9),
-		ETestReportFlag_DetailedMemory = DMibBit(10),
-		ETestReportFlag_BreakOnFail = DMibBit(11),
-		ETestReportFlag_ProcessRecursive = DMibBit(12),
-		ETestReportFlag_CompareToBaseline = DMibBit(13),
-		ETestReportFlag_CrashOnException = DMibBit(14),
+		ETestReportFlag_ReportCategories = DMibBit(6),
+		ETestReportFlag_DetailedPerformance = DMibBit(7),
+		ETestReportFlag_Ignored = DMibBit(8),
+		ETestReportFlag_DetailedMemory = DMibBit(9),
+		ETestReportFlag_BreakOnFail = DMibBit(10),
+		ETestReportFlag_ProcessRecursive = DMibBit(11),
+		ETestReportFlag_CompareToBaseline = DMibBit(12),
+		ETestReportFlag_CrashOnException = DMibBit(13),
+		ETestReportFlag_ReportValues = DMibBit(14),
 
 		ETestReportFlag_Default = ETestReportFlag_Warning | ETestReportFlag_Fail | ETestReportFlag_FailAndStop,
 		ETestReportFlag_All = ETestReportFlag_Default | ETestReportFlag_Success | ETestReportFlag_ExpectFail | ETestReportFlag_ExpectFailAndStop | ETestReportFlag_Ignored
@@ -369,109 +369,15 @@ namespace NMib::NTest
 		virtual void f_MemoryResults(CTestMemoryResults const &_Results) = 0;
 	};
 
-	class CTextTestResults : public CTestResults
-	{
-	protected:
-		ETestReportFlag mp_ReportFlags;
-		virtual void fp_AddReport
-			(
-				const NStr::CStr &_FileLocation
-				, const NStr::CStr &_MessageStr
-				, const NStr::CStr &_TestPath
-				, const NStr::CStr &_Message
-				, const NStr::CStr &_Values
-				, NSys::EColor _Color
-			)
-		;
-		virtual void fp_AddReport(const NStr::CStr &_FileLocation, const NStr::CStr &_MessageStr, const NStr::CStr &_TestPath, const NStr::CStr &_Message, const NStr::CStr &_Values);
-		virtual void fp_ReportText(const NStr::CStr &_Text, NSys::EColor _Color = NSys::EColor_Default) = 0;
-	public:
-
-		ETestReportFlag f_GetReportFlags() override
-		{
-			return mp_ReportFlags;
-		}
-		void f_ReportHeader(ETestReportFlag _ReportFlags) override;
-		void f_ReportFooter(mint _nTestsTotal, mint _nSuccessful, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored) override;
-		ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) override;
-		void f_ReportResult
-			(
-				ETestResult _Result
-				, const NStr::CStr &_TestPath
-				, const NStr::CStr &_Message
-				, const NStr::CStr &_Values
-				, CTestLocation const &_Location
-				, ETest _FailureAction
-				, ECheckType _CheckType
-				, ETestFlag _Flags
-				, const NStr::CStr &_ExtraMultiLineReportData
-			) override
-		;
-		void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location) override;
-		void f_PerformanceResults(CTestPerformanceResults const &_Results) override;
-		void f_MemoryResults(CTestMemoryResults const &_Results) override;
-
-	};
-
-	class CTextTestResultsBrief : public CTextTestResults
-	{
-		virtual void fp_AddReport
-			(
-				const NStr::CStr &_FileLocation
-				, const NStr::CStr &_MessageStr
-				, const NStr::CStr &_TestPath
-				, const NStr::CStr &_Message
-				, const NStr::CStr &_Values
-				, NSys::EColor _Color
-			)
-		;
-		virtual void fp_AddReport(const NStr::CStr &_FileLocation, const NStr::CStr &_MessageStr, const NStr::CStr &_TestPath, const NStr::CStr &_Message, const NStr::CStr &_Values);
-	};
-
-
-	class CTestResultParser
-	{
-		NStr::CStr m_TextBuffer;
-		void fp_HandleRecord(NStr::CStr const &_Text);
-	public:
-		virtual void f_HandleHeader(NContainer::CRegistry const &_Reg) = 0;
-		virtual void f_HandleFooter(NContainer::CRegistry const &_Reg) = 0;
-		virtual void f_HandleCategory(NContainer::CRegistry const &_Reg) = 0;
-		virtual void f_HandleResult(NContainer::CRegistry const &_Reg) = 0;
-		virtual void f_HandlePerformanceResult(NContainer::CRegistry const &_Reg) = 0;
-		virtual void f_HandleMemoryResult(NContainer::CRegistry const &_Reg) = 0;
-		void f_FeedText(NStr::CStr const &_Text);
-
-		static NStr::CStr fs_MeasureTypeToStr(ETestMeasureType _MeasureType);
-		static ETestMeasureType fs_MeasureTypeFromStr(NStr::CStr const &_MeasureType);
-		static NStr::CStr fs_ReportFlagsToStr(ETestReportFlag _Flags);
-		static ETestReportFlag fs_ReportFlagsFromStr(NStr::CStr const &_Flags);
-		static NStr::CStr fs_FailureActionToStr(ETest _Action);
-		static ETest fs_FailureActionFromStr(NStr::CStr const &_Action);
-		static NStr::CStr fs_TestResultToStr(ETestResult _TestResult);
-		static ETestResult fs_TestResultFromStr(NStr::CStr const &_TestResult);
-		static NStr::CStr fs_CheckTypeToStr(ECheckType _CheckType);
-		static ECheckType fs_CheckTypeFromStr(NStr::CStr const &_CheckType);
-		static NStr::CStr fs_TestFlagsToStr(ETestFlag _Flags);
-		static ETestFlag fs_TestFlagsFromStr(NStr::CStr const &_Flags);
-
-		static void fs_DecodeMemoryResults(NContainer::CRegistry const &_Registry, CTestMemoryResults &_Results);
-		static void fs_DecodePerformanceResults(NContainer::CRegistry const &_Registry, CTestPerformanceResults &_Results);
-		static void fs_DecodeResult(NContainer::CRegistry const &_Registry, CTestResult &_Results);
-	};
-
 	struct CRunTestOptions
 	{
-		CRunTestOptions()
-			: m_ReportFlags(ETestReportFlag_Default)
-		{
-		}
 		NContainer::TCVector<NStr::CStr> m_Paths;
 		NContainer::TCVector<NStr::CStr> m_ExcludeGroups;
 		NContainer::TCVector<NStr::CStr> m_IncludeGroups;
-		ETestReportFlag m_ReportFlags;
+		ETestReportFlag m_ReportFlags = ETestReportFlag_Default | ETestReportFlag_ReportValues;
 		NMib::NStr::CStr m_ExtraData;
 	};
+
 	uint32 fg_RunTests(CRunTestOptions const &_Options);
 	uint32 fg_RunTests(CTestResults *_pResults, CRunTestOptions const &_Options);
 	uint32 fg_RunTests(); // Parses command line
@@ -483,7 +389,6 @@ namespace NMib::NTest
 	bool fg_GroupActive(NStr::CStr const &_Group);
 
 	void fg_TestSetReturnValue(uint32 _RetValue); // Set the return value for the application
-
 }
 
 #include "Malterlib_Test_Private.h"

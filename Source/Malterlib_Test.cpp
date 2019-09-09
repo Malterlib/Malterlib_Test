@@ -4,56 +4,20 @@
 #include <Mib/Test/Test>
 #include <Mib/Test/Exception>
 #include <Mib/CommandLine/CommandLine>
+#include <Mib/CommandLine/CommandLineClient>
 #include <Mib/Core/RuntimeType>
+#include <Mib/Encoding/JSONShortcuts>
+
+#include "Malterlib_Test_Reporter_Null.h"
+#include "Malterlib_Test_Reporter_Text.h"
+#include "Malterlib_Test_Reporter_Registry.h"
+#include "Malterlib_Test_Reporter_Category.h"
 
 namespace NMib::NTest
 {
-#if defined DMibContractConfigure_RequireEnabled
-	TCThrowsException<NContract::CContractException_Require> fg_ViolatesRequire()
-	{
-		return TCThrowsException<NContract::CContractException_Require>();
-	}
-	TCThrowsExceptionExact<NContract::CContractException_Require> fg_ViolatesRequire(const ch8 *_pError)
-	{
-		return NContract::CContractException_Require("CContractException_Require", DMibPFile, DMibPLine, DMibPFunction, _pError, true);
-	}
-#else
-	TCThrowsException<> fg_ViolatesRequire()
-	{
-		return TCThrowsException<>();
-	}
-	TCThrowsException<> fg_ViolatesRequire(const ch8 *_pError)
-	{
-		return TCThrowsException<>();
-	}
-#endif
-
-#if DMibEnableSafeCheck > 0
-	TCThrowsException<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck()
-	{
-		return TCThrowsException<NException::CExceptionSafeCheck>();
-	}
-
-	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck(const ch8 *_pError)
-	{
-		return NException::CExceptionSafeCheck("CExceptionSafeCheck", DMibPFile, DMibPLine, DMibPFunction, _pError, true);
-	}
-#else
-	TCThrowsException<> fg_ViolatesSafeCheck()
-	{
-		return TCThrowsException<>();
-	}
-	TCThrowsException<> fg_ViolatesSafeCheck(const ch8 *_pError)
-	{
-		return TCThrowsException<>();
-	}
-#endif
-
-
 	namespace NPrivate
 	{
 #if DMibConfig_Tests_Enable
-
 		class CTestManager
 		{
 		public:
@@ -460,321 +424,18 @@ namespace NMib::NTest
 				throw CReportTestAbortException();
 		}
 
-		void CTestExceptionFilter::f_SetDumpFiles(const NContainer::TCVector<NStr::CStr> &_Files)
-		{
-			mint nDumpFiles = m_DumpFiles.f_GetLen();
-			for (mint i = 0; i < nDumpFiles; ++i)
-			{
-				try
-				{
-					NFile::CFile::fs_DeleteFile(m_DumpFiles[i]);
-				}
-				catch (NException::CException)
-				{
-				}
-			}
-			m_DumpFiles = _Files;
-		}
-
-		NContainer::TCVector<NStr::CStr> CTestExceptionFilter::f_DetachDumpFiles()
-		{
-			return fg_Move(m_DumpFiles);
-		}
-		const ch8 *CTestExceptionFilter::f_GetFile()
-		{
-			if (!m_pStackTraceInfo || !(*m_pStackTraceInfo->m_pSourceFileName))
-				return nullptr;
-			return m_pStackTraceInfo->m_pSourceFileName;
-		}
-
-		int32 CTestExceptionFilter::f_GetLine()
-		{
-			if (!m_pStackTraceInfo)
-				return 0;
-			return m_pStackTraceInfo->m_SourceLine;
-		}
-
-
-		void CTestExceptionFilter::f_Exception(void *_pExceptionData)
-		{
-			if (m_pStackTraceInfo)
-				NSys::fg_Debug_ReleaseStackTraceInfo(m_pStackTraceInfo);
-			m_pStackTraceInfo = nullptr;
-
-			CReportTestAbortException *pException = (CReportTestAbortException *)_pExceptionData;
-			if (!pException || !pException->f_IsValid())
-			{
-				NContainer::TCVector<NStr::CStr> DumpFiles = fg_DumpTestException();
-				f_SetDumpFiles(DumpFiles);
-			}
-			CMibCodeAddress Stack[64];
-			mint nStack = NSys::fg_System_GetStackTrace(Stack, 64);
-			for (mint i = 0; i < nStack; ++i)
-			{
-				CStackTraceInfo *pInfo = NSys::fg_Debug_AquireStackTraceInfo(Stack[i]);
-				if (pInfo)
-				{
-					if (*pInfo->m_pSourceFileName && NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core\\source\\platform") < 0
-						&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core/source/platform") < 0
-						&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "throw.cpp") < 0
-						&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_test.cpp") < 0
-						&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_contract.cpp") < 0
-						&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_contract.h") < 0
-						&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_debug.cpp") < 0
-						&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "include\\xx") < 0
-						)
-					{
-						//DMibTrace(DMibPFileLineFormat " {}" DMibNewLine, pInfo->m_pSourceFileName << pInfo->m_SourceLine << pInfo->m_pFunctionName);
-						m_pStackTraceInfo = pInfo;
-						break;
-					}
-					NSys::fg_Debug_ReleaseStackTraceInfo(pInfo);
-				}
-			}
-		}
-
-
 		bool CTestCategoryScope::f_ContinueEnumerating() const
 		{
 			auto& Manager = CTestManager::fs_GetManager();
 			return !Manager.m_ThreadLocal->m_bEnumerating
 				|| !(mp_Flags & ETestCategoryFlag_Tests);
 		}
+	
 		void CTestCategoryScope::f_ReportLeafCategory()
 		{
 			auto& Manager = CTestManager::fs_GetManager();
 			Manager.f_GetResults(*Manager.m_ThreadLocal)->f_ReportSuite(Manager.m_ThreadLocal->m_TestPath, Manager.m_ThreadLocal->m_TestGroups, CTestLocation(mp_pFile, mp_Line));
 		}
-
-		NContainer::TCVector<NStr::CStr> fg_DumpTestException()
-		{
-			NContainer::TCVector<NStr::CStr> GeneratedLogs;
-			NSys::fg_Debug_GenerateCrashDump("", "", GeneratedLogs, false);
-			return GeneratedLogs;
-		}
-
-		void fg_ReportTestException(const NContainer::TCVector<NStr::CStr> &_DumpFiles, const ch8 *_pFile, int32 _Line)
-		{
-			using namespace NStr;
-
-			const ch8 *pFile = nullptr;
-			int32 Line = 0;
-			fg_GetTestLastLocation(pFile, Line);
-			NStr::CStr ExtraReportData;
-
-			if (pFile)
-				ExtraReportData += DMibPFileLineFormat " Last know test location{\n}"_f << pFile << Line;
-
-			mint nLogs = _DumpFiles.f_GetLen();
-			if (nLogs != 0)
-			{
-				ExtraReportData += "The following crash dump files were generated:" DMibNewLine;
-				for (mint i = 0; i < nLogs; ++i)
-				{
-					ExtraReportData += "{}{\n}"_f << _DumpFiles[i];
-				}
-			}
-
-			try
-			{
-				try
-				{
-					throw;
-				}
-				catch (NContract::CContractException_Require const &_Exception)
-				{
-					CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Require contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (NContract::CContractException_Check const &_Exception)
-				{
-					CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Check contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (NContract::CContractException_Ensure const &_Exception)
-				{
-					CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Ensure contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (NContract::CContractException_Invariant const &_Exception)
-				{
-					CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Invariant contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (NContract::CContractException_NeverGetHere const &_Exception)
-				{
-					CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Never get here contract violation"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (NContract::CContractException const &_Exception)
-				{
-					CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, NStr::CStr::CFormat("Contract violation: {}") << _Exception.f_GetClass()
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (NException::CExceptionSafeCheck const &_Exception)
-				{
-					CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, NStr::CStr::CFormat("Assert violation")
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (NException::CException const &_Exception)
-				{
-					CStr ReportData = DMibPFileLineFormat " Uncaught {} exception: {}{\n}{\n}{}"_f
-						<< _Exception.f_GetFile()
-						<< _Exception.f_GetLine()
-						<< _Exception.f_GetClass()
-						<< _Exception.f_GetErrorStr()
-						<< ExtraReportData
-					;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, NStr::CStr::CFormat("Uncaught exception")
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (std::exception const& _Exception)
-				{
-					CStr ReportData = " Uncaught {} exception{\n}{\n}{}"_f
-						<< NStr::CStr(_Exception.what())
-						<< ExtraReportData
-					;
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, NStr::CStr("Uncaught exception")
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-				catch (...)
-				{
-					fg_ReportTestResult
-						(
-							ETestResult_Fail
-							, "Uncaught exception"
-							, ""
-							, ETest_FailAndStop
-							, ECheckType_Message
-							, _pFile
-							, _Line
-							, ExtraReportData
-							, ETestFlag_None
-							, ETestResultReportFlag_AskReport
-						)
-					;
-				}
-			}
-			catch (CReportTestAbortException)
-			{
-			}
-		}
-
 
 		NStr::EMatchWildcardResult fg_MatchPattern(const NStr::CStr &_String, NContainer::TCVector<NStr::CStr> const &_PathPatterns)
 		{
@@ -1014,22 +675,31 @@ namespace NMib::NTest
 
 		class CDefaultTestResults : public CTextTestResults
 		{
-			void fp_ReportText(const NStr::CStr &_Text, NSys::EColor _Color) override
+		public:
+			CDefaultTestResults(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags)
+				: CTextTestResults(_AnsiEncodingFlags)
 			{
-				NMib::NCommandLine::fg_MalterlibConOut(_Color, _Text);
+			}
+
+			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override
+			{
+				NMib::NCommandLine::fg_MalterlibConOut(_Text);
 			}
 		};
-
 
 		class CDefaultTestResultsBrief : public CTextTestResultsBrief
 		{
-			void fp_ReportText(const NStr::CStr &_Text, NSys::EColor _Color) override
+		public:
+			CDefaultTestResultsBrief(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags)
+				: CTextTestResultsBrief(_AnsiEncodingFlags)
 			{
-				NMib::NCommandLine::fg_MalterlibConOut(_Color, _Text);
+			}
+
+			void fp_ReportText(const NStr::CStr &_Text, ETestSeverity _Severity) override
+			{
+				NMib::NCommandLine::fg_MalterlibConOut(_Text);
 			}
 		};
-
-
 	}
 
 	void fg_TestSetReturnValue(uint32 _RetValue)
@@ -1052,7 +722,8 @@ namespace NMib::NTest
 
 	uint32 fg_RunTests(CRunTestOptions const &_Options)
 	{
-		NPrivate::CDefaultTestResults Results;
+		NPrivate::CDefaultTestResults Results(NCommandLine::EAnsiEncodingFlag_None);
+
 #		if DMibConfig_Tests_Enable
 			return NPrivate::fg_RunTests(&Results, _Options);
 #		else
@@ -1114,372 +785,329 @@ namespace NMib::NTest
 
 	uint32 fg_RunTests()
 	{
-		NContainer::TCVector<NStr::CStr> CommandLineArgs;
-		NSys::fg_Process_GetCommandLineArgs(CommandLineArgs);
-		NContainer::TCVector<NStr::CStr> Argv = CommandLineArgs;
+		NStorage::TCSharedPointer<NMib::NCommandLine::CCommandLineSpecification> pCommandLineSpec = fg_Construct();
+		pCommandLineSpec->f_AddHelpCommand();
+		pCommandLineSpec->f_AddTerminalOptions();
 
-		NPrivate::CRegistryTestResults RegistryResults;
-		NPrivate::CDefaultTestResults DefaultResults;
-		NPrivate::CDefaultTestResultsBrief BriefResults;
-		NPrivate::CCategoryLister CategoryResults;
-		NPrivate::CNullTestResults NullResults;
+		auto Section = pCommandLineSpec->f_AddSection("Test", "Commands for running tests");
 
-		CTestResults *pResults = &DefaultResults;
-
-		CRunTestOptions RunOptions;
-
-		NMib::NCommandLine::CParser Parser;
-		NCommandLine::CCommandArguments Options;
-		if
-		(
-			![&]() -> bool
+		auto fRunTests = [](NEncoding::CEJSON const &_Parameters, CRunTestOptions const &_RunOptions, NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags) -> uint32
 			{
-				using namespace NMib::NCommandLine;
+				CRegistryTestResults RegistryResults;
+				NPrivate::CDefaultTestResults DefaultResults(_AnsiEncodingFlags);
+				NPrivate::CDefaultTestResultsBrief BriefResults(_AnsiEncodingFlags);
+				NPrivate::CCategoryLister CategoryResults;
+				NPrivate::CNullTestResults NullResults;
 
-				COption Tests("Tests", "t", "run tests contained in this binary");
-				Tests.f_Add(CValue("Path"));
-				Parser.f_Add(Tests);
+				auto RunOptions = _RunOptions;
+				CTestResults *pResults = &DefaultResults;
+				if (RunOptions.m_ReportFlags & ETestReportFlag_ReportCategories)
+					pResults = &CategoryResults;
 
-				COption TestsList("TestsList", "l", "list test categories contained in this binary");
-				TestsList.f_Add(CValue("Path"));
-				Parser.f_Add(TestsList);
-
-				COption TestData("TestData", "d", "supply extra general data to tests");
-				TestData.f_Add(CValue("Data"));
-				Parser.f_Add(TestData);
-
-				COption TestResults("TestResults", "r", "filter test results");
+				if (auto pValue = _Parameters.f_GetMember("FilterResults"))
 				{
-					CValue::CValidValues Valid;
-					Valid.f_Insert("All");
-					Valid.f_Insert("Default");
-					Valid.f_Insert("Success");
-					Valid.f_Insert("Ignored");
-					Valid.f_Insert("Warning");
-					Valid.f_Insert("Fail");
-					Valid.f_Insert("FailAndStop");
-					Valid.f_Insert("ExpectFail");
-					Valid.f_Insert("ExpectFailAndStop");
-					Valid.f_Insert("UseColour");
-					Valid.f_Insert("DetailedPerformance");
-					Valid.f_Insert("DetailedMemory");
-					Valid.f_Insert("BreakOnFail");
-					Valid.f_Insert("ProcessRecursive");
-					Valid.f_Insert("CompareToBaseline");
-					Valid.f_Insert("CrashOnException");
-					TestResults.f_AddList(CValue("Display",Valid));
-				}
-				Parser.f_Add(TestResults);
-
-				COption TestLogger("TestLogger", "L", "specify the logger to use");
-				{
-					CValue::CValidValues Valid;
-					Valid.f_Insert("Default");
-					Valid.f_Insert("Brief");
-					Valid.f_Insert("Registry");
-					Valid.f_Insert("Null");
-					TestLogger.f_AddList(CValue("Logger", Valid));
-				}
-				Parser.f_Add(TestLogger);
-
-				auto fGroups = []() -> CValue::CValidValues
+					for (auto &Filter : pValue->f_Array())
 					{
-						return {"Default", "Performance", "Torture", "Memory", "Unfinished", "Expensive", "Manual", "SuperUser", ""};
+						auto &FilterName = Filter.f_String();
+						if (FilterName == "All")
+							RunOptions.m_ReportFlags |= ETestReportFlag_All;
+						else if (FilterName == "Default")
+							RunOptions.m_ReportFlags |= ETestReportFlag_Default;
+						else if (FilterName == "Success")
+							RunOptions.m_ReportFlags |= ETestReportFlag_Success;
+						else if (FilterName == "Ignore")
+							RunOptions.m_ReportFlags |= ETestReportFlag_Ignored;
+						else if (FilterName == "Warning")
+							RunOptions.m_ReportFlags |= ETestReportFlag_Warning;
+						else if (FilterName == "Fail")
+							RunOptions.m_ReportFlags |= ETestReportFlag_Fail;
+						else if (FilterName == "FailAndStop")
+							RunOptions.m_ReportFlags |= ETestReportFlag_FailAndStop;
+						else if (FilterName == "ExpectFail")
+							RunOptions.m_ReportFlags |= ETestReportFlag_ExpectFail;
+						else if (FilterName == "ExectFailAndStop")
+							RunOptions.m_ReportFlags |= ETestReportFlag_ExpectFailAndStop;
+					}
+				}
+
+				if (auto pValue = _Parameters.f_GetMember("ReportValues"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_ReportValues;
+
+				if (auto pValue = _Parameters.f_GetMember("DetailedPerformance"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_DetailedPerformance;
+
+				if (auto pValue = _Parameters.f_GetMember("DetailedMemory"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_DetailedMemory;
+
+				if (auto pValue = _Parameters.f_GetMember("BreakOnFail"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_BreakOnFail;
+
+				if (auto pValue = _Parameters.f_GetMember("ProcessRecursive"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_ProcessRecursive;
+
+				if (auto pValue = _Parameters.f_GetMember("CompareToBaseline"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_CompareToBaseline;
+
+				if (auto pValue = _Parameters.f_GetMember("CrashOnException"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_CrashOnException;
+
+				auto fGetGroups = [&](NEncoding::CEJSON const &_Groups)
+					{
+						NContainer::TCVector<NStr::CStr> OutGroups;
+						for (auto &Group : _Groups.f_Array())
+						{
+							if (Group.f_String() == "Default")
+								OutGroups.f_Insert("");
+							else
+								OutGroups.f_Insert(Group.f_String());
+						}
+
+						return OutGroups;
 					}
 				;
 
-				COption TestGroups("TestGroups", "G", "specify the groups to include in test");
-				TestGroups.f_AddList(CValue("Groups", fGroups()));
-				Parser.f_Add(TestGroups);
+				if (auto pValue = _Parameters.f_GetMember("Groups"))
+					RunOptions.m_IncludeGroups = fGetGroups(*pValue);
 
-				COption TestExcludeGroups("TestExcludeGroups", "E", "specify the groups to exclude from test");
-				TestExcludeGroups.f_AddList(CValue("Groups", fGroups()));
-				Parser.f_Add(TestExcludeGroups);
+				if (auto pValue = _Parameters.f_GetMember("ExcludeGroups"))
+					RunOptions.m_ExcludeGroups = fGetGroups(*pValue);
 
-				try
+				if (auto pValue = _Parameters.f_GetMember("ExtraData"))
+					RunOptions.m_ExtraData = pValue->f_String();
+
+				if (auto pValue = _Parameters.f_GetMember("Logger"))
 				{
-					Options = fg_ParseCommandLine(Parser,Argv);
-					return true;
+					auto &LoggerName = pValue->f_String();
+					if (LoggerName == "Default")
+						;
+					else if (LoggerName == "Brief")
+						pResults = &BriefResults;
+					else if (LoggerName == "Registry")
+						pResults = &RegistryResults;
+					else if (LoggerName == "Null")
+						pResults = &NullResults;
+					else
+						DMibNeverGetHere;
 				}
-				catch(CInvalidArguments const &_Ex)
+
+				if (auto pValue = _Parameters.f_GetMember("Paths"))
 				{
-					DMibConOut("Incorrect argument: {}" DMibNewLine, _Ex.f_Arg() );
-					auto Msg = Parser.f_HelpMessage();
-					DMibConOut("{}", Msg);
+					for (auto &Path : pValue->f_Array())
+						RunOptions.m_Paths.f_Insert(Path.f_String());
 				}
-				return false;
-			}()
-		)
+
+				return fg_RunTests(pResults, RunOptions);
+			}
+		;
+
+		auto Parameter_Paths = "Paths...?"_=
+			{
+				"Type"_= {""}
+				, "Default"_= _[_]
+				, "Description"_= "Specify the test paths to run tests for. Can be wildcards."
+			}
+		;
+		auto Option_ExtraData = "ExtraData?"_=
+			{
+				"Names"_= {"--extra-data", "-d"}
+				, "Default"_= ""
+				, "Description"_= "Supply extra general data to tests. Accessible with fg_TestGetExtraData from tests."
+			}
+		;
+		auto Option_FilterResults = "FilterResults?"_=
+			{
+				"Names"_= {"--filter-results", "-r"}
+				, "Default"_= {"Default"}
+				, "Type"_= {NCommandLine::COneOf{"All", "Default", "Success", "Ignore", "Warning", "Fail", "FailAndStop", "ExpectFail", "ExpectFailAndStop"}}
+				, "Description"_= "Filter test results.\n"
+				"@Indent=23\r"
+				"   All:                Report all test results.\r"
+				"   Default:            Report default test results. This includes Warning, Fail, FailAndStop\r"
+				"   Success:            Report successful tests.\r"
+				"   Ignore:             Report ignored tests.\r"
+				"   Warning:            Report tests with warnings.\r"
+				"   Fail:               Report failed tests.\r"
+				"   FailAndStop:        Report fail and stop tests.\r"
+				"   ExpectFail:         Report expected fail tests.\r"
+				"   ExpectFailAndStop:  Report expected faild and stop tests.\r"
+				"\r"
+			}
+		;
+		auto GroupsList = NCommandLine::COneOf{"Default", "Performance", "Torture", "Memory", "Unfinished", "Expensive", "Manual", "SuperUser"};
+		auto Option_Groups = "Groups?"_=
+			{
+				"Names"_= {"--groups", "-g"}
+				, "Default"_= {"Default"}
+				, "Type"_= {GroupsList}
+				, "Description"_= "Specify the groups to include in test.\n"
+				"@Indent=17\r"
+				"   Default:      Run tests without a group specified.\r"
+				"   Performance:  Run tests with Performance group specified.\r"
+				"   Torture:      Run tests with Torgutre group specified.\r"
+				"   Memory:       Run tests with Performance group specified.\r"
+				"   Unfinished:   Run tests with Unfinished group specified.\r"
+				"   Expensive:    Run tests with Expensive group specified.\r"
+				"   Manual:       Run tests with Manual group specified.\r"
+				"   SuperUser:    Run tests with SuperUser group specified.\r"
+				"\r"
+			}
+		;
+		auto Option_ExcludeGroups = "ExcludeGroups?"_=
+			{
+				"Names"_= {"--exclude-groups", "-e"}
+				, "Default"_= _[_]
+				, "Type"_= {GroupsList}
+				, "Description"_= "Specify the groups to include in test.\n"
+				"@Indent=17\r"
+				"   Default:      Don't run tests without a group specified.\r"
+				"   Performance:  Don't run tests with Performance group specified.\r"
+				"   Torture:      Don't run tests with Torgutre group specified.\r"
+				"   Memory:       Don't run tests with Performance group specified.\r"
+				"   Unfinished:   Don't run tests with Unfinished group specified.\r"
+				"   Expensive:    Don't run tests with Expensive group specified.\r"
+				"   Manual:       Don't run tests with Manual group specified.\r"
+				"   SuperUser:    Don't run tests with SuperUser group specified.\r"
+				"\r"
+			}
+		;
+		auto Option_Logger = "Logger?"_=
+			{
+				"Names"_= {"--logger"}
+				, "Default"_= "Default"
+				, "Type"_= NCommandLine::COneOf{"Default", "Brief", "Registry", "Null"}
+				, "Description"_= "Test logger.\n"
+				"@Indent=14\r"
+				"   Default:   Report test in human readable format.\r"
+				"   Brief:     Report test in human readable brief format.\r"
+				"   Registry:  Report test in registry format.\r"
+				"   Null:      Don't report test results.\r"
+				"\r"
+			}
+		;
+		auto Option_ReportValues = "ReportValues?"_=
+			{
+				"Names"_= {"--values"}
+				, "Default"_= true
+				, "Description"_= "Include values in results.\n"
+			}
+		;
+		auto Option_DetailedPerformance = "DetailedPerformance?"_=
+			{
+				"Names"_= {"--detailed-performance", "-p"}
+				, "Default"_= false
+				, "Description"_= "Display detailed performance results.\n"
+			}
+		;
+		auto Option_DetailedMemory = "DetailedMemory?"_=
+			{
+				"Names"_= {"--detailed-memory", "-m"}
+				, "Default"_= false
+				, "Description"_= "Display detailed memory results.\n"
+			}
+		;
+		auto Option_BreakOnFail = "BreakOnFail?"_=
+			{
+				"Names"_= {"--break-on-fail", "-b"}
+				, "Default"_= false
+				, "Description"_= "Break into debugger on failure.\n"
+			}
+		;
+		auto Option_ProcessRecursive = "ProcessRecursive?"_=
+			{
+				"Names"_= {"--process-recursive"}
+				, "Default"_= false
+				, "Description"_= "Break into debugger on failure.\n"
+			}
+		;
+		auto Option_CompareToBaseline = "CompareToBaseline?"_=
+			{
+				"Names"_= {"--compare-to-baseline", "-c"}
+				, "Default"_= false
+				, "Description"_= "Compare performance results to baseline.\n"
+			}
+		;
+		auto Option_CrashOnException = "CrashOnException?"_=
+			{
+				"Names"_= {"--fault-on-exception", "-f"}
+				, "Default"_= false
+				, "Description"_= "Crash instead of capturing exceptions.\n"
+			}
+		;
+
+		auto TestCommand = Section.f_RegisterDirectCommand
+			(
+				{
+					"Names"_= {"--test", "-t"}
+					, "GreedyDefaultCommandParameters"_= true
+					, "Description"_= "Run tests contained in this binary.\n"
+					, "Options"_=
+					{
+						Option_FilterResults
+						, Option_Groups
+						, Option_ExcludeGroups
+						, Option_Logger
+						, Option_ReportValues
+						, Option_DetailedPerformance
+						, Option_DetailedMemory
+						, Option_BreakOnFail
+						, Option_ProcessRecursive
+						, Option_CompareToBaseline
+						, Option_CrashOnException
+						, Option_ExtraData
+					}
+					, "Parameters"_=
+					{
+						Parameter_Paths
+					}
+				}
+				, [fRunTests](NEncoding::CEJSON const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
+				{
+					CRunTestOptions RunOptions;
+					RunOptions.m_ReportFlags = ETestReportFlag_None;
+					return fRunTests(_Parameters, RunOptions, _CommandLineClient.f_AnsiEncodingFlags());
+				}
+			)
+		;
+
+		Section.f_RegisterDirectCommand
+			(
+				{
+					"Names"_= {"--test-list", "-l"}
+					, "Description"_= "List test suites contained in this binary.\n"
+					, "Options"_=
+					{
+						Option_Groups
+						, Option_ExcludeGroups
+						, Option_Logger
+						, Option_ExtraData
+					}
+					, "Parameters"_=
+					{
+						Parameter_Paths
+					}
+				}
+				, [fRunTests](NEncoding::CEJSON const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
+				{
+					CRunTestOptions RunOptions;
+					RunOptions.m_ReportFlags = ETestReportFlag_ReportCategories;
+					return fRunTests(_Parameters, RunOptions, _CommandLineClient.f_AnsiEncodingFlags());
+				}
+			)
+		;
+
+		pCommandLineSpec->f_SetDefaultCommand(TestCommand);
+
+		NCommandLine::CCommandLineClient Client(pCommandLineSpec);
+
+		try
+		{
+			return Client.f_RunCommandLine();
+		}
+		catch (NException::CException const &_Exception)
+		{
+			DMibConErrOut("{}\n", _Exception);
 			return 1;
-
-		if (Options.f_IsSet("help"))
-		{
-			auto Msg = Parser.f_HelpMessage();
-			DMibConOut("{}", Msg);
-			return 0;
 		}
-
-		RunOptions.m_ReportFlags = ETestReportFlag_None;
-		if (Options.f_IsSet("TestResults"))
-		{
-			if (Options.f_HasList("TestResults", "Display"))
-			{
-				if (Options.f_HasListItem("TestResults", "Display", "All"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_All;
-				if (Options.f_HasListItem("TestResults", "Display", "Default"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_Default;
-				if (Options.f_HasListItem("TestResults", "Display", "Success"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_Success;
-				if (Options.f_HasListItem("TestResults", "Display", "Warning"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_Warning;
-				if (Options.f_HasListItem("TestResults", "Display", "Fail"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_Fail;
-				if (Options.f_HasListItem("TestResults", "Display", "FailAndStop"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_FailAndStop;
-				if (Options.f_HasListItem("TestResults", "Display", "ExpectFail"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_ExpectFail;
-				if (Options.f_HasListItem("TestResults", "Display", "ExectFailAndStop"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_ExpectFailAndStop;
-				if (Options.f_HasListItem("TestResults", "Display", "UseColor"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_UseColor;
-				if (Options.f_HasListItem("TestResults", "Display", "DetailedPerformance"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_DetailedPerformance;
-				if (Options.f_HasListItem("TestResults", "Display", "Ignored"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_Ignored;
-				if (Options.f_HasListItem("TestResults", "Display", "DetailedMemory"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_DetailedMemory;
-				if (Options.f_HasListItem("TestResults", "Display", "BreakOnFail"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_BreakOnFail;
-				if (Options.f_HasListItem("TestResults", "Display", "ProcessRecursive"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_ProcessRecursive;
-				if (Options.f_HasListItem("TestResults", "Display", "CompareToBaseline"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_CompareToBaseline;
-				if (Options.f_HasListItem("TestResults", "Display", "CrashOnException"))
-					RunOptions.m_ReportFlags |= ETestReportFlag_CrashOnException;
-
-
-			}
-		}
-		if (RunOptions.m_ReportFlags == ETestReportFlag_None)
-			RunOptions.m_ReportFlags = ETestReportFlag_Default;
-		if (Options.f_IsSet("TestGroups"))
-		{
-			if (Options.f_HasList("TestGroups", "Groups"))
-			{
-				if (Options.f_HasListItem("TestGroups", "Groups", "Default"))
-					RunOptions.m_IncludeGroups.f_Insert("");
-				if (Options.f_HasListItem("TestGroups", "Groups", "Performance"))
-					RunOptions.m_IncludeGroups.f_Insert("Performance");
-				if (Options.f_HasListItem("TestGroups", "Groups", "Torture"))
-					RunOptions.m_IncludeGroups.f_Insert("Torture");
-				if (Options.f_HasListItem("TestGroups", "Groups", "Memory"))
-					RunOptions.m_IncludeGroups.f_Insert("Memory");
-				if (Options.f_HasListItem("TestGroups", "Groups", "Unfinished"))
-					RunOptions.m_IncludeGroups.f_Insert("Unfinished");
-				if (Options.f_HasListItem("TestGroups", "Groups", "Expensive"))
-					RunOptions.m_IncludeGroups.f_Insert("Expensive");
-				if (Options.f_HasListItem("TestGroups", "Groups", "Manual"))
-					RunOptions.m_IncludeGroups.f_Insert("Manual");
-				if (Options.f_HasListItem("TestGroups", "Groups", "SuperUser"))
-					RunOptions.m_IncludeGroups.f_Insert("SuperUser");
-				if (Options.f_HasListItem("TestGroups", "Groups", ""))
-					RunOptions.m_IncludeGroups.f_Insert("");
-			}
-		}
-		if (Options.f_IsSet("TestExcludeGroups"))
-		{
-			if (Options.f_HasList("TestExcludeGroups", "Groups"))
-			{
-				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Default"))
-					RunOptions.m_ExcludeGroups.f_Insert("");
-				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Performance"))
-					RunOptions.m_ExcludeGroups.f_Insert("Performance");
-				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Torture"))
-					RunOptions.m_ExcludeGroups.f_Insert("Torture");
-				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Memory"))
-					RunOptions.m_ExcludeGroups.f_Insert("Memory");
-				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Unfinished"))
-					RunOptions.m_ExcludeGroups.f_Insert("Unfinished");
-				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Expensive"))
-					RunOptions.m_ExcludeGroups.f_Insert("Expensive");
-				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "Manual"))
-					RunOptions.m_ExcludeGroups.f_Insert("Manual");
-				if (Options.f_HasListItem("TestExcludeGroups", "Groups", "SuperUser"))
-					RunOptions.m_ExcludeGroups.f_Insert("SuperUser");
-				if (Options.f_HasListItem("TestGroups", "Groups", ""))
-					RunOptions.m_IncludeGroups.f_Insert("");
-			}
-		}
-
-		if (Options.f_IsSet("TestsList"))
-		{
-			if (Options.f_HasValue("TestsList", "Path"))
-				RunOptions.m_Paths.f_Insert(fg_StrSplit(Options.f_GetValue("TestsList", "Path"), ";"));
-			RunOptions.m_ReportFlags |= ETestReportFlag_ReportCategories;
-			pResults = &CategoryResults;
-		}
-		else if (Options.f_IsSet("Tests"))
-		{
-			NContainer::TCVector<NStr::CStr> Paths;
-			if (Options.f_HasValue("Tests", "Path"))
-				RunOptions.m_Paths.f_Insert(fg_StrSplit(Options.f_GetValue("Tests", "Path"), ";"));
-			//auto Path = Options.f_HasValue("TestsList", "Path") ? Options.f_GetValue("TestsList", "Path") : "";
-		}
-
-		if (Options.f_IsSet("TestData"))
-		{
-			if (Options.f_HasValue("TestData", "Data") )
-				RunOptions.m_ExtraData = Options.f_GetValue("TestData", "Data");
-		}
-		if (Options.f_IsSet("TestLogger"))
-		{
-			if (Options.f_HasList("TestLogger", "Logger"))
-			{
-				if (Options.f_HasListItem("TestLogger", "Logger", "Default"))
-					pResults = &DefaultResults;
-				else if (Options.f_HasListItem("TestLogger", "Logger", "Brief"))
-					pResults = &BriefResults;
-				else if (Options.f_HasListItem("TestLogger", "Logger", "Registry"))
-					pResults = &RegistryResults;
-				else if (Options.f_HasListItem("TestLogger", "Logger", "Null"))
-					pResults = &NullResults;
-			}
-		}
-		return fg_RunTests(pResults, RunOptions);
-	}
-
-	void CTestResultParser::fp_HandleRecord(NStr::CStr const &_Text)
-	{
-		NContainer::CRegistry Registry;
-		Registry.f_ParseStr(_Text);
-		NContainer::CRegistry *pChild = nullptr;
-		if ((pChild = Registry.f_GetChild("Header")))
-		{
-			f_HandleHeader(*pChild);
-		}
-		else if ((pChild = Registry.f_GetChild("Footer")))
-		{
-			f_HandleFooter(*pChild);
-		}
-		else if ((pChild = Registry.f_GetChild("Category")))
-		{
-			f_HandleCategory(*pChild);
-		}
-		else if ((pChild = Registry.f_GetChild("Result")))
-		{
-			f_HandleResult(*pChild);
-		}
-		else if ((pChild = Registry.f_GetChild("ResultsPerformance")))
-		{
-			f_HandlePerformanceResult(*pChild);
-		}
-		else if ((pChild = Registry.f_GetChild("ResultsMemory")))
-		{
-			f_HandleMemoryResult(*pChild);
-		}
-		else
-			DMibFastCheck(0);
-	}
-
-	void CTestResultParser::f_FeedText(NStr::CStr const &_Text)
-	{
-		m_TextBuffer += _Text;
-		while (1)
-		{
-			ch8 const *pParse = m_TextBuffer;
-			ch8 const *pParseStart = pParse;
-			bool bFound = false;
-			while (*pParse)
-			{
-				if (*pParse == '}')
-				{
-					++pParse;
-					NStr::CStr FoundText = m_TextBuffer.f_Left(pParse - pParseStart);
-					NStr::fg_ParseToEndOfLine(pParse);
-					NStr::fg_ParseEndOfLine(pParse);
-					m_TextBuffer = m_TextBuffer.f_Extract(pParse - pParseStart);
-					bFound = true;
-					fp_HandleRecord(FoundText);
-					break;
-				}
-				NStr::fg_ParseToEndOfLine(pParse);
-				NStr::fg_ParseEndOfLine(pParse);
-			}
-			if (!bFound)
-				break;
-		}
-	}
-
-	NStr::CStr CTestResultParser::fs_MeasureTypeToStr(ETestMeasureType _MeasureType)
-	{
-		return NPrivate::CRegistryTestResults::fs_MeasureTypeToStr(_MeasureType);
-	}
-	ETestMeasureType CTestResultParser::fs_MeasureTypeFromStr(NStr::CStr const &_MeasureType)
-	{
-		return NPrivate::CRegistryTestResults::fs_MeasureTypeFromStr(_MeasureType);
-	}
-
-	NStr::CStr CTestResultParser::fs_ReportFlagsToStr(ETestReportFlag _Flags)
-	{
-		return NPrivate::CRegistryTestResults::fs_ReportFlagsToStr(_Flags);
-	}
-
-	ETestReportFlag CTestResultParser::fs_ReportFlagsFromStr(NStr::CStr const &_Flags)
-	{
-		return NPrivate::CRegistryTestResults::fs_ReportFlagsFromStr(_Flags);
-	}
-
-	NStr::CStr CTestResultParser::fs_TestFlagsToStr(ETestFlag _Flags)
-	{
-		return NPrivate::CRegistryTestResults::fs_TestFlagsToStr(_Flags);
-	}
-
-	ETestFlag CTestResultParser::fs_TestFlagsFromStr(NStr::CStr const &_Flags)
-	{
-		return NPrivate::CRegistryTestResults::fs_TestFlagsFromStr(_Flags);
-	}
-
-	NStr::CStr CTestResultParser::fs_FailureActionToStr(ETest _Action)
-	{
-		return NPrivate::CRegistryTestResults::fs_FailureActionToStr(_Action);
-	}
-
-	ETest CTestResultParser::fs_FailureActionFromStr(NStr::CStr const &_Action)
-	{
-		return NPrivate::CRegistryTestResults::fs_FailureActionFromStr(_Action);
-	}
-
-	NStr::CStr CTestResultParser::fs_TestResultToStr(ETestResult _TestResult)
-	{
-		return NPrivate::CRegistryTestResults::fs_TestResultToStr(_TestResult);
-	}
-
-	ETestResult CTestResultParser::fs_TestResultFromStr(NStr::CStr const &_TestResult)
-	{
-		return NPrivate::CRegistryTestResults::fs_TestResultFromStr(_TestResult);
-	}
-
-	NStr::CStr CTestResultParser::fs_CheckTypeToStr(ECheckType _CheckType)
-	{
-		return NPrivate::CRegistryTestResults::fs_CheckTypeToStr(_CheckType);
-	}
-
-	ECheckType CTestResultParser::fs_CheckTypeFromStr(NStr::CStr const &_CheckType)
-	{
-		return NPrivate::CRegistryTestResults::fs_CheckTypeFromStr(_CheckType);
-	}
-
-	void CTestResultParser::fs_DecodeMemoryResults(NContainer::CRegistry const &_Registry, CTestMemoryResults &_Results)
-	{
-		return NPrivate::CRegistryTestResults::fs_DecodeMemoryResults(_Registry, _Results);
-	}
-	void CTestResultParser::fs_DecodePerformanceResults(NContainer::CRegistry const &_Registry, CTestPerformanceResults &_Results)
-	{
-		return NPrivate::CRegistryTestResults::fs_DecodePerformanceResults(_Registry, _Results);
-	}
-	void CTestResultParser::fs_DecodeResult(NContainer::CRegistry const &_Registry, CTestResult &_Results)
-	{
-		return NPrivate::CRegistryTestResults::fs_DecodeResult(_Registry, _Results);
 	}
 
 	bool fg_GroupActive(NStr::CStr const &_Group)

@@ -5,6 +5,8 @@
 
 #if DMibConfig_Tests_Enable
 
+#include <Mib/Test/ReporterText>
+
 namespace NMib::NTest
 {
 	template <typename t_CFunction>
@@ -26,8 +28,7 @@ namespace NMib::NTest
 		mutable NStr::CStr m_ReportText;
 		class CLocalResults : public CTextTestResults
 		{
-
-			void fp_ReportText(const NStr::CStr &_Text, NSys::EColor _Color) override
+			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override
 			{
 				m_ReportText += _Text;
 			}
@@ -35,6 +36,7 @@ namespace NMib::NTest
 		public:
 			CLocalResults(ETestReportFlag _ReportFlags)
 				: m_bSuccess(true)
+				, CTextTestResults(NCommandLine::EAnsiEncodingFlag_None)
 			{
 				mp_ReportFlags = ETestReportFlag_Fail | ETestReportFlag_FailAndStop | ETestReportFlag_ExpectFailAndStop;
 				if (_ReportFlags & ETestReportFlag_BreakOnFail)

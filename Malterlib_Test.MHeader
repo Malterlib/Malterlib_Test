@@ -38,7 +38,7 @@ Property
 	{
 		!!MalterlibLibrary_Test true
 	}
-//	MalterlibSubLibrarySeparate_Lib_Malterlib_Test true
+	MalterlibSubLibrarySeparate_Lib_Malterlib_Test true
 	MalterlibIncludeRoots "@('Include'->MakeAbsolute());@(MalterlibIncludeRoots)"
 	{
 		!!MalterlibLibrary_Test true
