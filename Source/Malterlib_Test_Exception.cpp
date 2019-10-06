@@ -51,6 +51,7 @@ namespace NMib::NTest
 
 namespace NMib::NTest::NPrivate
 {
+#if DMibConfig_Tests_Enable
 	void CTestExceptionFilter::f_SetDumpFiles(const NContainer::TCVector<NStr::CStr> &_Files)
 	{
 		mint nDumpFiles = m_DumpFiles.f_GetLen();
@@ -352,4 +353,5 @@ namespace NMib::NTest::NPrivate
 		{
 		}
 	}
+#endif
 }
