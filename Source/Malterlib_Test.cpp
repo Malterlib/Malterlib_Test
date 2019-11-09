@@ -154,7 +154,7 @@ namespace NMib::NTest
 
 		};
 
-		static NStorage::TCAggregate<CTestManager, 256> g_Tests = {DAggregateInit};
+		constinit static NStorage::TCAggregate<CTestManager, 256> g_Tests = {DAggregateInit};
 
 		CTestManager &CTestManager::fs_GetManager()
 		{

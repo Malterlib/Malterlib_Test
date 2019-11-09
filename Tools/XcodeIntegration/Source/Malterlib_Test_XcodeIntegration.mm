@@ -42,9 +42,9 @@ struct CTestExecutable
 	TCMap<CStr, CStr> m_NameToPath;
 };
 
-TCAggregate<TCVector<CTestExecutable>> g_TestExecutables = {DAggregateInit};
-TCAggregate<TCMap<Class, CTestExecutable *>> g_TestClassToExecutable = {DAggregateInit};
-TCAggregate<TCVector<CStr>> g_FilteredCommandLine = {DAggregateInit};
+constinit TCAggregate<TCVector<CTestExecutable>> g_TestExecutables = {DAggregateInit};
+constinit TCAggregate<TCMap<Class, CTestExecutable *>> g_TestClassToExecutable = {DAggregateInit};
+constinit TCAggregate<TCVector<CStr>> g_FilteredCommandLine = {DAggregateInit};
 
 #define XCTestCaseHidden XCTestCase
 
