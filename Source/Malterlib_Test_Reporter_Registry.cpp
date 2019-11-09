@@ -379,6 +379,8 @@ namespace NMib::NTest
 				if (mp_ReportFlags & ETestReportFlag_ExpectFailAndStop)
 					bReport = true;
 				break;
+			case ETest_None:
+				break;
 			}
 		}
 		else if (_Result == ETestResult_Success)

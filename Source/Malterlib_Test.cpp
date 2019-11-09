@@ -282,6 +282,8 @@ namespace NMib::NTest
 				case ETest_ExpectFailAndStop:
 					_pTestManager->m_nExpectedFailed.f_FetchAdd(1);
 					break;
+				case ETest_None:
+					break;
 				}
 			}
 			else if (_Result == ETestResult_Success)
@@ -314,6 +316,11 @@ namespace NMib::NTest
 				case ETest_FailAndStop:
 				case ETest_ExpectFailAndStop:
 					Ret |= ETestResultReportFlag_Abort;
+					break;
+				case ETest_None:
+				case ETest_Warn:
+				case ETest_Fail:
+				case ETest_ExpectFail:
 					break;
 				}
 			}
