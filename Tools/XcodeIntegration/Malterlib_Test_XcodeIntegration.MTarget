@@ -16,6 +16,7 @@
 	{
 		MalterlibLinkWithOpenSSL true
 		MalterlibBundleDebugLogation "@(MalterlibOriginalModulePath)"
+		MalterlibXcodePrincipalClass MalterlibTestLoader
 	}
 	
 	Target

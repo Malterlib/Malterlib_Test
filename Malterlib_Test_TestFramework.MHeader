@@ -13,6 +13,10 @@ Property
 	{
 		!!MalterlibSeparateTestWorkspaces ""
 	}
+	MalterlibXcodeIntegration false // User(Tests)=true: Enable Xcode testing integration
+	{
+		!!MalterlibXcodeIntegration ""
+	}
 	MalterlibInternalTestHelperTarget true
 	{
 		!!"Target:Target.Name" "~*_Test_Malterlib_Helper_*"
@@ -178,14 +182,15 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 	}
 
 	%Target Exe_RunAllTests
-/*	%Target Dll_TestXcodeIntegration
+	%Target Dll_TestXcodeIntegration
 	{
 		&
 		{
 			PlatformFamily OSX
 			GeneratorFamily Xcode
+			MalterlibXcodeIntegration true
 		}
-	}*/
+	}
 }
 
 %Workspace "@(MalterlibTests)"
@@ -227,6 +232,16 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 	%Group Tests
 	{
 		%Target "@(Workspace:this.Identity)"
+	}
+	%Target Exe_RunAllTests
+	%Target Dll_TestXcodeIntegration
+	{
+		&
+		{
+			PlatformFamily OSX
+			GeneratorFamily Xcode
+			MalterlibXcodeIntegration true
+		}
 	}
 }
 

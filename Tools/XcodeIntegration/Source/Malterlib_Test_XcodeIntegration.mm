@@ -4,6 +4,7 @@
 #include <Mib/Core/Core>
 #include <Mib/Process/ProcessLaunch>
 #include <Mib/Test/Test>
+#include <Mib/Test/ResultParser>
 #include <Mib/Container/Vector>
 #include <Mib/Container/Set>
 #include <Mib/File/File>
@@ -231,10 +232,11 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 	TestPath = *pTestPath;
 
 	TCVector<CStr> TestParams;
-	TestParams.f_Insert("--Tests");
-	TestParams.f_Insert(TestPath);
-	TestParams.f_Insert("--TestLogger");
+	TestParams.f_Insert("--test");
+	TestParams.f_Insert("--no-color");
+	TestParams.f_Insert("--logger");
 	TestParams.f_Insert("Registry");
+	TestParams.f_Insert(TestPath);
 	TestParams.f_Insert(*g_FilteredCommandLine);
 
 	fg_RunTests
@@ -295,6 +297,10 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 					case ETest_FailAndStop:
 						fReport("FAILED and ABORTED");
 						break;
+					case ETest_None:
+					case ETest_ExpectFail:
+					case ETest_ExpectFailAndStop:
+						break;
 					}
 				}
 				else if (_TestResult.m_Result == ETestResult_Success)
@@ -304,6 +310,11 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 					case ETest_ExpectFail:
 					case ETest_ExpectFailAndStop:
 						fReport("Success (UNEXPECTED)");
+						break;
+					case ETest_None:
+					case ETest_Warn:
+					case ETest_Fail:
+					case ETest_FailAndStop:
 						break;
 					}
 				}
@@ -333,10 +344,8 @@ namespace NMib::NSys
 	void fg_CreateSystem();
 }
 
-+ (void)load
+- (id)init
 {
-	NMib::NSys::fg_CreateSystem();
-
 	TCVector<CStr> CommandLine = fg_GetSys()->f_GetCommandLineArgs();
 
 	CommandLine.f_Remove(0);
@@ -350,6 +359,7 @@ namespace NMib::NSys
 				++iCommand;
 			continue;
 		}
+
 		if (*iCommand == "-ApplePersistenceIgnoreState")
 		{
 			++iCommand;
@@ -357,19 +367,31 @@ namespace NMib::NSys
 				++iCommand;
 			continue;
 		}
+
+		if (*iCommand == "--test")
+		{
+			++iCommand;
+			continue;
+		}
+
 		(*g_FilteredCommandLine).f_Insert(*iCommand);
 		++iCommand;
 	}
 
 	TCVector<CStr> TestParams;
-	TestParams.f_Insert("--TestsList");
-	TestParams.f_Insert("--TestLogger");
+	TestParams.f_Insert("--test-list");
+	TestParams.f_Insert("--no-color");
+	TestParams.f_Insert("--logger");
 	TestParams.f_Insert("Registry");
 	TestParams.f_Insert(*g_FilteredCommandLine);
 
 	NTime::CClock Clock{true};
 
 	TCActorResultVector<CTestExecutable> ConcurrentTests;
+
+	bool bConcurrent = true;
+
+	auto SeparateActor = fg_ConcurrentActor();
 
 	CStr ConfigSuffix = DConfigSuffix;
 
@@ -386,40 +408,45 @@ namespace NMib::NSys
 
 		TestExecutable.m_Name = fg_MakeNiceName(CFile::fs_AppendPath(Path, FileName));
 
-		fg_ConcurrentDispatch
-			(
-				[TestExecutable, &TestParams]() mutable
-				{
-					fg_RunTests
-						(
-							TestExecutable.m_Executable
-							, TestParams
-							, [&](CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)
-							{
-								auto &Test = TestExecutable.m_Tests.f_Insert();
-								Test.m_TestPath = _TestPath;
-								Test.m_Executable = TestExecutable.m_Executable;
-								Test.m_Location = _Location;
-								Test.m_Thread = _Thread;
-								Test.m_Groups = _Groups;
-							}
-							, [&](CTestResult const &_TestResult)
-							{
-							}
-						)
-					;
-					return fg_Move(TestExecutable);
-				}
-			)
-			> ConcurrentTests.f_AddResult()
+		auto fRunTest = [TestExecutable, &TestParams]() mutable
+			{
+				fg_RunTests
+					(
+						TestExecutable.m_Executable
+						, TestParams
+						, [&](CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)
+						{
+							auto &Test = TestExecutable.m_Tests.f_Insert();
+							Test.m_TestPath = _TestPath;
+							Test.m_Executable = TestExecutable.m_Executable;
+							Test.m_Location = _Location;
+							Test.m_Thread = _Thread;
+							Test.m_Groups = _Groups;
+						}
+						, [&](CTestResult const &_TestResult)
+						{
+						}
+					)
+				;
+				return fg_Move(TestExecutable);
+			}
 		;
+
+		if (bConcurrent)
+			fg_ConcurrentDispatch(fg_Move(fRunTest)) > ConcurrentTests.f_AddResult();
+		else
+			fg_Dispatch(SeparateActor, fg_Move(fRunTest)) > ConcurrentTests.f_AddResult();
 	}
 
+	mint nTests = 0;
 	for (auto &Results : ConcurrentTests.f_GetResults().f_CallSync())
+	{
+		nTests += Results->m_Tests.f_GetLen();
 		g_TestExecutables->f_Insert(*Results);
+	}
 
 	fp64 Runtime = Clock.f_GetTime();
-	DConErrOut("Enumerated tests in {} s\n", Runtime);
+	DConErrOut2("Enumerated {} tests in {fe1} s\n", nTests, Runtime);
 
 	for (auto &Executable : *g_TestExecutables)
 	{
@@ -456,6 +483,8 @@ namespace NMib::NSys
 		}
 		objc_registerClassPair(pTestClass);
 	}
+
+	return self;
 }
 
 @end
