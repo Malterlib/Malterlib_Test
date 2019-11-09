@@ -3,16 +3,18 @@
 
 #pragma once
 
-#include "Malterlib_Test_Exception_Private.h"
+#include "Malterlib_Test.h"
 
 namespace NMib::NTest
 {
-	template <typename t_CException0 = NPrivate::CExceptionDummyTag0, typename t_CException1 = NPrivate::CExceptionDummyTag1, typename t_CException2 = NPrivate::CExceptionDummyTag2, typename t_CException3 = NPrivate::CExceptionDummyTag3, typename t_CException4 = NPrivate::CExceptionDummyTag4, typename t_CException5 = NPrivate::CExceptionDummyTag5, typename t_CException6 = NPrivate::CExceptionDummyTag6, typename t_CException7 = NPrivate::CExceptionDummyTag7>
-	class TCThrowsException
+	template <bool t_bOuter, typename ...tp_CExceptions>
+	struct TCThrowsExceptionImpl;
+
+	template <bool t_bOuter>
+	struct TCThrowsExceptionImpl<t_bOuter>
 	{
-	public:
-		template <typename t_CObject>
-		bool operator == (t_CObject const &_FunctionObject) const
+		template <typename t_FFunctor>
+		bool operator == (t_FFunctor const &_fFunctor) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
@@ -20,194 +22,307 @@ namespace NMib::NTest
 #endif
 			try
 			{
-				_FunctionObject();
+				NPrivate::fg_SetDynamicValue({});
+				_fFunctor();
+				NPrivate::fg_SetDynamicValue("No exception thrown");
 			}
-			catch (t_CException0 const &)
+			catch (NException::CExceptionBase const &_Exception)
 			{
-				return true;
+				NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+				return false;
 			}
-			catch (t_CException1 const &)
+			catch (...)
 			{
-				return true;
+				return false;
 			}
-			catch (t_CException2 const &)
-			{
-				return true;
-			}
-			catch (t_CException3 const &)
-			{
-				return true;
-			}
-			catch (t_CException4 const &)
-			{
-				return true;
-			}
-			catch (t_CException5 const &)
-			{
-				return true;
-			}
-			catch (t_CException6 const &)
-			{
-				return true;
-			}
-			catch (t_CException7 const &)
-			{
-				return true;
-			}
-			return NTraits::TCIsSame<t_CException0, NPrivate::CExceptionDummyTag0>::mc_Value;
+			return true;
 		}
 
-		template <typename t_CFormatter>
-		int f_GetStringFormatType(t_CFormatter &_Formatter);
-
-		template <typename t_CFormatter>
-		// This crashes GCC
-		// auto f_CreateStringFormatter(t_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
-		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(t_CFormatter &_Formatter) const
+		template <typename tf_CString>
+		void f_Format(tf_CString &o_String) const
 		{
-			static const ch8 * pRet = "NoEval";
-			return NStr::fg_CreateStringFormatter(_Formatter, pRet);
+			o_String += typename tf_CString::CFormat("noexcept");
 		}
 	};
 
-	template <typename t_CException0, typename t_CException1 = NPrivate::CExceptionDummyTag1 const &, typename t_CException2 = NPrivate::CExceptionDummyTag2 const &, typename t_CException3 = NPrivate::CExceptionDummyTag3 const &, typename t_CException4 = NPrivate::CExceptionDummyTag4 const &, typename t_CException5 = NPrivate::CExceptionDummyTag5 const &, typename t_CException6 = NPrivate::CExceptionDummyTag6 const &, typename t_CException7 = NPrivate::CExceptionDummyTag7 const &>
-	class TCThrowsExceptionExact
+	template <bool t_bOuter, typename t_CException>
+	struct TCThrowsExceptionImpl<t_bOuter, t_CException>
 	{
-		t_CException0 m_Value0;
-		t_CException1 m_Value1;
-		t_CException2 m_Value2;
-		t_CException3 m_Value3;
-		t_CException4 m_Value4;
-		t_CException5 m_Value5;
-		t_CException6 m_Value6;
-		t_CException7 m_Value7;
-	public:
-
-		TCThrowsExceptionExact(t_CException0 const &_Value0
-			, t_CException1 _Value1 = NPrivate::CExceptionDummyTag1()
-			, t_CException2 _Value2 = NPrivate::CExceptionDummyTag2()
-			, t_CException3 _Value3 = NPrivate::CExceptionDummyTag3()
-			, t_CException4 _Value4 = NPrivate::CExceptionDummyTag4()
-			, t_CException5 _Value5 = NPrivate::CExceptionDummyTag5()
-			, t_CException6 _Value6 = NPrivate::CExceptionDummyTag6()
-			, t_CException7 _Value7 = NPrivate::CExceptionDummyTag7()
-			)
-			: m_Value0(_Value0)
-			, m_Value1(_Value1)
-			, m_Value2(_Value2)
-			, m_Value3(_Value3)
-			, m_Value4(_Value4)
-			, m_Value5(_Value5)
-			, m_Value6(_Value6)
-			, m_Value7(_Value7)
-		{
-		}
-
-		template <typename t_CObject>
-		bool operator == (t_CObject const &_FunctionObject) const
+		template <typename t_FFunctor>
+		bool operator == (t_FFunctor const &_fFunctor) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
 			DMibExceptionFilter(TestExceptionFilter);
 #endif
-			try
+			if constexpr(t_bOuter)
 			{
-				_FunctionObject();
+				try
+				{
+					try
+					{
+						NPrivate::fg_SetDynamicValue({});
+						_fFunctor();
+						NPrivate::fg_SetDynamicValue("No exception thrown");
+					}
+					catch (t_CException const &_Exception)
+					{
+						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+							NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+						return true;
+					}
+				}
+				catch (NException::CExceptionBase const &_Exception)
+				{
+					NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+					return false;
+				}
 			}
-			catch (t_CException0 const &_Exception)
+			else
 			{
-				return _Exception == m_Value0;
-			}
-			catch (t_CException1 const &_Exception)
-			{
-				return _Exception == m_Value1;
-			}
-			catch (t_CException2 const &_Exception)
-			{
-				return _Exception == m_Value2;
-			}
-			catch (t_CException3 const &_Exception)
-			{
-				return _Exception == m_Value3;
-			}
-			catch (t_CException4 const &_Exception)
-			{
-				return _Exception == m_Value4;
-			}
-			catch (t_CException5 const &_Exception)
-			{
-				return _Exception == m_Value5;
-			}
-			catch (t_CException6 const &_Exception)
-			{
-				return _Exception == m_Value6;
-			}
-			catch (t_CException7 const &_Exception)
-			{
-				return _Exception == m_Value7;
+				try
+				{
+					NPrivate::fg_SetDynamicValue({});
+					_fFunctor();
+					NPrivate::fg_SetDynamicValue("No exception thrown");
+				}
+				catch (t_CException const &_Exception)
+				{
+					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+						NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+					return true;
+				}
 			}
 			return false;
 		}
 
-		template <typename t_CFormatter>
-		int f_GetStringFormatType(t_CFormatter &_Formatter);
-
-		template <typename t_CFormatter>
-		// This crashes GCC
-		// auto f_CreateStringFormatter(t_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
-		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(t_CFormatter &_Formatter) const
+		template <typename tf_CString>
+		void f_Format(tf_CString &o_String) const
 		{
-			static const ch8 * pRet = "NoEval";
-			return NStr::fg_CreateStringFormatter(_Formatter, pRet);
+			o_String += typename tf_CString::CFormat("{}") << fg_GetTypeName<t_CException>();
 		}
 	};
 
-	template <typename t_CException0, typename t_CException1, typename t_CException2, typename t_CException3, typename t_CException4, typename t_CException5, typename t_CException6, typename t_CException7>
-	TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &, t_CException4 const &, t_CException5 const &, t_CException6 const &, t_CException7 const &> fg_ThrowsException(t_CException0 const &_Value0, t_CException1 const &_Value1, t_CException2 const &_Value2, t_CException3 const &_Value3, t_CException4 const &_Value4, t_CException5 const &_Value5, t_CException6 const &_Value6, t_CException7 const &_Value7)
+	template <bool t_bOuter, typename t_CException, typename ...tp_CExceptions>
+	struct TCThrowsExceptionImpl<t_bOuter, t_CException, tp_CExceptions...> : public TCThrowsExceptionImpl<false, tp_CExceptions...>
 	{
-		return TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &, t_CException4 const &, t_CException5 const &, t_CException6 const &, t_CException7 const &>(_Value0, _Value1, _Value2, _Value3, _Value4, _Value5, _Value6, _Value7);
-	}
+	public:
+		template <typename t_FFunctor>
+		bool operator == (t_FFunctor const &_fFunctor) const
+		{
+#if DMibConfig_Tests_Enable
+			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
+			DMibExceptionFilter(TestExceptionFilter);
+#endif
+			if constexpr (t_bOuter)
+			{
+				try
+				{
+					try
+					{
+						return TCThrowsExceptionImpl<false, tp_CExceptions...>::operator == (_fFunctor);
+					}
+					catch (t_CException const &_Exception)
+					{
+						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+							NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+						return true;
+					}
+				}
+				catch (NException::CExceptionBase const &_Exception)
+				{
+					NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+					return false;
+				}
+			}
+			else
+			{
+				try
+				{
+					return TCThrowsExceptionImpl<false, tp_CExceptions...>::operator == (_fFunctor);
+				}
+				catch (t_CException const &_Exception)
+				{
+					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+						NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+					return true;
+				}
+			}
 
-	template <typename t_CException0, typename t_CException1, typename t_CException2, typename t_CException3, typename t_CException4, typename t_CException5, typename t_CException6>
-	TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &, t_CException4 const &, t_CException5 const &, t_CException6 const &> fg_ThrowsException(t_CException0 const &_Value0, t_CException1 const &_Value1, t_CException2 const &_Value2, t_CException3 const &_Value3, t_CException4 const &_Value4, t_CException5 const &_Value5, t_CException6 const &_Value6)
-	{
-		return TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &, t_CException4 const &, t_CException5 const &, t_CException6 const &>(_Value0, _Value1, _Value2, _Value3, _Value4, _Value5, _Value6);
-	}
+			return false;
+		}
 
-	template <typename t_CException0, typename t_CException1, typename t_CException2, typename t_CException3, typename t_CException4, typename t_CException5>
-	TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &, t_CException4 const &, t_CException5 const &> fg_ThrowsException(t_CException0 const &_Value0, t_CException1 const &_Value1, t_CException2 const &_Value2, t_CException3 const &_Value3, t_CException4 const &_Value4, t_CException5 const &_Value5)
-	{
-		return TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &, t_CException4 const &, t_CException5 const &>(_Value0, _Value1, _Value2, _Value3, _Value4, _Value5);
-	}
+		template <typename tf_CString>
+		void f_Format(tf_CString &o_String) const
+		{
+			TCThrowsExceptionImpl<false, tp_CExceptions...>::f_Format(o_String);
 
-	template <typename t_CException0, typename t_CException1, typename t_CException2, typename t_CException3, typename t_CException4>
-	TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &, t_CException4 const &> fg_ThrowsException(t_CException0 const &_Value0, t_CException1 const &_Value1, t_CException2 const &_Value2, t_CException3 const &_Value3, t_CException4 const &_Value4)
-	{
-		return TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &, t_CException4 const &>(_Value0, _Value1, _Value2, _Value3, _Value4);
-	}
+			o_String += typename tf_CString::CFormat("\n{}") << fg_GetTypeName<t_CException>();
+		}
+	};
 
-	template <typename t_CException0, typename t_CException1, typename t_CException2, typename t_CException3>
-	TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &> fg_ThrowsException(t_CException0 const &_Value0, t_CException1 const &_Value1, t_CException2 const &_Value2, t_CException3 const &_Value3)
-	{
-		return TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &, t_CException3 const &>(_Value0, _Value1, _Value2, _Value3);
-	}
+	template <typename ...tp_CExceptions>
+	using TCThrowsException = TCThrowsExceptionImpl<true, tp_CExceptions...>;
 
-	template <typename t_CException0, typename t_CException1, typename t_CException2>
-	TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &> fg_ThrowsException(t_CException0 const &_Value0, t_CException1 const &_Value1, t_CException2 const &_Value2)
-	{
-		return TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &, t_CException2 const &>(_Value0, _Value1, _Value2);
-	}
+	template <bool t_bOuter, typename ...tp_CExceptions>
+	struct TCThrowsExceptionExactImpl;
 
-	template <typename t_CException0, typename t_CException1>
-	TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &> fg_ThrowsException(t_CException0 const &_Value0, t_CException1 const &_Value1)
+	template <bool t_bOuter, typename t_CException>
+	struct TCThrowsExceptionExactImpl<t_bOuter, t_CException>
 	{
-		return TCThrowsExceptionExact<t_CException0 const &, t_CException1 const &>(_Value0, _Value1);
-	}
+		TCThrowsExceptionExactImpl(t_CException const &_Exception)
+			: m_Exception(_Exception)
+		{
+		}
 
-	template <typename t_CException0>
-	TCThrowsExceptionExact<t_CException0 const &> fg_ThrowsException(t_CException0 const &_Value0)
+		template <typename t_FFunctor>
+		bool operator == (t_FFunctor const &_fFunctor) const
+		{
+#if DMibConfig_Tests_Enable
+			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
+			DMibExceptionFilter(TestExceptionFilter);
+#endif
+			if constexpr (t_bOuter)
+			{
+				try
+				{
+					try
+					{
+						NPrivate::fg_SetDynamicValue({});
+						_fFunctor();
+						NPrivate::fg_SetDynamicValue("No exception thrown");
+					}
+					catch (t_CException const &_Exception)
+					{
+						using namespace NStr;
+						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+							NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+						return _Exception == m_Exception;
+					}
+				}
+				catch (NException::CExceptionBase const &_Exception)
+				{
+					using namespace NStr;
+					NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+					return false;
+				}
+			}
+			else
+			{
+				try
+				{
+					NPrivate::fg_SetDynamicValue({});
+					_fFunctor();
+					NPrivate::fg_SetDynamicValue("No exception thrown");
+				}
+				catch (t_CException const &_Exception)
+				{
+					using namespace NStr;
+					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+						NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+					return _Exception == m_Exception;
+				}
+			}
+
+			return false;
+		}
+
+		template <typename tf_CString>
+		void f_Format(tf_CString &o_String) const
+		{
+			if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+				o_String += typename tf_CString::CFormat("{} {}") << m_Exception.f_GetClass() << m_Exception.f_GetErrorCharPointer();
+			else
+				o_String += typename tf_CString::CFormat("{}") << fg_GetTypeName<t_CException>();
+		}
+
+		t_CException m_Exception;
+	};
+
+	template <bool t_bOuter, typename t_CException, typename ...tp_CExceptions>
+	struct TCThrowsExceptionExactImpl<t_bOuter, t_CException, tp_CExceptions...> : private TCThrowsExceptionExactImpl<false, tp_CExceptions...>
 	{
-		return TCThrowsExceptionExact<t_CException0 const &>(_Value0);
+	public:
+
+		TCThrowsExceptionExactImpl
+			(
+				t_CException const &_Exception
+				, tp_CExceptions const &...p_Exceptions
+			)
+			: TCThrowsExceptionExactImpl<false, tp_CExceptions...>(p_Exceptions...)
+			, m_Exception(_Exception)
+		{
+		}
+
+		template <typename t_FFunctor>
+		bool operator == (t_FFunctor const &_fFunctor) const
+		{
+#if DMibConfig_Tests_Enable
+			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
+			DMibExceptionFilter(TestExceptionFilter);
+#endif
+			if constexpr (t_bOuter)
+			{
+				try
+				{
+					try
+					{
+						return TCThrowsExceptionExactImpl<false, tp_CExceptions...>::operator == (_fFunctor);
+					}
+					catch (t_CException const &_Exception)
+					{
+						using namespace NStr;
+						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+							NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+						return _Exception == m_Exception;
+					}
+				}
+				catch (NException::CExceptionBase const &_Exception)
+				{
+					using namespace NStr;
+					NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+					return false;
+				}
+			}
+			else
+			{
+				try
+				{
+					return TCThrowsExceptionExactImpl<false, tp_CExceptions...>::operator == (_fFunctor);
+				}
+				catch (t_CException const &_Exception)
+				{
+					using namespace NStr;
+					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+						NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+					return _Exception == m_Exception;
+				}
+			}
+
+			return false;
+		}
+
+		template <typename tf_CString>
+		void f_Format(tf_CString &o_String) const
+		{
+			TCThrowsExceptionExactImpl<false, tp_CExceptions...>::f_Format(o_String);
+
+			if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
+				o_String += typename tf_CString::CFormat("\n{} {}") << m_Exception.f_GetClass() << m_Exception.f_GetErrorCharPointer();
+			else
+				o_String += typename tf_CString::CFormat("{}") << fg_GetTypeName<t_CException>();
+		}
+
+		t_CException m_Exception;
+	};
+
+	template <typename ...tp_CExceptions>
+	using TCThrowsExceptionExact = TCThrowsExceptionExactImpl<true, tp_CExceptions...>;
+
+	template <typename ...tfp_CException>
+	TCThrowsExceptionExact<tfp_CException...> fg_ThrowsException(tfp_CException const & ...p_Exceptions)
+	{
+		return TCThrowsExceptionExact<tfp_CException...>(p_Exceptions...);
 	}
 
 #if defined DMibContractConfigure_RequireEnabled

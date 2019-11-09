@@ -123,6 +123,8 @@ namespace NMib::NTest
 				const ch8 *m_pLastTestFile = nullptr;
 				int32 m_LastTestLine = 0;
 
+				NStr::CStr m_DynamicValue;
+
 				bool m_bEnableValues = true;
 				bool m_bEnableExceptionFilter = true;
 				bool m_bEnumerating = false;
@@ -159,6 +161,18 @@ namespace NMib::NTest
 		CTestManager &CTestManager::fs_GetManager()
 		{
 			return *g_Tests;
+		}
+
+		NStr::CStr const &fg_GetDynamicValue()
+		{
+			CTestManager *pTestManager = g_Tests;
+			return pTestManager->m_ThreadLocal->m_DynamicValue;
+		}
+
+		void fg_SetDynamicValue(NStr::CStr &&_Value)
+		{
+			CTestManager *pTestManager = g_Tests;
+			pTestManager->m_ThreadLocal->m_DynamicValue = fg_Move(_Value);
 		}
 
 		bool fg_SetEnableValues(bool _bEnableValues)

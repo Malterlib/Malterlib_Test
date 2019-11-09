@@ -74,6 +74,8 @@ namespace NMib::NTest::NPrivate
 	bool fg_InsideTestSuite();
 	bool fg_SetEnableValues(bool _bEnableValues);
 	bool fg_GetEnableValues();
+	NStr::CStr const &fg_GetDynamicValue();
+	void fg_SetDynamicValue(NStr::CStr &&_Value);
 	bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter);
 	bool fg_GetEnableExceptionFilter();
 	void fg_PopCategory(NStr::CStr const &PreviousPath);

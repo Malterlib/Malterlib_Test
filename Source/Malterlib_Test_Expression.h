@@ -3,6 +3,11 @@
 
 #pragma once
 
+namespace NMib::NTest::NPrivate
+{
+	NStr::CStr const &fg_GetDynamicValue();
+}
+
 namespace NMib::NTest::NExpression
 {
 	using COperatorUnderlaying = int32;
@@ -689,17 +694,17 @@ namespace NMib::NTest::NExpression
 
 		NStr::CStr f_GetValueDesc() const
 		{
-			return "NoEval";
+			return NTest::NPrivate::fg_GetDynamicValue();
 		}
 
 		bool f_GetDisableValues() const
 		{
-			return true;
+			return NTest::NPrivate::fg_GetDynamicValue().f_IsEmpty();
 		}
 
 		NStr::CStr f_GetValueDescRecursive() const
 		{
-			return "NoEval";
+			return NTest::NPrivate::fg_GetDynamicValue();
 		}
 
 		t_CType f_GetVariable() const
