@@ -18,6 +18,14 @@
 		MalterlibTargetNameType "BaseName"
 	}
 	
+	Compile
+	{
+		PreprocessorDefines "DMalterlibCodeCoverage=1;DMalterlibClangPath=\"@(PlatformToolsetCompiler->GetPath())\";@(Compile.PreprocessorDefines)"
+		{
+			!!MalterlibCodeCoverage true
+		}
+	}
+
 	Target
 	{
 		BaseName RunAllTests
@@ -40,6 +48,23 @@
 				
 				AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
 
+				CoverageBinariesTemplate "		\"@(Builtin.Function->GetProperty('Property', 'MalterlibPostCopyDestination', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
+				{
+					&
+					{
+						!Explodee ""
+						|
+						{
+							"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+							"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibHelperTest', '@(Explodee)'))"
+							"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibTestApp', '@(Explodee)'))"
+							"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibCoverageBinary', '@(Explodee)'))"
+						}
+					}
+				}
+
+				AllCoverageBinaries "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'CoverageBinariesTemplate'))"
+
 				Contents	"ch8 const *g_AllTests[] = \n"\
 							"	{\n"\
 							"@(AllTests)"\
@@ -48,7 +73,20 @@
 							"\n"\
 							"mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n"\
 							"\n"
-				
+
+				Contents	"@(Contents)"\
+							"ch8 const *g_AllCoverageBinaries[] = \n"\
+							"	{\n"\
+							"@(AllCoverageBinaries)"\
+							"	}\n"\
+							";\n"\
+							"\n"\
+							"mint g_nAllCoverageBinaries = sizeof(g_AllCoverageBinaries) / sizeof(g_AllCoverageBinaries[0]);\n"\
+							"\n"
+				{
+					!!MalterlibCodeCoverage true
+				}
+
 				Group "@(Platform) @(Architecture) @(FullConfiguration)"
 			}
 		}
