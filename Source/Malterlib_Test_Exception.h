@@ -65,7 +65,7 @@ namespace NMib::NTest
 						_fFunctor();
 						NPrivate::fg_SetDynamicValue("No exception thrown");
 					}
-					catch (t_CException const &_Exception)
+					catch ([[maybe_unused]] t_CException const &_Exception)
 					{
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 							NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
@@ -86,7 +86,7 @@ namespace NMib::NTest
 					_fFunctor();
 					NPrivate::fg_SetDynamicValue("No exception thrown");
 				}
-				catch (t_CException const &_Exception)
+				catch ([[maybe_unused]] t_CException const &_Exception)
 				{
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 						NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
@@ -122,7 +122,7 @@ namespace NMib::NTest
 					{
 						return TCThrowsExceptionImpl<false, tp_CExceptions...>::operator == (_fFunctor);
 					}
-					catch (t_CException const &_Exception)
+					catch ([[maybe_unused]] t_CException const &_Exception)
 					{
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 							NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
@@ -141,7 +141,7 @@ namespace NMib::NTest
 				{
 					return TCThrowsExceptionImpl<false, tp_CExceptions...>::operator == (_fFunctor);
 				}
-				catch (t_CException const &_Exception)
+				catch ([[maybe_unused]] t_CException const &_Exception)
 				{
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 						NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
