@@ -180,15 +180,17 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 			!!MalterlibTestAutoAddTarget true
 		}
 	}
-
-	%Target Exe_RunAllTests
-	%Target Dll_TestXcodeIntegration
+	%Group "TestFramework"
 	{
-		&
+		%Target Exe_RunAllTests
+		%Target Dll_TestXcodeIntegration
 		{
-			PlatformFamily OSX
-			GeneratorFamily Xcode
-			MalterlibXcodeIntegration true
+			&
+			{
+				PlatformFamily OSX
+				GeneratorFamily Xcode
+				MalterlibXcodeIntegration true
+			}
 		}
 	}
 }
@@ -233,14 +235,17 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 	{
 		%Target "@(Workspace:this.Identity)"
 	}
-	%Target Exe_RunAllTests
-	%Target Dll_TestXcodeIntegration
+	%Group "TestFramework"
 	{
-		&
+		%Target Exe_RunAllTests
+		%Target Dll_TestXcodeIntegration
 		{
-			PlatformFamily OSX
-			GeneratorFamily Xcode
-			MalterlibXcodeIntegration true
+			&
+			{
+				PlatformFamily OSX
+				GeneratorFamily Xcode
+				MalterlibXcodeIntegration true
+			}
 		}
 	}
 }

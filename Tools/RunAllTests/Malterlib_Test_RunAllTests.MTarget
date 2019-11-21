@@ -29,6 +29,7 @@
 	Target
 	{
 		BaseName RunAllTests
+		Group "TestFramework"
 	}
 	%Group "AllTests"
 	{

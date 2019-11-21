@@ -28,6 +28,7 @@
 		ProductType "com.apple.product-type.bundle.unit-test"
 		GenerateScheme true
 		LinkWithLibraries "-framework XCTest @(Target.LinkWithLibraries)"
+		Group "TestFramework"
 	}
 	Compile
 	{
