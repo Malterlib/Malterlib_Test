@@ -5,9 +5,9 @@ Import "../Core/Lib_Malterlib.MTarget"
 
 %Group "{Malterlib}/{Lib_Malterlib_Test}"
 {
-	%Group Test
+	%Group "Test"
 	{
-		%Group Include
+		%Group "Include"
 		{
 			Compile.Type "C++"
 			{
@@ -16,7 +16,7 @@ Import "../Core/Lib_Malterlib.MTarget"
 			%File "Include/Mib/Test/^*"
 		}
 		%File "Source/*"
-		%Group Documentation
+		%Group "Documentation"
 		{
 			%File "Documentation/*"
 		}

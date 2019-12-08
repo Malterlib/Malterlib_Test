@@ -28,7 +28,7 @@
 
 	Target
 	{
-		BaseName RunAllTests
+		BaseName "RunAllTests"
 		Group "TestFramework"
 	}
 	%Group "AllTests"
@@ -43,7 +43,7 @@
 					&
 					{
 						!Explodee ""
-						"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+						true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
 					}
 				}
 				
@@ -56,10 +56,10 @@
 						!Explodee ""
 						|
 						{
-							"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
-							"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibHelperTest', '@(Explodee)'))"
-							"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibTestApp', '@(Explodee)'))"
-							"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibCoverageBinary', '@(Explodee)'))"
+							true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+							true "@(Builtin.Function->GetProperty('Property', 'MalterlibHelperTest', '@(Explodee)'))"
+							true "@(Builtin.Function->GetProperty('Property', 'MalterlibTestApp', '@(Explodee)'))"
+							true "@(Builtin.Function->GetProperty('Property', 'MalterlibCoverageBinary', '@(Explodee)'))"
 						}
 					}
 				}
@@ -92,7 +92,7 @@
 			}
 		}
 	}
-	%Group Source
+	%Group "Source"
 	{
 		%File "Source/*"
 	}

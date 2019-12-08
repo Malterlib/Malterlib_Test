@@ -5,7 +5,7 @@
 {
 	Property
 	{
-		//RealConfiguration Release
+		//RealConfiguration "Release"
 		ProductName "Malterlib Xcode Test Integration"
 		MalterlibPostCopyProject "Tests"
 		{
@@ -16,14 +16,14 @@
 	{
 		MalterlibLinkWithOpenSSL true
 		MalterlibBundleDebugLogation "@(MalterlibOriginalModulePath)"
-		MalterlibXcodePrincipalClass MalterlibTestLoader
+		MalterlibXcodePrincipalClass "MalterlibTestLoader"
 	}
 	
 	Target
 	{
-		Type XcodeBundle
-		BaseName TestXcodeIntegration
-		FileName TestXcodeIntegration
+		Type "XcodeBundle"
+		BaseName "TestXcodeIntegration"
+		FileName "TestXcodeIntegration"
 		FileExtension ".xctest"
 		ProductType "com.apple.product-type.bundle.unit-test"
 		GenerateScheme true
@@ -46,7 +46,7 @@
 					&
 					{
 						!Explodee ""
-						"true" "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+						true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
 					}
 				}
 				
@@ -65,7 +65,7 @@
 			}
 		}
 	}
-	%Group Source
+	%Group "Source"
 	{
 		%File "Source/*"
 	}
