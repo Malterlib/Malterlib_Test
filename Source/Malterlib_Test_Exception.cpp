@@ -288,7 +288,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NException::CException const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " Uncaught {} exception: {}{\n}{\n}{}"_f
+				CStr ReportData = DMibPFileLineFormat " Uncaught {} exception:{\n}{}{\n}{\n}{}"_f
 					<< _Exception.f_GetFile()
 					<< _Exception.f_GetLine()
 					<< _Exception.f_GetClass()
