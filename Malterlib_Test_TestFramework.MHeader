@@ -47,7 +47,6 @@ Property
 	}
 }
 
-
 %Target "@(MalterlibTests)"
 {
 	Property
@@ -153,6 +152,11 @@ Property
 Import "Tools/RunAllTests/Malterlib_Test_RunAllTests.MTarget"
 Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 
+Property
+{
+	MalterlibTestWorkspaceExtraGroupsTemplate "@(MalterlibTestWorkspaceExtraGroups_@(Explodee));"
+}
+
 %Workspace "Tests"
 {
 	Property
@@ -172,6 +176,8 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 		}
 		MalterlibBuildSystemEmbedCMake false
 	}
+
+	Workspace.ExtraGroups "@(ExplodeList('@(MalterlibTests)', ';', 'MalterlibTestWorkspaceExtraGroupsTemplate'));@(Workspace.ExtraGroups)"
 
 	%Group "Tests"
 	{
@@ -228,7 +234,7 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 	Workspace
 	{
 		Name "Test_@(Workspace:this.Identity)"
-		//ExtraGroups "@(MalterlibTestWorkspaceExtraGroups_@(Target:this.Identity));@(Workspace.ExtraGroups)"
+		ExtraGroups "@(MalterlibTestWorkspaceExtraGroups_@(Workspace:this.Identity));@(Workspace.ExtraGroups)"
 	}
 
 	%Group "Tests"
