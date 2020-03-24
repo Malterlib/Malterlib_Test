@@ -597,20 +597,19 @@ namespace NMib::NTest
 				while (Iter)
 				{
 					NMib::CRunTimeObjectInfo *pIter = Iter;
-					NStr::CStr FullName = pIter->f_GetNamespaceName().f_Replace("::", "/");
+
 					NStr::CStr Name = pIter->f_GetName();
-					aint iFindTests = Name.f_FindReverse("_Tests");
-					if (iFindTests >= 0)
+					if (Name.f_EndsWith("_Tests"))
 					{
-						Name = Name.f_Left(iFindTests);
-						if (Name[0] == 'C')
-							Name = Name.f_Extract(1);
+						Name = Name.f_RemoveSuffix("_Tests");
+
+						if (Name.f_StartsWith("C"))
+							Name = Name.f_RemovePrefix("C");
 					}
 
-					if (FullName.f_IsEmpty())
-						FullName = Name;
-					else
-						FullName += "/" + Name;
+					Name = Name.f_ReplaceChar('_', '/');
+
+					NStr::CStr FullName = pIter->f_GetNamespaceName().f_Replace("::", "/") / Name;
 
 					NStr::CStr ToFind = "NTest/";
 					aint iFindTest = FullName.f_Find(ToFind);
