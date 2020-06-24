@@ -7,6 +7,8 @@
 
 namespace
 {
+	using namespace NMib::NStr;
+
 	class CTest_Tests : public NMib::NTest::CTest
 	{
 	public:
@@ -99,7 +101,7 @@ namespace
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire()) == DMibLExpr(Object.f_Contract(200)));
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100")) == DMibLExpr(Object.f_Contract(200)));
 
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100 where note: 'Should be'")) == DMibLExpr(Object.f_Contract2(200)));
+				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100 where:{\n}    note: 'Should be'"_f.f_GetStr())) == DMibLExpr(Object.f_Contract2(200)));
 
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck()) == DMibLExpr(Object.f_Assert(200)));
 				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck("_Value < 100")) == DMibLExpr(Object.f_Assert(200)));
