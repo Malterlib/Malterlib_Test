@@ -76,7 +76,7 @@ public:
 		
 		for (auto iArg = CommandLine.f_GetIterator(); iArg; ++iArg)
 		{
-			if (*iArg == "--JustExit")
+			if (*iArg == "--just-exit")
 			{
 				++iArg;
 				if (iArg)
@@ -87,7 +87,7 @@ public:
 				else
 					return 0;
 			}
-			if (*iArg == "--StdOutExit")
+			if (*iArg == "--std-out-exit")
 			{
 				DMibConOut("Footer\n", 0);
 				++iArg;
