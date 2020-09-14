@@ -389,6 +389,14 @@ namespace NMib::NTest
 	bool fg_GroupActive(NStr::CStr const &_Group);
 
 	void fg_TestSetReturnValue(uint32 _RetValue); // Set the return value for the application
+
+#if defined(DMibSanitizerEnabled)
+	constexpr pfp64 gc_TimeoutMultiplier = 10.0;
+#elif defined(DMibDebug)
+	constexpr pfp64 gc_TimeoutMultiplier = 2.0;
+#else
+	constexpr pfp64 gc_TimeoutMultiplier = 1.0;
+#endif
 }
 
 #include "Malterlib_Test_Private.h"
