@@ -67,12 +67,15 @@ namespace NMib::NTest
 			public:
 				CThreadLocal() = default;
 				CThreadLocal(CThreadLocal const &_Inherit)
-					: m_bEnableValues{_Inherit.m_bEnableValues}
-					, m_bEnableExceptionFilter{_Inherit.m_bEnableExceptionFilter}
-					, m_bInsideTestSuite{_Inherit.m_bInsideTestSuite}
-					, m_pLastTestFile{_Inherit.m_pLastTestFile}
-					, m_LastTestLine{_Inherit.m_LastTestLine}
 				{
+					{
+						DMibLock(_Inherit.m_PropertiesLock);
+						m_bEnableValues = _Inherit.m_bEnableValues;
+						m_bEnableExceptionFilter = _Inherit.m_bEnableExceptionFilter;
+						m_bInsideTestSuite = _Inherit.m_bInsideTestSuite;
+						m_pLastTestFile = _Inherit.m_pLastTestFile;
+						m_LastTestLine = _Inherit.m_LastTestLine;
+					}
 					{
 						DMibLock(_Inherit.m_TestPathLock);
 						m_TestPath = _Inherit.m_TestPath;
@@ -116,8 +119,9 @@ namespace NMib::NTest
 				}
 
 				NStorage::TCAutoClearPtr<CThreadLocal const> m_pInherit;
-				NStr::CStr m_TestPath;
 				mutable NThread::CMutual m_TestPathLock;
+				NStr::CStr m_TestPath;
+				mutable NThread::CMutual m_PropertiesLock;
 				NContainer::TCMap<NStr::CStr> m_TestGroups;
 				CTestResults *m_pResults = nullptr;
 				const ch8 *m_pLastTestFile = nullptr;
@@ -178,6 +182,7 @@ namespace NMib::NTest
 		bool fg_SetEnableValues(bool _bEnableValues)
 		{
 			CTestManager *pTestManager = g_Tests;
+			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			bool bReturn = pTestManager->m_ThreadLocal->m_bEnableValues;
 			pTestManager->m_ThreadLocal->m_bEnableValues = _bEnableValues;
 			return bReturn;
@@ -192,6 +197,7 @@ namespace NMib::NTest
 		bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter)
 		{
 			CTestManager *pTestManager = g_Tests;
+			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			bool bReturn = pTestManager->m_ThreadLocal->m_bEnableExceptionFilter;
 			pTestManager->m_ThreadLocal->m_bEnableExceptionFilter = _bEnableExceptionFilter;
 			return bReturn;
@@ -211,6 +217,7 @@ namespace NMib::NTest
 		void fg_InsideTestSuite(bool _bInsideTestSuite)
 		{
 			CTestManager *pTestManager = g_Tests;
+			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			pTestManager->m_ThreadLocal->m_bInsideTestSuite = _bInsideTestSuite;
 		}
 		NStr::CStr fg_PushCategory(const NStr::CStr &_Category)
@@ -227,6 +234,7 @@ namespace NMib::NTest
 		{
 			CTestManager *pTestManager = g_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
+			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			ThreadLocal.m_pLastTestFile = _pFile;
 			ThreadLocal.m_LastTestLine = _Line;
 		}
