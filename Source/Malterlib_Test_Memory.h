@@ -7,7 +7,7 @@
 
 namespace NMib::NTest
 {
-	using CStatAffectFlagUnderlaying = int32;
+	using CStatAffectFlagUnderlying = int32;
 	enum EStatAffectFlag : int32
 	{
 		EStatAffectFlag_Average = DMibBit(0)
@@ -88,7 +88,7 @@ namespace NMib::NTest
 				return *this;
 			}
 
-			template <CStatAffectFlagUnderlaying tf_Flags>
+			template <CStatAffectFlagUnderlying tf_Flags>
 			void f_TransferToStats(CTestMemoryStats &_Stats) const
 			{
 				fsp_TransferStat<tf_Flags>(_Stats.m_nAllocations, m_nAllocations);
@@ -129,7 +129,7 @@ namespace NMib::NTest
 			CAllocatorStats();
 
 		private:
-			template <CStatAffectFlagUnderlaying tf_Flags>
+			template <CStatAffectFlagUnderlying tf_Flags>
 			static void fsp_TransferStat(CTestStats &_Stat, fp64 _Value)
 			{
 				if constexpr (tf_Flags & EStatAffectFlag_Average)

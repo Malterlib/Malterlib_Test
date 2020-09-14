@@ -14,7 +14,7 @@ namespace NMib::NTest
 
 	namespace
 	{
-		template <CStatAffectFlagUnderlaying tf_Flags, typename tf_CFunctor>
+		template <CStatAffectFlagUnderlying tf_Flags, typename tf_CFunctor>
 		static void fg_OperateOnStatUnary(CTestStats &_Stat, tf_CFunctor &&_Functor)
 		{
 			if constexpr ((tf_Flags & EStatAffectFlag_Average) != 0)
@@ -29,7 +29,7 @@ namespace NMib::NTest
 				_Functor(_Stat.m_Median);
 		}
 
-		template <CStatAffectFlagUnderlaying tf_Flags, typename tf_CFunctor>
+		template <CStatAffectFlagUnderlying tf_Flags, typename tf_CFunctor>
 		void fg_OperateOnStatsUnary(CTestMemoryStats &_Stats, tf_CFunctor &&_Functor)
 		{
 			fg_OperateOnStatUnary<tf_Flags>(_Stats.m_nAllocations, _Functor);
@@ -54,7 +54,7 @@ namespace NMib::NTest
 			fg_OperateOnStatUnary<tf_Flags>(_Stats.m_AtBytesMaxAlloc.m_BytesPotentialWaste, _Functor);
 			fg_OperateOnStatUnary<tf_Flags>(_Stats.m_AtBytesMaxAlloc.m_nAllocations, _Functor);
 		}
-		template <CStatAffectFlagUnderlaying tf_LeftFlags, CStatAffectFlagUnderlaying tf_RightFlags, typename tf_CFunctor>
+		template <CStatAffectFlagUnderlying tf_LeftFlags, CStatAffectFlagUnderlying tf_RightFlags, typename tf_CFunctor>
 		static void fg_OperateOnStatBinary(CTestStats &_StatLeft, CTestStats &_StatRight, tf_CFunctor &&_Functor)
 		{
 			if constexpr (tf_LeftFlags == tf_RightFlags)
@@ -98,7 +98,7 @@ namespace NMib::NTest
 			}
 		}
 
-		template <CStatAffectFlagUnderlaying tf_Flags, typename tf_CFunctor>
+		template <CStatAffectFlagUnderlying tf_Flags, typename tf_CFunctor>
 		void fg_OperateOnStatsBinary(CTestMemoryStats &_StatsLeft, CTestMemoryStats &_StatsRight, tf_CFunctor &&_Functor)
 		{
 			fg_OperateOnStatBinary<tf_Flags, tf_Flags>(_StatsLeft.m_nAllocations, _StatsRight.m_nAllocations, _Functor);
@@ -124,7 +124,7 @@ namespace NMib::NTest
 			fg_OperateOnStatBinary<tf_Flags, tf_Flags>(_StatsLeft.m_AtBytesMaxAlloc.m_nAllocations, _StatsRight.m_AtBytesMaxAlloc.m_nAllocations, _Functor);
 		}
 
-		template <CStatAffectFlagUnderlaying tf_LeftFlags, CStatAffectFlagUnderlaying tf_RightFlags, typename tf_CFunctor>
+		template <CStatAffectFlagUnderlying tf_LeftFlags, CStatAffectFlagUnderlying tf_RightFlags, typename tf_CFunctor>
 		void fg_OperateOnStatsBinary(CTestMemoryStats &_StatsLeft, CTestMemoryStats &_StatsRight, tf_CFunctor &&_Functor)
 		{
 			fg_OperateOnStatBinary<tf_LeftFlags, tf_RightFlags>(_StatsLeft.m_nAllocations, _StatsRight.m_nAllocations, _Functor);
