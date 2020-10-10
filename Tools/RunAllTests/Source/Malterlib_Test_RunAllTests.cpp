@@ -131,7 +131,8 @@ private:
 	struct CSettings
 	{
 		CSettings(NEncoding::CEJSON const &_Parameters)
-			: m_bParallel(_Parameters["Parallel"].f_Boolean())
+			: m_TestParams(_Parameters["TestParams"].f_StringArray())
+			, m_bParallel(_Parameters["Parallel"].f_Boolean())
 			, m_bLoopTests(_Parameters["Loop"].f_Boolean())
 			, m_bQuiet(_Parameters["Quiet"].f_Boolean())
 #if DMalterlibCodeCoverage
@@ -139,7 +140,6 @@ private:
 			, m_bCoverageOnly(_Parameters["CoverageOnly"].f_Boolean())
 			, m_CoverageExecutable(_Parameters["CoverageExecutable"].f_String())
 			, m_CoverageSources(_Parameters["CoverageSources"].f_StringArray())
-			, m_TestParams(_Parameters["TestParams"].f_StringArray())
 #endif
 		{
 		}
@@ -379,6 +379,7 @@ private:
 						if (NotLaunched.f_IsEmpty() || nRunning >= nMaxRunning)
 							return false;
 						auto Params = NotLaunched.f_Pop();
+
 						++nRunning;
 						LaunchHandler.f_AddLaunch
 							(
