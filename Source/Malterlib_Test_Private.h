@@ -293,7 +293,6 @@ namespace NMib::NTest::NPrivate
 					Result == ETestResult_Success
 					|| ((Result == ETestResult_Fail) && (m_FailureAction == ETest_ExpectFail || m_FailureAction == ETest_ExpectFailAndStop))
 				;
-
 				bool bNeedValues =
 					fg_GetEnableValues()
 					&& !(m_Flags & ETestFlag_NoValues)
