@@ -12,6 +12,8 @@
 #include <Mib/Concurrency/ConcurrencyManager>
 
 #import <XCTest/XCTest.h>
+#import <XCTest/XCTIssue.h>
+#import <XCTest/XCTSourceCodeContext.h>
 #import <objc/runtime.h>
 
 using namespace NMib;
@@ -223,7 +225,7 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 	CStr TestPath = [NSStringFromSelector(_Command) UTF8String];
 
 	auto pTestExecutable = (*g_TestClassToExecutable).f_FindEqual([_pSelf class]);
-	auto self = _pSelf;
+	[[maybe_unused]] auto self = _pSelf;
 	XCTAssertTrue(pTestExecutable, @"No test executable found for class %@", [_pSelf class]);
 	auto &TestExecutable = **pTestExecutable;
 
@@ -324,13 +326,32 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 					ch8 const *pFileName = _TestResult.m_File;
 					NSString *pPath = pFileName ? [@(pFileName) stringByStandardizingPath] : nil;
 					NSString *pDescription = @(OutputText.f_GetStr());
-					[
-						_pSelf
-						recordFailureWithDescription: pDescription
-						inFile: pPath
-						atLine: (LineNumber >= 0 ? (NSUInteger)LineNumber : 0)
-						expected: YES
-					];
+					XCTSourceCodeContext *pSourceCodeContext;
+
+					if (pPath)
+					{
+						pSourceCodeContext =
+							[
+								[XCTSourceCodeContext alloc]
+								initWithLocation: [[XCTSourceCodeLocation alloc] initWithFilePath: pPath lineNumber: (LineNumber >= 0 ? (NSUInteger)LineNumber : 0)]
+							]
+						;
+					}
+					else
+						pSourceCodeContext = [[XCTSourceCodeContext alloc] init];
+
+					XCTIssue *pIssue =
+						[
+							[XCTIssue alloc]
+							initWithType: XCTIssueTypeAssertionFailure
+							compactDescription: pDescription
+							detailedDescription: nil
+							sourceCodeContext: pSourceCodeContext
+							associatedError: nil
+							attachments: @[]
+						]
+					;
+					[_pSelf recordIssue: pIssue];
 				}
 			}
 		)
@@ -383,7 +404,7 @@ namespace NMib::NSys
 	TestParams.f_Insert("--no-color");
 	TestParams.f_Insert("--logger");
 	TestParams.f_Insert("Registry");
-	TestParams.f_Insert(*g_FilteredCommandLine);
+	//TestParams.f_Insert(*g_FilteredCommandLine);
 
 	NTime::CClock Clock{true};
 
