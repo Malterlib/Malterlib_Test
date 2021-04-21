@@ -9,13 +9,12 @@
 		ProductName "Malterlib Xcode Test Integration"
 		MalterlibPostCopyProject "Tests"
 		{
-			!!MalterlibPostCopyProject ""
+			!!MalterlibPostCopyProject undefined
 		}
 	}
 	Property
 	{
-		MalterlibLinkWithOpenSSL true
-		MalterlibBundleDebugLogation "@(MalterlibOriginalModulePath)"
+		MalterlibBundleDebugLogation MalterlibOriginalModulePath
 		MalterlibXcodePrincipalClass "MalterlibTestLoader"
 	}
 	
@@ -27,12 +26,12 @@
 		FileExtension ".xctest"
 		ProductType "com.apple.product-type.bundle.unit-test"
 		GenerateScheme true
-		LinkWithLibraries "-framework XCTest @(Target.LinkWithLibraries)"
+		LinkWithLibraries += [["-framework", "XCTest"]]
 		Group "TestFramework"
 	}
 	Compile
 	{
-		PreprocessorDefines "DMalterlibTestDeployPath=\"@(MalterlibDeployRoot)/@(MalterlibPostCopyProject)\";@(Compile.PreprocessorDefines)"
+		PreprocessorDefines += `DMalterlibTestDeployPath="@(MalterlibDeployRoot)/@(MalterlibPostCopyProject)"`
 	}
 	%Group "AllTests"
 	{
@@ -40,28 +39,27 @@
 		{
 			Property
 			{
-				Name "@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp"
-				AllTestsTemplate "		\"@(Builtin.Function->GetProperty('Property', 'MalterlibPostCopyDestination', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
+				fg_AllTestsTemplate function(string _Target) string
+				fg_AllTestsTemplate =+ `		"@(GetProperty("Property", "MalterlibPostCopyDestination", _Target))@(GetProperty("Target", "FileName", _Target))@(GetProperty("Target", "FileExtension", _Target))",\n`
 				{
-					&
-					{
-						!Explodee ""
-						true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
-					}
+					!!true GetProperty("Property", "MalterlibMainTest", _Target)
 				}
 				
-				AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
-
-				Contents	"ch8 const *g_AllTests[] = \n"\
-							"	{\n"\
-							"@(AllTests)"\
-							"	}\n"\
-							";\n"\
-							"\n"\
-							"mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n"\
-							"\n"
+				AllTests define string = Workspace.AllTargets->ForEach("fg_AllTestsTemplate")
+			}
+			GenerateFile
+			{
+				Name `@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp`
+				Contents	`ch8 const *g_AllTests[] = \n`\
+							`	{\n`\
+							`@(AllTests)`\
+							`	}\n`\
+							`;\n`\
+							`\n`\
+							`mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n`\
+							`\n`
 				
-				Group "@(Platform) @(Architecture) @(FullConfiguration)"
+				Group `@(Platform) @(Architecture) @(FullConfiguration)`
 			}
 		}
 	}
@@ -70,20 +68,15 @@
 		%File "Source/*"
 	}
 	
-	Property
-	{
-		AllTestsTemplate "@(Builtin.Function->GetProperty('Target', 'Name', '@(Explodee)'));"
-		{
-			&
-			{
-				!Explodee ""
-				true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
-			}
-		}
-		
-		AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
-	}
 	%Dependency "Lib_Malterlib"
 
-	%Dependency "@(AllTests)"
+	Property
+	{
+		fg_AllTestsDependenciesTemplate function(string _Target) [type(CEntity)]
+		fg_AllTestsDependenciesTemplate =+ GetProperty("Target", "Name", _Target)
+		{
+			!!true GetProperty("Property", "MalterlibMainTest", _Target)
+		}
+	}
+	%Dependency Workspace.AllTargets->ForEach("fg_AllTestsDependenciesTemplate")
 }

@@ -8,19 +8,18 @@
 		ProductName "Malterlib Run All Tests"
 		MalterlibPostCopyProject "Tests"
 		{
-			!!MalterlibPostCopyProject ""
+			!!MalterlibPostCopyProject undefined
 		}
 		
 	}
 	Property
 	{
-		MalterlibLinkWithOpenSSL true
 		MalterlibTargetNameType "BaseName"
 	}
 	
 	Compile
 	{
-		PreprocessorDefines "DMalterlibCodeCoverage=1;DMalterlibClangPath=\"@(PlatformToolsetCompiler->GetPath())\";@(Compile.PreprocessorDefines)"
+		PreprocessorDefines += ["DMalterlibCodeCoverage=1", `DMalterlibClangPath="@(PlatformToolsetCompiler->GetPath())"`]
 		{
 			!!MalterlibCodeCoverage true
 		}
@@ -37,58 +36,56 @@
 		{
 			Property
 			{
-				Name "@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp"
-				AllTestsTemplate "		\"@(Builtin.Function->GetProperty('Property', 'MalterlibPostCopyDestination', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
+				fg_AllTestsTemplate function(string _Target) string = ""
+				fg_AllTestsTemplate =+ `		"@(GetProperty("Property", "MalterlibPostCopyDestination", _Target))@(GetProperty("Target", "FileName", _Target))@(GetProperty("Target", "FileExtension", _Target))",\n`
 				{
 					&
 					{
-						!Explodee ""
-						true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
+						true GetProperty("Property", "MalterlibMainTest", _Target)
 					}
 				}
 				
-				AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
+				AllTests define string = Workspace.AllTargets->ForEach("fg_AllTestsTemplate")
 
-				CoverageBinariesTemplate "		\"@(Builtin.Function->GetProperty('Property', 'MalterlibPostCopyDestination', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileName', '@(Explodee)'))@(Builtin.Function->GetProperty('Target', 'FileExtension', '@(Explodee)'))\",\n"
+				CoverageBinariesTemplate function(string _Target) string
+				CoverageBinariesTemplate =+ `		"@(GetProperty("Property", "MalterlibPostCopyDestination", _Target))@(GetProperty("Target", "FileName", _Target))@(GetProperty("Target", "FileExtension", _Target))",\n`
 				{
-					&
+					|
 					{
-						!Explodee ""
-						|
-						{
-							true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
-							true "@(Builtin.Function->GetProperty('Property', 'MalterlibHelperTest', '@(Explodee)'))"
-							true "@(Builtin.Function->GetProperty('Property', 'MalterlibTestApp', '@(Explodee)'))"
-							true "@(Builtin.Function->GetProperty('Property', 'MalterlibCoverageBinary', '@(Explodee)'))"
-						}
+						true GetProperty("Property", "MalterlibMainTest", _Target)
+						true GetProperty("Property", "MalterlibHelperTest", _Target)
+						true GetProperty("Property", "MalterlibTestApp", _Target)
+						true GetProperty("Property", "MalterlibCoverageBinary", _Target)
 					}
 				}
 
-				AllCoverageBinaries "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'CoverageBinariesTemplate'))"
+				AllCoverageBinaries define string = Workspace.AllTargets->ForEach("CoverageBinariesTemplate")
+			}
+			GenerateFile
+			{
+				Name `@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp`
+				Contents	`ch8 const *g_AllTests[] = \n`\
+							`	{\n`\
+							`@(AllTests)`\
+							`	}\n`\
+							`;\n`\
+							`\n`\
+							`mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n`\
+							`\n`
 
-				Contents	"ch8 const *g_AllTests[] = \n"\
-							"	{\n"\
-							"@(AllTests)"\
-							"	}\n"\
-							";\n"\
-							"\n"\
-							"mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n"\
-							"\n"
-
-				Contents	"@(Contents)"\
-							"ch8 const *g_AllCoverageBinaries[] = \n"\
-							"	{\n"\
-							"@(AllCoverageBinaries)"\
-							"	}\n"\
-							";\n"\
-							"\n"\
-							"mint g_nAllCoverageBinaries = sizeof(g_AllCoverageBinaries) / sizeof(g_AllCoverageBinaries[0]);\n"\
-							"\n"
+				Contents =+	`ch8 const *g_AllCoverageBinaries[] = \n`\
+							`	{\n`\
+							`@(AllCoverageBinaries)`\
+							`	}\n`\
+							`;\n`\
+							`\n`\
+							`mint g_nAllCoverageBinaries = sizeof(g_AllCoverageBinaries) / sizeof(g_AllCoverageBinaries[0]);\n`\
+							`\n`
 				{
 					!!MalterlibCodeCoverage true
 				}
 
-				Group "@(Platform) @(Architecture) @(FullConfiguration)"
+				Group `@(Platform) @(Architecture) @(FullConfiguration)`
 			}
 		}
 	}
@@ -97,27 +94,16 @@
 		%File "Source/*"
 	}
 	
-	Property
-	{
-		AllTestsTemplate "@(Builtin.Function->GetProperty('Target', 'Name', '@(Explodee)'));"
-		{
-			&
-			{
-				!Explodee ""
-				true "@(Builtin.Function->GetProperty('Property', 'MalterlibMainTest', '@(Explodee)'))"
-			}
-		}
-		
-		AllTests "@(Builtin.Function->ExplodeList('@(Workspace.AllTargets)', ';', 'AllTestsTemplate'))"
-	}
 	%Dependency "Lib_Malterlib"
 
-	%Dependency "@(AllTests)"
+	Property
 	{
-		!!MalterlibAllTestsDependencies ""
+		fg_AllTestsDependenciesTemplate function(string _Test) [type(CEntity)] = []
+		fg_AllTestsDependenciesTemplate =+ GetProperty("Target", "Name", _Test)
+		{
+			!!true GetProperty("Property", "MalterlibMainTest", _Test)
+//			#Debug "TraceEval"
+		}
 	}
-	%Dependency "@(MalterlibAllTestsDependencies)"
-	{
-		!MalterlibAllTestsDependencies ""
-	}
+	%Dependency Workspace.AllTargets->ForEach("fg_AllTestsDependenciesTemplate")
 }

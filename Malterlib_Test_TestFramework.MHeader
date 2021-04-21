@@ -3,41 +3,40 @@
 
 Property
 {
-	MalterlibTestMain "@('Tools/Tester/Source/Main.cpp'->MakeAbsolute())"
+	MalterlibTestMain define string = "Tools/Tester/Source/Main.cpp"->MakeAbsolute()
 
-	MalterlibEnableInternalTests false // User(Tests)=true: Enable internal Malterlib tests
-	{
-		!!MalterlibEnableInternalTests ""
-	}
-	MalterlibSeparateTestWorkspaces false // User(Tests)=true: Enable generation of separate workspaces for all tests, either true for all tests, or list the test you want to be separate
-	{
-		!!MalterlibSeparateTestWorkspaces ""
-	}
-	MalterlibXcodeIntegration false // User(Tests)=true: Enable Xcode testing integration
-	{
-		!!MalterlibXcodeIntegration ""
-	}
+	MalterlibEnableInternalTests define bool = false // User(Tests)=true: Enable internal Malterlib tests
+	MalterlibSeparateTestWorkspaces define one_of(bool, [string]) = false // User(Tests)=true: Enable generation of separate workspaces for all tests, either true for all tests, or list the test you want to be separate
+	MalterlibXcodeIntegration define bool = false // User(Tests)=true: Enable Xcode testing integration
+
+	MalterlibInternalTestHelperTarget define bool = false
 	MalterlibInternalTestHelperTarget true
 	{
-		!!"Target:Target.Name" "~*_Test_Malterlib_Helper_*"
+		!!Target:Target.Name ~"*_Test_Malterlib_Helper_*"
 	}
+
+	MalterlibInternalTestTarget define bool = false
 	MalterlibInternalTestTarget true
 	{
 		&
 		{
 			!MalterlibInternalTestHelperTarget true
-			"Target:Target.Name" "~*_Test_Malterlib_*"
+			Target:Target.Name ~"*_Test_Malterlib_*"
 		}
 	}
 }
 
 Property
 {
+	MalterlibMainTest define bool = false
+	MalterlibHelperTest define bool = false
+
+	MalterlibTest define bool
 	MalterlibTest true
 	{
 		&
 		{
-			MalterlibTest ""
+			MalterlibTest undefined
 			|
 			{
 				MalterlibHelperTest true
@@ -45,26 +44,36 @@ Property
 			}
 		}
 	}
+	MalterlibTest false
+	{
+		!!MalterlibTest undefined
+	}
+
+	MalterlibTests define [type(CEntity)] = []
+	MalterlibTestFiles define [type(CEntity)] = []
+	MalterlibTestExtraGroups define [string] = []
+	MalterlibTestOwnMain define bool = false
+	MalterlibTestDependencies define [type(CEntity)] = []
 }
 
-%Target "@(MalterlibTests)"
+%Target MalterlibTests
 {
 	Property
 	{
 		MalterlibPostCopyProject "Tests"
 		{
-			!!MalterlibPostCopyProject ""
+			!!MalterlibPostCopyProject undefined
 		}
-		ProductName "Test @(Target:this.Identity->Replace('_',' '))"
+		ProductName `Test @(Target:this.Identity->Replace("_", " "))`
 		MalterlibTest true
 		{
-			!!MalterlibTest ""
+			!!MalterlibTest undefined
 		}
 		MalterlibHelperTest true
 		{
 			&
 			{
-				MalterlibHelperTest ""
+				MalterlibHelperTest undefined
 				MalterlibInternalTestHelperTarget true
 			}
 		}
@@ -72,7 +81,7 @@ Property
 		{
 			&
 			{
-				MalterlibMainTest ""
+				MalterlibMainTest undefined
 				!MalterlibHelperTest true
 			}
 		}
@@ -83,7 +92,7 @@ Property
 		!!MalterlibInternalTestTarget true
 		!!MalterlibInternalTestHelperTarget true
 
-		MalterlibExeIcon "@(Builtin.BasePathAbsolute)/Malterlib/Core/Resources/MSVC/icon1.ico"
+		MalterlibExeIcon `@(Builtin.BasePathAbsolute)/Malterlib/Core/Resources/MSVC/icon1.ico`
 		{
 			!!PlatformFamily "Windows"
 		}
@@ -93,10 +102,14 @@ Property
 	Target
 	{
 		Type "ConsoleExecutable"
-		BaseName "Test_@(Target:this.Identity)"
-		ExtraGroups "@(MalterlibTestExtraGroups_@(Target:this.Identity));@(MalterlibTestExtraGroups);@(Target.ExtraGroups)"
-		DebuggerCommandArguments "--test"
-		DebuggerCommandArguments "--test --groups Performance"
+		BaseName `Test_@(Target:this.Identity)`
+		ExtraGroups =+ MalterlibTestExtraGroups
+		ExtraGroups =+ MalterlibTestExtraGroups_@(Target:this.Identity)
+		{
+			!!true IsDefined(`MalterlibTestExtraGroups_@(Target:this.Identity)`)
+		}
+		DebuggerCommandArguments ["--test"]
+		DebuggerCommandArguments ["--test", "--groups", "Performance"]
 		{
 			!!Tests "Perf Tests"
 		}
@@ -112,15 +125,15 @@ Property
 	Compile
 	{
 		!!CompileDialect "C"
-		PrefixHeader "@('Tools/Tester/Source/PCH.h'->MakeAbsolute())"
-		PreprocessorDefines "DMalterlibEnableThirdPartyComparisonTests;@(Compile.PreprocessorDefines)"
+		PrefixHeader "Tools/Tester/Source/PCH.h"->MakeAbsolute()
+		PreprocessorDefines += "DMalterlibEnableThirdPartyComparisonTests"
 		{
 			!!MalterlibEnableThirdPartyComparisonTests true
 		}
 	}
 	%Group "Source"
 	{
-		%File "@(MalterlibTestMain)"
+		%File MalterlibTestMain
 		{
 			!MalterlibTestOwnMain true
 		}
@@ -128,24 +141,47 @@ Property
 	}
 	%Group "Tests"
 	{
-		%File "@(MalterlibTestFiles_@(Target:this.Identity));@(MalterlibTestFiles)"
+		%File MalterlibTestFiles
+		%File MalterlibTestFiles_@(Target:this.Identity)
+		{
+			!!true IsDefined(`MalterlibTestFiles_@(Target:this.Identity)`)
+		}
 	}
-	%Dependency "@(MalterlibTestDependencies_@(Target:this.Identity));@(MalterlibTestDependencies)"
+	Property
+	{
+		TestDependencies define [type(CEntity)]
+		TestDependencies MalterlibTestDependencies
+		TestDependencies =+ MalterlibTestDependencies_@(Target:this.Identity)
+		{
+			!!true IsDefined(`MalterlibTestDependencies_@(Target:this.Identity)`)
+		}
+	}
+
+	%Dependency TestDependencies
 	%Dependency "Lib_Malterlib"
 	%Dependency "Lib_Malterlib_Test"
 }
 
 Property
 {
-	MalterlibTestAutoAddTarget "@(MalterlibTestAutoAdd_@(Target:this.Identity))"
+	MalterlibTestAutoAddTarget define bool
+	MalterlibTestAutoAddTarget MalterlibTestAutoAdd_@(Target:this.Identity)
+	{
+		!!true IsDefined(`MalterlibTestAutoAdd_@(Target:this.Identity)`)
+	}
 	MalterlibTestAutoAddTarget true
 	{
-		!!MalterlibTestAutoAddTarget ""
+		!!MalterlibTestAutoAddTarget undefined
 	}
-	MalterlibTestAutoAddWorkspace "@(MalterlibTestAutoAdd_@(Workspace:this.Identity))"
+
+	MalterlibTestAutoAddWorkspace define bool
+	MalterlibTestAutoAddWorkspace MalterlibTestAutoAdd_@(Workspace:this.Identity)
+	{
+		!!true IsDefined(`MalterlibTestAutoAdd_@(Workspace:this.Identity)`)
+	}
 	MalterlibTestAutoAddWorkspace true
 	{
-		!!MalterlibTestAutoAddWorkspace ""
+		!!MalterlibTestAutoAddWorkspace undefined
 	}
 }
 
@@ -154,7 +190,9 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 
 Property
 {
-	MalterlibTestWorkspaceExtraGroupsTemplate "@(MalterlibTestWorkspaceExtraGroups_@(Explodee));"
+	TestingWorkspace define bool = false
+	MalterlibAppTestPostCopyDestination define string?
+	MalterlibAppTestPostCopyProject define string?
 }
 
 %Workspace "Tests"
@@ -164,24 +202,30 @@ Property
 		MalterlibEnableFastLink false
 		TestingWorkspace true
 		MalterlibAppTestPostCopyProject "Tests"
-		MalterlibAppTestPostCopyDestination "TestApps/@(Target.BaseFileName)/"
+		MalterlibAppTestPostCopyDestination `TestApps/@(Target.BaseFileName)/`
 		EnableTestConfigs true
-		MalterlibLog_Severities "Error;Critical;Warning;Info"
+		MalterlibLog_Severities ["Error", "Critical", "Warning", "Info"]
 		{
 			!!MalterlibLog_EnableVerboseDebugLog false
 		}
 		OnlyTestConfigs true
 		{
-			!!OnlyTestConfigs ""
+			!!OnlyTestConfigs undefined
 		}
 		MalterlibBuildSystemEmbedCMake false
+
+		MalterlibTestWorkspaceExtraGroupsTemplate function(string _Test) [string] = []
+		MalterlibTestWorkspaceExtraGroupsTemplate =+ MalterlibTestWorkspaceExtraGroups_@(_Test)
+		{
+			!!true IsDefined(`MalterlibTestWorkspaceExtraGroups_@(_Test)`)
+		}
 	}
 
-	Workspace.ExtraGroups "@(ExplodeList('@(MalterlibTests)', ';', 'MalterlibTestWorkspaceExtraGroupsTemplate'));@(Workspace.ExtraGroups)"
+	Workspace.ExtraGroups =+ MalterlibTests->ForEach("MalterlibTestWorkspaceExtraGroupsTemplate")
 
 	%Group "Tests"
 	{
-		%Target "@(MalterlibTests)"
+		%Target MalterlibTests
 		{
 			!!MalterlibTestAutoAddTarget true
 		}
@@ -201,14 +245,18 @@ Property
 	}
 }
 
-%Workspace "@(MalterlibTests)"
+%Workspace MalterlibTests
 {
 	&
 	{
 		|
 		{
 			MalterlibSeparateTestWorkspaces true
-			MalterlibSeparateTestWorkspaces "~*@(Workspace:this.Identity)*"
+			&
+			{
+				!MalterlibSeparateTestWorkspaces false
+				MalterlibSeparateTestWorkspaces->ContainsListElement(Workspace:this.Identity) true
+			}
 		}
 		MalterlibTestAutoAddWorkspace true
 	}
@@ -217,29 +265,32 @@ Property
 	{
 		MalterlibEnableFastLink false
 		EnableTestConfigs true
-		MalterlibLog_Severities "Error;Critical;Warning;Info"
+		MalterlibLog_Severities ["Error", "Critical", "Warning", "Info"]
 		{
 			!!MalterlibLog_EnableVerboseDebugLog false
 		}
 		OnlyTestConfigs true
 		{
-			!!OnlyTestConfigs ""
+			!!OnlyTestConfigs undefined
 		}
 
 		TestingWorkspace true
 		MalterlibAppTestPostCopyProject "Tests"
-		MalterlibAppTestPostCopyDestination "TestApps/@(Target.BaseFileName)/"
+		MalterlibAppTestPostCopyDestination `TestApps/@(Target.BaseFileName)/`
 	}
 
 	Workspace
 	{
-		Name "Test_@(Workspace:this.Identity)"
-		ExtraGroups "@(MalterlibTestWorkspaceExtraGroups_@(Workspace:this.Identity));@(Workspace.ExtraGroups)"
+		Name `Test_@(Workspace:this.Identity)`
+		ExtraGroups =+ MalterlibTestWorkspaceExtraGroups_@(Workspace:this.Identity)
+		{
+			!!true IsDefined(`MalterlibTestWorkspaceExtraGroups_@(Workspace:this.Identity)`)
+		}
 	}
 
 	%Group "Tests"
 	{
-		%Target "@(Workspace:this.Identity)"
+		%Target Workspace:this.Identity
 	}
 	%Group "TestFramework"
 	{
@@ -260,18 +311,94 @@ Property
 {
 	Property
 	{
-		MalterlibPostCopyProject "@(MalterlibAppTestPostCopyProject)"
+		MalterlibPostCopyProject MalterlibAppTestPostCopyProject
 		{
-			!MalterlibAppTestPostCopyProject ""
+			!MalterlibAppTestPostCopyProject undefined
 		}
-		MalterlibPostCopyDestination "@(MalterlibAppTestPostCopyDestination)"
+		MalterlibPostCopyDestination MalterlibAppTestPostCopyDestination
 		{
-			!MalterlibAppTestPostCopyDestination ""
+			!MalterlibAppTestPostCopyDestination undefined
 		}
 	}
 }
 
-Target.ExtraGroups "{Malterlib}/{TestApp};@(Target.ExtraGroups)"
+Property.MalterlibTestApp define bool = false
+
+Target.ExtraGroups =+ "{Malterlib}/{TestApp}"
 {
 	!!MalterlibTestApp true
+}
+
+Property
+{
+	MalterlibEnablePathHelpers define bool = false
+}
+
+Target
+{
+	ExtraGroups =+ "~Automatic/Build Server Helpers"
+	{
+		!!MalterlibEnablePathHelpers true
+	}
+}
+
+Property
+{
+	MalterlibEnableTestHelpers define bool = false
+
+	MalterlibRunTestsParams Target:Target.DebuggerCommandArguments
+	{
+		!!MalterlibRunTestsParams undefined
+	}
+
+	MalterlibRunTests define bool = false
+
+	MalterlibRunTests true
+	{
+		&
+		{
+			MalterlibRunTests undefined
+			MalterlibTest true
+		}
+	}
+
+	RunTestsPath MalterlibFinalModuleDestination->GetPath()
+
+	RunTestsContents define string?
+	RunTestsContents	`cd @(RunTestsPath->NativePath()->Escape())\r\n`\
+						`@(MalterlibFinalModuleDestination->NativePath()->Escape()) @(MalterlibRunTestsParams)\r\n`
+	{
+		&
+		{
+			Property.MalterlibRunTests true
+			Property.MalterlibEnableTestHelpers true
+		}
+	}
+}
+
+%Group "~Automatic/Test Helpers"
+{
+	!Property.RunTestsContents undefined
+
+	%GenerateFile "Paths"
+	{
+		//!!Tests undefined
+		Property
+		{
+			ConfigName `@(FullConfiguration->Replace(' ', ''))@(Tests->Replace(' ', ''))_@(Architecture)`
+		}
+		GenerateFile
+		{
+			Name `@(BuildSystemOutputDir)/Tests/@(Workspace:Workspace.Name)/@(Target:Target.Name)/DoTests_@(ConfigName).@(ScriptExtension)`
+			Contents `@(ScriptPreamble)@(RunTestsContents)`
+			UnicodeBOM false
+			UnixLineEnds ScriptUnixLineEnds
+			Executable true
+		}
+	}
+}
+
+Target
+{
+	ExtraGroups =+ "~Automatic/Test Helpers"
 }
