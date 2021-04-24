@@ -699,7 +699,8 @@ namespace NMib::NTest::NExpression
 
 		bool f_GetDisableValues() const
 		{
-			return !NTest::NPrivate::fg_GetDynamicValue().f_IsEmpty();
+			// This should be kept so exceptions are shown correctly
+			return NTest::NPrivate::fg_GetDynamicValue().f_IsEmpty();
 		}
 
 		NStr::CStr f_GetValueDescRecursive() const
