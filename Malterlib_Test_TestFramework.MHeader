@@ -385,7 +385,7 @@ Property
 		//!!Tests undefined
 		Property
 		{
-			ConfigName `@(FullConfiguration->Replace(' ', ''))@(Tests->Replace(' ', ''))_@(Architecture)`
+			ConfigName `@(FullConfiguration->Replace(' ', ''))@((Tests || "")->Replace(' ', ''))_@(Architecture)`
 		}
 		GenerateFile
 		{
