@@ -39,7 +39,7 @@
 		{
 			Property
 			{
-				fg_AllTestsTemplate function(string _Target) string
+				fg_AllTestsTemplate function(string _Target) string = ""
 				fg_AllTestsTemplate =+ `		"@(GetProperty("Property", "MalterlibPostCopyDestination", _Target))@(GetProperty("Target", "FileName", _Target))@(GetProperty("Target", "FileExtension", _Target))",\n`
 				{
 					!!true GetProperty("Property", "MalterlibMainTest", _Target)
@@ -72,7 +72,7 @@
 
 	Property
 	{
-		fg_AllTestsDependenciesTemplate function(string _Target) [type(CEntity)]
+		fg_AllTestsDependenciesTemplate function(string _Target) [type(CEntity)] = []
 		fg_AllTestsDependenciesTemplate =+ GetProperty("Target", "Name", _Target)
 		{
 			!!true GetProperty("Property", "MalterlibMainTest", _Target)
