@@ -39,6 +39,7 @@ namespace NMib::NTest::NPrivate
 		}
 		NContainer::TCVector<NStr::CStr> m_DumpFiles;
 		CStackTraceInfo *m_pStackTraceInfo;
+
 		void f_Exception(void *_pExceptionData);
 		void f_SetDumpFiles(const NContainer::TCVector<NStr::CStr> &_Files);
 		NContainer::TCVector<NStr::CStr> f_DetachDumpFiles();

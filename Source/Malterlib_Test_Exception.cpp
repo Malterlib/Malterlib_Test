@@ -55,6 +55,7 @@ namespace NMib::NTest::NPrivate
 	void CTestExceptionFilter::f_SetDumpFiles(const NContainer::TCVector<NStr::CStr> &_Files)
 	{
 		mint nDumpFiles = m_DumpFiles.f_GetLen();
+
 		for (mint i = 0; i < nDumpFiles; ++i)
 		{
 			try
@@ -72,6 +73,7 @@ namespace NMib::NTest::NPrivate
 	{
 		return fg_Move(m_DumpFiles);
 	}
+
 	const ch8 *CTestExceptionFilter::f_GetFile()
 	{
 		if (!m_pStackTraceInfo || !(*m_pStackTraceInfo->m_pSourceFileName))
@@ -86,9 +88,18 @@ namespace NMib::NTest::NPrivate
 		return m_pStackTraceInfo->m_SourceLine;
 	}
 
-
 	void CTestExceptionFilter::f_Exception(void *_pExceptionData)
 	{
+		if (!_pExceptionData)
+			return; // Rethrow?
+
+		NException::CExceptionBase *pExceptionBase = fg_AutoStaticCast(_pExceptionData);
+		if (pExceptionBase && pExceptionBase->f_IsValid())
+		{
+			if (NStr::fg_StrCmp(pExceptionBase->f_GetClass(), "CExceptionCoroutineWrapper") == 0)
+				return;
+		}
+
 		if (m_pStackTraceInfo)
 			NSys::fg_Debug_ReleaseStackTraceInfo(m_pStackTraceInfo);
 		m_pStackTraceInfo = nullptr;
@@ -99,6 +110,7 @@ namespace NMib::NTest::NPrivate
 			NContainer::TCVector<NStr::CStr> DumpFiles = fg_DumpTestException();
 			f_SetDumpFiles(DumpFiles);
 		}
+
 		CMibCodeAddress Stack[64];
 		mint nStack = NSys::fg_System_GetStackTrace(Stack, 64);
 		for (mint i = 0; i < nStack; ++i)
