@@ -126,6 +126,9 @@ Property
 	{
 		!!CompileDialect "C"
 		PrefixHeader "Tools/Tester/Source/PCH.h"->MakeAbsolute()
+		{
+			!!Compile.Type "C++"
+		}
 		PreprocessorDefines += "DMalterlibEnableThirdPartyComparisonTests"
 		{
 			!!MalterlibEnableThirdPartyComparisonTests true
