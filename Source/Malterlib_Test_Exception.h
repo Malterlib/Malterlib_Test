@@ -201,6 +201,11 @@ namespace NMib::NTest
 		{
 		}
 
+		TCThrowsExceptionExactImpl(t_CException &&_Exception)
+			: m_Exception(fg_Move(_Exception))
+		{
+		}
+
 		template <typename t_FFunctor>
 		bool operator == (t_FFunctor const &_fFunctor) const
 		{
@@ -366,9 +371,9 @@ namespace NMib::NTest
 	using TCThrowsExceptionExact = TCThrowsExceptionExactImpl<true, tp_CExceptions...>;
 
 	template <typename ...tfp_CException>
-	TCThrowsExceptionExact<tfp_CException...> fg_ThrowsException(tfp_CException const & ...p_Exceptions)
+	TCThrowsExceptionExact<tfp_CException...> fg_ThrowsException(tfp_CException && ...p_Exceptions)
 	{
-		return TCThrowsExceptionExact<tfp_CException...>(p_Exceptions...);
+		return TCThrowsExceptionExact<tfp_CException...>(fg_Forward<tfp_CException>(p_Exceptions)...);
 	}
 
 #if defined DMibContractConfigure_RequireEnabled

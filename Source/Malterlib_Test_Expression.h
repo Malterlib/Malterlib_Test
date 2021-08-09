@@ -758,9 +758,10 @@ namespace NMib::NTest::NExpression
 			return m_Variable;
 		}
 
-		TCExpression(t_CType const &_Variable, const ch8 *_pDescription)
+		template <typename tf_CType>
+		TCExpression(tf_CType &&_Variable, const ch8 *_pDescription)
 			: m_pDescription(_pDescription)
-			, m_Variable(_Variable)
+			, m_Variable(fg_Forward<tf_CType>(_Variable))
 		{
 		}
 
