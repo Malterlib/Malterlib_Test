@@ -151,15 +151,9 @@ namespace NMib::NTest
 		{
 			mint m_MemoryAllocator;
 			mint m_Address;
-			bool operator < (CAllocationKey const &_Right) const
-			{
-				if (m_MemoryAllocator < _Right.m_MemoryAllocator)
-					return true;
-				else if (m_MemoryAllocator > _Right.m_MemoryAllocator)
-					return false;
-				return m_Address < _Right.m_Address;
-			}
+			auto operator <=> (CAllocationKey const &_Right) const = default;
 		};
+
 		struct CAllocation
 		{
 			mint m_Size;

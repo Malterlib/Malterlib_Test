@@ -52,14 +52,12 @@ namespace NMib::NTest
 			public:
 				const ch8 *m_pFile;
 				int32 m_Line;
-				bool operator < (CUniqueTest const &_Other) const
+				COrdering_Weak operator <=> (CUniqueTest const &_Other) const
 				{
-					auto Ret = NStr::fg_StrCmp(m_pFile, _Other.m_pFile);
-					if (Ret < 0)
-						return true;
-					else if (Ret > 0)
-						return false;
-					return m_Line < _Other.m_Line;
+					if (auto Ret = NStr::fg_StrCmp(m_pFile, _Other.m_pFile); Ret != 0)
+						return Ret <=> 0;
+
+					return m_Line <=> _Other.m_Line;
 				}
 			};
 			class CThreadLocal

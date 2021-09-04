@@ -13,6 +13,7 @@ namespace NMib::NTest::NExpression
 	using COperatorUnderlying = int32;
 	enum EOperator : int32
 	{
+		EOperator_Spaceship,
 		EOperator_LessThan,
 		EOperator_LessThanEqual,
 		EOperator_GreaterThan,
@@ -96,6 +97,16 @@ namespace NMib::NTest::NExpression
 
 #define DImplementExpressionInterfaceNoEval(_ThisType) \
 	public:\
+		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
+		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Spaceship> operator <=> (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		{\
+			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Spaceship>(*this, _Other);\
+		}\
+		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
+		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Spaceship> operator <=> (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		{\
+			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Spaceship>(*this, _Other);\
+		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
 		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_LessThan> operator < (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
 		{\
@@ -554,6 +565,7 @@ namespace NMib::NTest::NExpression
 		DMibTemp_ImplementExpressionInterface(TCExpressionWithOperator);
 	};
 
+	DMibTemp_ImplementBinaryOperator(EOperator_Spaceship, " <=> ", <=>);
 	DMibTemp_ImplementBinaryOperator(EOperator_LessThan, " < ", <);
 	DMibTemp_ImplementBinaryOperator(EOperator_LessThanEqual, " <= ", <=);
 	DMibTemp_ImplementBinaryOperator(EOperator_GreaterThan, " > ", >);
