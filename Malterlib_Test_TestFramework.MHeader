@@ -3,19 +3,19 @@
 
 Property
 {
-	MalterlibTestMain define string = "Tools/Tester/Source/Main.cpp"->MakeAbsolute()
+	MalterlibTestMain: string = "Tools/Tester/Source/Main.cpp"->MakeAbsolute()
 
-	MalterlibEnableInternalTests define bool = false // User(Tests)=true: Enable internal Malterlib tests
-	MalterlibSeparateTestWorkspaces define one_of(bool, [string]) = false // User(Tests)=true: Enable generation of separate workspaces for all tests, either true for all tests, or list the test you want to be separate
-	MalterlibXcodeIntegration define bool = false // User(Tests)=true: Enable Xcode testing integration
+	MalterlibEnableInternalTests: bool = false // User(Tests)=true: Enable internal Malterlib tests
+	MalterlibSeparateTestWorkspaces: one_of(bool, [string]) = false // User(Tests)=true: Enable generation of separate workspaces for all tests, either true for all tests, or list the test you want to be separate
+	MalterlibXcodeIntegration: bool = false // User(Tests)=true: Enable Xcode testing integration
 
-	MalterlibInternalTestHelperTarget define bool = false
+	MalterlibInternalTestHelperTarget: bool = false
 	MalterlibInternalTestHelperTarget true
 	{
 		!!Target:Target.Name ~"*_Test_Malterlib_Helper_*"
 	}
 
-	MalterlibInternalTestTarget define bool = false
+	MalterlibInternalTestTarget: bool = false
 	MalterlibInternalTestTarget true
 	{
 		&
@@ -28,10 +28,10 @@ Property
 
 Property
 {
-	MalterlibMainTest define bool = false
-	MalterlibHelperTest define bool = false
+	MalterlibMainTest: bool = false
+	MalterlibHelperTest: bool = false
 
-	MalterlibTest define bool
+	MalterlibTest: bool
 	MalterlibTest true
 	{
 		&
@@ -49,11 +49,11 @@ Property
 		!!MalterlibTest undefined
 	}
 
-	MalterlibTests define [type(CEntity)] = []
-	MalterlibTestFiles define [type(CEntity)] = []
-	MalterlibTestExtraGroups define [string] = []
-	MalterlibTestOwnMain define bool = false
-	MalterlibTestDependencies define [type(CEntity)] = []
+	MalterlibTests: [type(CEntity)] = []
+	MalterlibTestFiles: [type(CEntity)] = []
+	MalterlibTestExtraGroups: [string] = []
+	MalterlibTestOwnMain: bool = false
+	MalterlibTestDependencies: [type(CEntity)] = []
 }
 
 %Target MalterlibTests
@@ -156,7 +156,7 @@ Property
 	}
 	Property
 	{
-		TestDependencies define [type(CEntity)]
+		TestDependencies: [type(CEntity)]
 		TestDependencies MalterlibTestDependencies
 		TestDependencies =+ MalterlibTestDependencies_@(Target:this.Identity)
 		{
@@ -171,7 +171,7 @@ Property
 
 Property
 {
-	MalterlibTestAutoAddTarget define bool
+	MalterlibTestAutoAddTarget: bool
 	MalterlibTestAutoAddTarget MalterlibTestAutoAdd_@(Target:this.Identity)
 	{
 		!!true IsDefined(`MalterlibTestAutoAdd_@(Target:this.Identity)`)
@@ -181,7 +181,7 @@ Property
 		!!MalterlibTestAutoAddTarget undefined
 	}
 
-	MalterlibTestAutoAddWorkspace define bool
+	MalterlibTestAutoAddWorkspace: bool
 	MalterlibTestAutoAddWorkspace MalterlibTestAutoAdd_@(Workspace:this.Identity)
 	{
 		!!true IsDefined(`MalterlibTestAutoAdd_@(Workspace:this.Identity)`)
@@ -197,9 +197,9 @@ Import "Tools/XcodeIntegration/Malterlib_Test_XcodeIntegration.MTarget"
 
 Property
 {
-	TestingWorkspace define bool = false
-	MalterlibAppTestPostCopyDestination define string?
-	MalterlibAppTestPostCopyProject define string?
+	TestingWorkspace: bool = false
+	MalterlibAppTestPostCopyDestination: string?
+	MalterlibAppTestPostCopyProject: string?
 }
 
 %Workspace "Tests"
@@ -228,7 +228,7 @@ Property
 		}
 	}
 
-	Workspace.ExtraGroups =+ MalterlibTests->ForEach("MalterlibTestWorkspaceExtraGroupsTemplate")
+	Workspace.ExtraGroups =+ MalterlibTests->ForEach(&MalterlibTestWorkspaceExtraGroupsTemplate)
 
 	%Group "Tests"
 	{
@@ -284,6 +284,8 @@ Property
 		TestingWorkspace true
 		MalterlibAppTestPostCopyProject "Tests"
 		MalterlibAppTestPostCopyDestination `TestApps/@(Target.BaseFileName)/`
+
+		MalterlibBuildSystemEmbedCMake false
 	}
 
 	Workspace
@@ -329,7 +331,7 @@ Property
 	}
 }
 
-Property.MalterlibTestApp define bool = false
+Property.MalterlibTestApp: bool = false
 
 Target.ExtraGroups =+ "{Malterlib}/{TestApp}"
 {
@@ -338,7 +340,7 @@ Target.ExtraGroups =+ "{Malterlib}/{TestApp}"
 
 Property
 {
-	MalterlibEnablePathHelpers define bool = false
+	MalterlibEnablePathHelpers: bool = false
 }
 
 Target
@@ -351,14 +353,14 @@ Target
 
 Property
 {
-	MalterlibEnableTestHelpers define bool = false
+	MalterlibEnableTestHelpers: bool = false
 
 	MalterlibRunTestsParams Target:Target.DebuggerCommandArguments
 	{
 		!!MalterlibRunTestsParams undefined
 	}
 
-	MalterlibRunTests define bool = false
+	MalterlibRunTests: bool = false
 
 	MalterlibRunTests true
 	{
@@ -371,7 +373,7 @@ Property
 
 	RunTestsPath MalterlibFinalModuleDestination->GetPath()
 
-	RunTestsContents define string?
+	RunTestsContents: string?
 	RunTestsContents	`cd @(RunTestsPath->NativePath()->Escape())\r\n`\
 						`@(MalterlibFinalModuleDestination->NativePath()->Escape()) @(MalterlibRunTestsParams)\r\n`
 	{

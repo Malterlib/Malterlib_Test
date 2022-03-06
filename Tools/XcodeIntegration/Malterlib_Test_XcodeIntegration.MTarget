@@ -40,12 +40,12 @@
 			Property
 			{
 				fg_AllTestsTemplate function(string _Target) string = ""
-				fg_AllTestsTemplate =+ `		"@(GetProperty("Property", "MalterlibPostCopyDestination", _Target))@(GetProperty("Target", "FileName", _Target))@(GetProperty("Target", "FileExtension", _Target))",\n`
+				fg_AllTestsTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target))@(GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
 				{
-					!!true GetProperty("Property", "MalterlibMainTest", _Target)
+					!!true GetProperty(&MalterlibMainTest, _Target)
 				}
 				
-				AllTests define string = Workspace.AllTargets->ForEach("fg_AllTestsTemplate")
+				AllTests: string = Workspace.AllTargets->ForEach(&fg_AllTestsTemplate)
 			}
 			GenerateFile
 			{
@@ -73,10 +73,10 @@
 	Property
 	{
 		fg_AllTestsDependenciesTemplate function(string _Target) [type(CEntity)] = []
-		fg_AllTestsDependenciesTemplate =+ GetProperty("Target", "Name", _Target)
+		fg_AllTestsDependenciesTemplate =+ GetProperty(&Target.Name, _Target)
 		{
-			!!true GetProperty("Property", "MalterlibMainTest", _Target)
+			!!true GetProperty(&MalterlibMainTest, _Target)
 		}
 	}
-	%Dependency Workspace.AllTargets->ForEach("fg_AllTestsDependenciesTemplate")
+	%Dependency Workspace.AllTargets->ForEach(&fg_AllTestsDependenciesTemplate)
 }

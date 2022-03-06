@@ -37,29 +37,29 @@
 			Property
 			{
 				fg_AllTestsTemplate function(string _Target) string = ""
-				fg_AllTestsTemplate =+ `		"@(GetProperty("Property", "MalterlibPostCopyDestination", _Target))@(GetProperty("Target", "FileName", _Target))@(GetProperty("Target", "FileExtension", _Target))",\n`
+				fg_AllTestsTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target))@(GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
 				{
 					&
 					{
-						true GetProperty("Property", "MalterlibMainTest", _Target)
+						true GetProperty(&MalterlibMainTest, _Target)
 					}
 				}
 				
-				AllTests define string = Workspace.AllTargets->ForEach("fg_AllTestsTemplate")
+				AllTests: string = Workspace.AllTargets->ForEach(&fg_AllTestsTemplate)
 
 				CoverageBinariesTemplate function(string _Target) string
-				CoverageBinariesTemplate =+ `		"@(GetProperty("Property", "MalterlibPostCopyDestination", _Target))@(GetProperty("Target", "FileName", _Target))@(GetProperty("Target", "FileExtension", _Target))",\n`
+				CoverageBinariesTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target))@(GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
 				{
 					|
 					{
-						true GetProperty("Property", "MalterlibMainTest", _Target)
-						true GetProperty("Property", "MalterlibHelperTest", _Target)
-						true GetProperty("Property", "MalterlibTestApp", _Target)
-						true GetProperty("Property", "MalterlibCoverageBinary", _Target)
+						true GetProperty(&MalterlibMainTest, _Target)
+						true GetProperty(&MalterlibHelperTest, _Target)
+						true GetProperty(&MalterlibTestApp, _Target)
+						true GetProperty(&MalterlibCoverageBinary, _Target)
 					}
 				}
 
-				AllCoverageBinaries define string = Workspace.AllTargets->ForEach("CoverageBinariesTemplate")
+				AllCoverageBinaries: string = Workspace.AllTargets->ForEach(&CoverageBinariesTemplate)
 			}
 			GenerateFile
 			{
@@ -99,11 +99,11 @@
 	Property
 	{
 		fg_AllTestsDependenciesTemplate function(string _Test) [type(CEntity)] = []
-		fg_AllTestsDependenciesTemplate =+ GetProperty("Target", "Name", _Test)
+		fg_AllTestsDependenciesTemplate =+ GetProperty(&Target.Name, _Test)
 		{
-			!!true GetProperty("Property", "MalterlibMainTest", _Test)
+			!!true GetProperty(&MalterlibMainTest, _Test)
 //			#Debug "TraceEval"
 		}
 	}
-	%Dependency Workspace.AllTargets->ForEach("fg_AllTestsDependenciesTemplate")
+	%Dependency Workspace.AllTargets->ForEach(&fg_AllTestsDependenciesTemplate)
 }
