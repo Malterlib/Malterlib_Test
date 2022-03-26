@@ -7,6 +7,11 @@
 #include <Mib/Core/RuntimeType>
 #include <Mib/Container/Registry>
 
+namespace NMib::NConcurrency
+{
+	struct CAllowUnsafeThis;
+}
+
 namespace NMib::NTest
 {
 	enum ETest
@@ -82,7 +87,7 @@ namespace NMib::NTest
 		, ETestMeasureType_Debug		// Used for debug, just to compare results with for example less features enabled
 	};
 
-	class CTest
+	class CTest : public NConcurrency::CAllowUnsafeThis
 	{
 	public:
 		virtual ~CTest()

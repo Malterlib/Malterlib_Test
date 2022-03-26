@@ -18,6 +18,8 @@ namespace NMib::NTest
 	namespace NPrivate
 	{
 #if DMibConfig_Tests_Enable
+		struct CTestPathRestoringScope;
+
 		class CTestManager
 		{
 		public:
@@ -60,6 +62,13 @@ namespace NMib::NTest
 					return m_Line <=> _Other.m_Line;
 				}
 			};
+
+			struct CCoroutineState
+			{
+				NStr::CStr m_Path;
+				CTestPathRestoringScope *m_pCurrentScope = nullptr;
+			};
+
 			class CThreadLocal
 			{
 			public:
@@ -127,12 +136,15 @@ namespace NMib::NTest
 
 				NStr::CStr m_DynamicValue;
 
+				CCoroutineState m_CoroutineState;
+
 				bool m_bEnableValues = true;
 				bool m_bEnableExceptionFilter = true;
 				bool m_bEnumerating = false;
 				bool m_bInsideTestSuite = false;
 				mutable NThread::CMutual m_UniqueTestsLock;
 				mutable NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>>> m_UniqueTests;
+
 				DMibAutoClearPtrDeclare;
 			};
 
@@ -163,6 +175,152 @@ namespace NMib::NTest
 		CTestManager &CTestManager::fs_GetManager()
 		{
 			return *g_Tests;
+		}
+
+		struct CTestPathRestoringScope final : public CCrossActorCallStateScope
+		{
+			CTestPathRestoringScope()
+				: CCrossActorCallStateScope(false)
+			{
+				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+				auto &CoroutineState = ThreadLocal.m_CoroutineState;
+				m_pOldScope = CoroutineState.m_pCurrentScope;
+				CoroutineState.m_pCurrentScope = this;
+			}
+
+			~CTestPathRestoringScope()
+			{
+				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+				auto &CoroutineState = ThreadLocal.m_CoroutineState;
+				CoroutineState.m_pCurrentScope = m_pOldScope;
+			}
+
+			void f_InitialSuspend() override
+			{
+				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+				auto &CoroutineState = ThreadLocal.m_CoroutineState;
+				if (CoroutineState.m_pCurrentScope != this)
+					return;
+
+				DMibLock(ThreadLocal.m_TestPathLock);
+				CoroutineState.m_Path = ThreadLocal.m_TestPath;
+			}
+
+			NFunction::TCFunctionMovable<void (bool _bException)> f_StoreState(bool _bFromSuspend) override
+			{
+				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+				auto &CoroutineState = ThreadLocal.m_CoroutineState;
+				if (CoroutineState.m_pCurrentScope != this)
+					return {};
+
+				DMibLock(ThreadLocal.m_TestPathLock);
+				const ch8 *pFile = ThreadLocal.m_pLastTestFile;
+				int32 Line = ThreadLocal.m_LastTestLine;
+				auto Path = ThreadLocal.m_TestPath;
+
+				if (_bFromSuspend)
+				{
+					DMibLock(ThreadLocal.m_TestPathLock);
+					ThreadLocal.m_TestPath = CoroutineState.m_Path;
+				}
+
+				return [Path, pFile, Line, pForwardingScope = NStorage::TCSharedPointer<CTestPathRestoringScope>{}](bool _bException) mutable
+					{
+						auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+						auto &CoroutineState = ThreadLocal.m_CoroutineState;
+
+						if (!_bException)
+						{
+							CoroutineState.m_Path = Path;
+							{
+								DMibLock(ThreadLocal.m_TestPathLock);
+								ThreadLocal.m_TestPath = Path;
+							}
+							{
+								DMibLock(ThreadLocal.m_PropertiesLock);
+								ThreadLocal.m_pLastTestFile = pFile;
+								ThreadLocal.m_LastTestLine = Line;
+							}
+						}
+
+						if (!CoroutineState.m_pCurrentScope)
+							pForwardingScope = fg_Construct();
+					}
+				;
+			}
+
+			CTestPathRestoringScope *m_pOldScope = nullptr;
+		};
+
+		CTestCategoryScope::CTestCategoryScope(const CTestCategory &_Category, const ch8 *_pFile, int32 _Line, ETestCategoryFlag _Flags)
+			: mp_Category(_Category)
+			, mp_pFile(_pFile)
+			, mp_Line(_Line)
+			, mp_Flags(_Flags)
+		{
+			fg_SetTestLastLocation(_pFile, _Line);
+
+			DMibFastCheck(_Category.f_GetCategory().f_FindChar('/') < 0 && _Category.f_GetCategory().f_FindChar('\\') < 0);
+			DMibFastCheck(!NMib::NTest::NPrivate::fg_InsideTestSuite());
+			NMib::NTest::NPrivate::fg_InsideTestSuite(mp_Flags & ETestCategoryFlag_Tests);
+			if (_Flags & ETestCategoryFlag_DisableValues)
+				mp_bOldEnableValues = NMib::NTest::NPrivate::fg_SetEnableValues(false);
+			else if (_Flags & ETestCategoryFlag_EnableValues)
+				mp_bOldEnableValues = NMib::NTest::NPrivate::fg_SetEnableValues(true);
+
+			if (_Flags & ETestCategoryFlag_DisableExceptionFilter)
+				mp_bOldEnableExceptionFilter = NMib::NTest::NPrivate::fg_SetEnableExceptionFilter(false);
+			else if (_Flags & ETestCategoryFlag_EnableExceptionFilter)
+				mp_bOldEnableExceptionFilter = NMib::NTest::NPrivate::fg_SetEnableExceptionFilter(true);
+
+		}
+
+		CTestCategoryScope::~CTestCategoryScope()
+		{
+			if (mp_Flags & (ETestCategoryFlag_DisableValues | ETestCategoryFlag_EnableValues))
+				NMib::NTest::NPrivate::fg_SetEnableValues(mp_bOldEnableValues);
+			if (mp_Flags & (ETestCategoryFlag_DisableExceptionFilter | ETestCategoryFlag_EnableExceptionFilter))
+				NMib::NTest::NPrivate::fg_SetEnableExceptionFilter(mp_bOldEnableExceptionFilter);
+			NMib::NTest::NPrivate::fg_InsideTestSuite(false);
+		}
+
+		void CTestCategoryScope::f_ProcessAsyncCategory(NFunction::TCFunctionMovable<NConcurrency::TCFuture<void> ()> &&_Function)
+		{
+			f_ProcessCategory
+				(
+					[&]
+					{
+						NStorage::TCSharedPointer<NConcurrency::CDefaultRunLoop> pRunLoop = fg_Construct();
+						auto CleanupRunLoop = g_OnScopeExit > [&]
+							{
+								while (pRunLoop->f_RefCountGet() > 0)
+									pRunLoop->f_WaitOnceTimeout(0.1);
+							}
+						;
+
+						NConcurrency::TCActor<NConcurrency::CDispatchingActor> HelperActor(fg_Construct(), pRunLoop->f_Dispatcher());
+						auto CleanupHelperActor = g_OnScopeExit > [&]
+							{
+								HelperActor->f_BlockDestroy(pRunLoop->f_ActorDestroyLoop());
+							}
+						;
+
+						CTestPathRestoringScope RestorePathScope;
+
+						auto &ThreadLocal = **g_SystemThreadLocal;
+						auto OldFlags = ThreadLocal.m_ExtraCoroutineFlags;
+						ThreadLocal.m_ExtraCoroutineFlags |= NConcurrency::ECoroutineFlag_CaptureExceptions;
+
+						auto CleanupFlags = g_OnScopeExit > [&]
+							{
+								ThreadLocal.m_ExtraCoroutineFlags = OldFlags;
+							}
+						;
+
+						(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_Function)).f_CallSync(pRunLoop);
+					}
+				)
+			;
 		}
 
 		NStr::CStr const &fg_GetDynamicValue()
@@ -224,7 +382,7 @@ namespace NMib::NTest
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 			DMibLock(ThreadLocal.m_TestPathLock);
 			NStr::CStr PreviousPath = ThreadLocal.m_TestPath;
-			NStr::fg_StrAddWithSeparator(ThreadLocal.m_TestPath, _Category ,"/");
+			NStr::fg_StrAddWithSeparator(ThreadLocal.m_TestPath, _Category, "/");
 			return PreviousPath;
 		}
 
