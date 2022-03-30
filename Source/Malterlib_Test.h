@@ -376,9 +376,10 @@ namespace NMib::NTest
 
 	struct CRunTestOptions
 	{
-		NContainer::TCVector<NStr::CStr> m_Paths;
-		NContainer::TCVector<NStr::CStr> m_ExcludeGroups;
+		NContainer::TCVector<NStr::CStr> m_IncludePatterns;
+		NContainer::TCVector<NStr::CStr> m_ExcludePatterns;
 		NContainer::TCVector<NStr::CStr> m_IncludeGroups;
+		NContainer::TCVector<NStr::CStr> m_ExcludeGroups;
 		ETestReportFlag m_ReportFlags = ETestReportFlag_Default | ETestReportFlag_ReportValues;
 		NMib::NStr::CStr m_ExtraData;
 	};

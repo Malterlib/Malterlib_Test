@@ -32,7 +32,8 @@ namespace NMib::NTest
 
 			NMib::NStr::CStr m_ExtraData;
 
-			NContainer::TCVector<NStr::CStr> m_PathPatterns;
+			NContainer::TCVector<NStr::CStr> m_IncludePatterns;
+			NContainer::TCVector<NStr::CStr> m_ExcludePatterns;
 			NContainer::TCSet<NStr::CStr> m_IncludeGroups;
 			NContainer::TCSet<NStr::CStr> m_ExcludeGroups;
 			NAtomic::TCAtomic<smint> m_nTotalTests;
@@ -622,12 +623,12 @@ namespace NMib::NTest
 			Manager.f_GetResults(*Manager.m_ThreadLocal)->f_ReportSuite(Manager.m_ThreadLocal->m_TestPath, Manager.m_ThreadLocal->m_TestGroups, CTestLocation(mp_pFile, mp_Line));
 		}
 
-		NStr::EMatchWildcardResult fg_MatchPattern(const NStr::CStr &_String, NContainer::TCVector<NStr::CStr> const &_PathPatterns)
+		NStr::EMatchWildcardResult fg_MatchPattern(const NStr::CStr &_String, NContainer::TCVector<NStr::CStr> const &_PathPatterns, NStr::EMatchWildcardResult _Default)
 		{
 			NStr::EMatchWildcardResult Ret = NStr::EMatchWildcardResult_NotMatched;
 
 			if (_PathPatterns.f_IsEmpty())
-				return NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted;
+				return _Default;
 
 			for (auto &Pattern : _PathPatterns)
 				Ret = fg_Max(Ret, NStr::fg_StrMatchWildcard(_String.f_GetStr(), Pattern.f_GetStr()));
@@ -648,14 +649,21 @@ namespace NMib::NTest
 
 			CTestManager::CThreadLocal &ThreadLocal = *pManager->m_ThreadLocal;
 
-			NStr::EMatchWildcardResult Result = fg_MatchPattern(ThreadLocal.m_TestPath, pManager->m_PathPatterns);
-			if (!(Result & NStr::EMatchWildcardResult_WholeStringMatched))
+			NStr::EMatchWildcardResult IncludeResult = fg_MatchPattern(ThreadLocal.m_TestPath, pManager->m_IncludePatterns, NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted);
+			if (!(IncludeResult & NStr::EMatchWildcardResult_WholeStringMatched))
 				return false;
 
 			if (_bLeaf)
 			{
-				if (Result != NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted)
+				if
+					(
+						IncludeResult != NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted
+						|| fg_MatchPattern(ThreadLocal.m_TestPath, pManager->m_ExcludePatterns, NStr::EMatchWildcardResult_NotMatched)
+						== NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted
+					)
+				{
 					return false;
+				}
 			}
 
 			bool bIncluded = pManager->m_IncludeGroups.f_IsEmpty() && ThreadLocal.m_TestGroups.f_IsEmpty();
@@ -727,14 +735,8 @@ namespace NMib::NTest
 
 			pManager->m_pResults = _pResults;
 			pManager->f_ClearStatistics();
-			{
-				mint nPaths = _Options.m_Paths.f_GetLen();
-				pManager->m_PathPatterns.f_SetLen(nPaths);
-				for (mint i = 0; i < nPaths; ++i)
-				{
-					pManager->m_PathPatterns[i] = _Options.m_Paths[i];
-				}
-			}
+			pManager->m_IncludePatterns = _Options.m_IncludePatterns;
+			pManager->m_ExcludePatterns = _Options.m_ExcludePatterns;
 			{
 				mint nGroups = _Options.m_IncludeGroups.f_GetLen();
 				for (mint i = 0; i < nGroups; ++i)
@@ -780,7 +782,9 @@ namespace NMib::NTest
 					if (iFindTest >= 0)
 					{
 						FullName = FullName.f_Extract(ToFind.f_GetLen());
-						bool bFound = fg_MatchPattern(FullName, pManager->m_PathPatterns) & NStr::EMatchWildcardResult_WholeStringMatched;
+						bool bFound = fg_MatchPattern(FullName, pManager->m_IncludePatterns, NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted)
+							& NStr::EMatchWildcardResult_WholeStringMatched
+						;
 
 						if (bFound)
 						{
@@ -1077,7 +1081,13 @@ namespace NMib::NTest
 				if (auto pValue = _Parameters.f_GetMember("Paths"))
 				{
 					for (auto &Path : pValue->f_Array())
-						RunOptions.m_Paths.f_Insert(Path.f_String());
+						RunOptions.m_IncludePatterns.f_Insert(Path.f_String());
+				}
+
+				if (auto pValue = _Parameters.f_GetMember("ExcludePaths"))
+				{
+					for (auto &Path : pValue->f_Array())
+						RunOptions.m_ExcludePatterns.f_Insert(Path.f_String());
 				}
 
 				return fg_RunTests(pResults, RunOptions);
@@ -1089,6 +1099,14 @@ namespace NMib::NTest
 				"Type"_= {""}
 				, "Default"_= _[_]
 				, "Description"_= "Specify the test paths to run tests for. Can be wildcards."
+			}
+		;
+		auto Option_ExcludePaths = "ExcludePaths?"_=
+			{
+				"Names"_= {"--exclude-paths"}
+				, "Type"_= {""}
+				, "Default"_= _[_]
+				, "Description"_= "Specify the test paths to exclude. Can be wildcards."
 			}
 		;
 		auto Option_ExtraData = "ExtraData?"_=
@@ -1226,7 +1244,8 @@ namespace NMib::NTest
 					, "Description"_= "Run tests contained in this binary.\n"
 					, "Options"_=
 					{
-						Option_FilterResults
+						Option_ExcludePaths
+						, Option_FilterResults
 						, Option_Groups
 						, Option_ExcludeGroups
 						, Option_Logger
@@ -1260,7 +1279,8 @@ namespace NMib::NTest
 					, "Description"_= "List test suites contained in this binary.\n"
 					, "Options"_=
 					{
-						Option_Groups
+						Option_ExcludePaths
+						, Option_Groups
 						, Option_ExcludeGroups
 						, Option_Logger
 						, Option_ExtraData
