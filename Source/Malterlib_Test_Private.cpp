@@ -5,6 +5,7 @@
 
 namespace NMib::NTest::NPrivate
 {
+#if DMibConfig_Tests_Enable
 	CTestPathScope::CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
 		: m_Path(_Path)
 		, m_pFile(_pFile)
@@ -133,4 +134,5 @@ namespace NMib::NTest::NPrivate
 			NMib::NTest::NPrivate::fg_SetGroups(OldGroups);
 		NMib::NTest::NPrivate::fg_PopCategory(PreviousPath);
 	}
+#endif
 }
