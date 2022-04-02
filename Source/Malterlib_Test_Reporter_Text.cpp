@@ -161,11 +161,9 @@ namespace NMib::NTest
 		{
 			fp_ReportText
 				(
-					"{} {} {} {} {}{\n}"_f
+					"{} {} {}{\n}"_f
 					<< fp_ColorHeading("{sl100,a-}"_f << _FileLocation)
 					<< fp_ColorHeading("{sl24,a-}"_f << _Result)
-					<< fp_ColorHeading("{sl60,a-}"_f << _Expression)
-					<< fp_ColorHeading("{sl60,a-}"_f << _Values)
 					<< fp_ColorHeading(_TestPath)
 					, _Severity
 				)
@@ -175,12 +173,12 @@ namespace NMib::NTest
 		{
 			fp_ReportText
 				(
-					"{} {} {} {} {}{\n}"_f
+					"{} {} {}{\n}{\n}{}{\n}{\n}{}{\n}{\n}"_f
 					<< fp_ColorFileLocation("{sl100,a-}"_f << _FileLocation)
 					<< fp_ColorSeverity("{sl24,a-}"_f << _Result, _Severity)
-					<< fp_ColorExpression("{sl60,a-}"_f << _Expression)
-					<< fp_ColorValues("{sl60,a-}"_f << _Values)
 					<< fp_ColorPath(_TestPath)
+					<< fp_ColorExpression("{}"_f << _Expression.f_Indent("    ", true))
+					<< fp_ColorValues("{}"_f << _Values.f_Indent("    ", true))
 					, _Severity
 				)
 			;
