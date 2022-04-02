@@ -74,7 +74,7 @@ namespace NMib::NTest::NPrivate
 	bool fg_InsideTestSuite();
 	bool fg_SetEnableValues(bool _bEnableValues);
 	bool fg_GetEnableValues();
-	NStr::CStr const &fg_GetDynamicValue();
+	void fg_RegisterDynamicValue(NStr::CStr *_pValue);
 	void fg_SetDynamicValue(NStr::CStr &&_Value);
 	bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter);
 	bool fg_GetEnableExceptionFilter();
@@ -175,11 +175,13 @@ namespace NMib::NTest::NPrivate
 			else
 			{
 				ETestResult Result;
-				Result = (ETestResult)m_Expression.f_Eval();
+				NStr::CStr ValueDesc;
+				Result = (ETestResult)m_Expression.f_Eval(ValueDesc);
 
 				if constexpr (TCHasMember_f_IsIgnored<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void ()>::CReturnType>::mc_Value)
 				{
-					if (m_Expression.f_GetVariable().f_IsIgnored())
+					NStr::CStr Dummy;
+					if (m_Expression.f_GetVariable(Dummy, false).f_IsIgnored())
 						Result = ETestResult_Ignored;
 				}
 
@@ -189,7 +191,10 @@ namespace NMib::NTest::NPrivate
 				NStr::CStr Desc;
 
 				if constexpr (TCHasMember_f_ModifyDescription<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void ()>::CReturnType>::mc_Value)
-					Desc = m_Expression.f_GetVariable().f_ModifyDescription(m_Expression.f_GetDesc());
+				{
+					NStr::CStr Dummy;
+					Desc = m_Expression.f_GetVariable(Dummy, false).f_ModifyDescription(m_Expression.f_GetDesc());
+				}
 				else
 					Desc = m_Expression.f_GetDesc();
 
@@ -215,7 +220,6 @@ namespace NMib::NTest::NPrivate
 					bool bNeedValues =
 						fg_GetEnableValues()
 						&& !(m_Flags & ETestFlag_NoValues)
-						&& !m_Expression.f_GetDisableValues()
 						&&
 						(
 							!(m_Flags & ETestFlag_NoValuesOnSuccess)
@@ -226,13 +230,16 @@ namespace NMib::NTest::NPrivate
 
 					NStr::CStr ExtraData;
 					if constexpr (TCHasMember_f_GetExtraData<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void ()>::CReturnType>::mc_Value)
-						ExtraData =  m_Expression.f_GetVariable().f_GetExtraData();
+					{
+						NStr::CStr Dummy;
+						ExtraData =  m_Expression.f_GetVariable(Dummy, false).f_GetExtraData();
+					}
 
 					fg_ReportTestResult
 						(
 							Result
 							, Desc
-							, bNeedValues ? m_Expression.f_GetValueDesc() : NStr::CStr()
+							, bNeedValues ? ValueDesc : NStr::CStr()
 							, m_FailureAction
 							, ECheckType_Predicate
 							, m_pFile
@@ -244,7 +251,10 @@ namespace NMib::NTest::NPrivate
 					;
 
 					if constexpr (TCHasMember_f_TestReport<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void ()>::CReturnType>::mc_Value)
-						m_Expression.f_GetVariable().f_TestReport(fg_GetResultReporter());
+					{
+						NStr::CStr Dummy;
+						m_Expression.f_GetVariable(Dummy, false).f_TestReport(fg_GetResultReporter());
+					}
 				}
 
 				return Result != ETestResult_Fail;

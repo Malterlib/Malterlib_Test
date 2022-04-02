@@ -135,7 +135,7 @@ namespace NMib::NTest
 				const ch8 *m_pLastTestFile = nullptr;
 				int32 m_LastTestLine = 0;
 
-				NStr::CStr m_DynamicValue;
+				NStr::CStr *m_pDynamicValue = nullptr;
 
 				CCoroutineState m_CoroutineState;
 
@@ -324,16 +324,20 @@ namespace NMib::NTest
 			;
 		}
 
-		NStr::CStr const &fg_GetDynamicValue()
+		void fg_RegisterDynamicValue(NStr::CStr *_pValue)
 		{
 			CTestManager *pTestManager = g_Tests;
-			return pTestManager->m_ThreadLocal->m_DynamicValue;
+			pTestManager->m_ThreadLocal->m_pDynamicValue = _pValue;
 		}
 
 		void fg_SetDynamicValue(NStr::CStr &&_Value)
 		{
 			CTestManager *pTestManager = g_Tests;
-			pTestManager->m_ThreadLocal->m_DynamicValue = fg_Move(_Value);
+			auto &pDynamicValue = pTestManager->m_ThreadLocal->m_pDynamicValue;
+			if (!pDynamicValue)
+				return;
+			*pDynamicValue = fg_Move(_Value);
+			pDynamicValue = nullptr;
 		}
 
 		bool fg_SetEnableValues(bool _bEnableValues)

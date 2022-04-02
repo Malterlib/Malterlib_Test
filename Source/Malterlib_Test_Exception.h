@@ -22,9 +22,6 @@ namespace NMib::NTest
 #endif
 			try
 			{
-#if DMibConfig_Tests_Enable
-				NPrivate::fg_SetDynamicValue({});
-#endif
 				_fFunctor();
 #if DMibConfig_Tests_Enable
 				NPrivate::fg_SetDynamicValue("No exception thrown");
@@ -39,6 +36,9 @@ namespace NMib::NTest
 			}
 			catch (...)
 			{
+#if DMibConfig_Tests_Enable
+				NPrivate::fg_SetDynamicValue("...");
+#endif
 				return false;
 			}
 			return true;
@@ -67,9 +67,6 @@ namespace NMib::NTest
 				{
 					try
 					{
-#if DMibConfig_Tests_Enable
-						NPrivate::fg_SetDynamicValue({});
-#endif
 						_fFunctor();
 #if DMibConfig_Tests_Enable
 						NPrivate::fg_SetDynamicValue("No exception thrown");
@@ -80,6 +77,8 @@ namespace NMib::NTest
 #if DMibConfig_Tests_Enable
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 							NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+						else
+							NPrivate::fg_SetDynamicValue("");
 #endif
 						return true;
 					}
@@ -96,9 +95,6 @@ namespace NMib::NTest
 			{
 				try
 				{
-#if DMibConfig_Tests_Enable
-					NPrivate::fg_SetDynamicValue({});
-#endif
 					_fFunctor();
 #if DMibConfig_Tests_Enable
 					NPrivate::fg_SetDynamicValue("No exception thrown");
@@ -113,6 +109,9 @@ namespace NMib::NTest
 					return true;
 				}
 			}
+#if DMibConfig_Tests_Enable
+			NPrivate::fg_SetDynamicValue({});
+#endif
 			return false;
 		}
 
@@ -147,6 +146,8 @@ namespace NMib::NTest
 #if DMibConfig_Tests_Enable
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 							NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+						else
+							NPrivate::fg_SetDynamicValue({});
 #endif
 						return true;
 					}
@@ -170,11 +171,16 @@ namespace NMib::NTest
 #if DMibConfig_Tests_Enable
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 						NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+					else
+						NPrivate::fg_SetDynamicValue({});
 #endif
 					return true;
 				}
 			}
 
+#if DMibConfig_Tests_Enable
+			NPrivate::fg_SetDynamicValue({});
+#endif
 			return false;
 		}
 
@@ -219,9 +225,6 @@ namespace NMib::NTest
 				{
 					try
 					{
-#if DMibConfig_Tests_Enable
-						NPrivate::fg_SetDynamicValue({});
-#endif
 						_fFunctor();
 #if DMibConfig_Tests_Enable
 						NPrivate::fg_SetDynamicValue("No exception thrown");
@@ -233,6 +236,8 @@ namespace NMib::NTest
 #if DMibConfig_Tests_Enable
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 							NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+						else
+							NPrivate::fg_SetDynamicValue({});
 #endif
 						return _Exception == m_Exception;
 					}
@@ -250,9 +255,6 @@ namespace NMib::NTest
 			{
 				try
 				{
-#if DMibConfig_Tests_Enable
-					NPrivate::fg_SetDynamicValue({});
-#endif
 					_fFunctor();
 #if DMibConfig_Tests_Enable
 					NPrivate::fg_SetDynamicValue("No exception thrown");
@@ -264,10 +266,15 @@ namespace NMib::NTest
 #if DMibConfig_Tests_Enable
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 						NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+					else
+						NPrivate::fg_SetDynamicValue({});
 #endif
 					return _Exception == m_Exception;
 				}
 			}
+#if DMibConfig_Tests_Enable
+			NPrivate::fg_SetDynamicValue({});
+#endif
 
 			return false;
 		}
@@ -320,6 +327,8 @@ namespace NMib::NTest
 #if DMibConfig_Tests_Enable
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 							NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+						else
+							NPrivate::fg_SetDynamicValue({});
 #endif
 						return _Exception == m_Exception;
 					}
@@ -345,11 +354,16 @@ namespace NMib::NTest
 #if DMibConfig_Tests_Enable
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
 						NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+					else
+						NPrivate::fg_SetDynamicValue({});
 #endif
 					return _Exception == m_Exception;
 				}
 			}
 
+#if DMibConfig_Tests_Enable
+			NPrivate::fg_SetDynamicValue({});
+#endif
 			return false;
 		}
 
