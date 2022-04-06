@@ -403,7 +403,7 @@ private:
 				}
 
 				TCSharedPointer<bool> pExited = fg_Construct(false);
-				auto CleanupExited = g_OnScopeExit > [&]
+				auto CleanupExited = g_OnScopeExit / [&]
 					{
 						*pExited = true;
 					}

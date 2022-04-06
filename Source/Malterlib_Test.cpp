@@ -292,7 +292,7 @@ namespace NMib::NTest
 					[&]
 					{
 						NStorage::TCSharedPointer<NConcurrency::CDefaultRunLoop> pRunLoop = fg_Construct();
-						auto CleanupRunLoop = g_OnScopeExit > [&]
+						auto CleanupRunLoop = g_OnScopeExit / [&]
 							{
 								while (pRunLoop->f_RefCountGet() > 0)
 									pRunLoop->f_WaitOnceTimeout(0.1);
@@ -300,7 +300,7 @@ namespace NMib::NTest
 						;
 
 						NConcurrency::TCActor<NConcurrency::CDispatchingActor> HelperActor(fg_Construct(), pRunLoop->f_Dispatcher());
-						auto CleanupHelperActor = g_OnScopeExit > [&]
+						auto CleanupHelperActor = g_OnScopeExit / [&]
 							{
 								HelperActor->f_BlockDestroy(pRunLoop->f_ActorDestroyLoop());
 							}
@@ -312,7 +312,7 @@ namespace NMib::NTest
 						auto OldFlags = ThreadLocal.m_ExtraCoroutineFlags;
 						ThreadLocal.m_ExtraCoroutineFlags |= NConcurrency::ECoroutineFlag_CaptureExceptions;
 
-						auto CleanupFlags = g_OnScopeExit > [&]
+						auto CleanupFlags = g_OnScopeExit / [&]
 							{
 								ThreadLocal.m_ExtraCoroutineFlags = OldFlags;
 							}
