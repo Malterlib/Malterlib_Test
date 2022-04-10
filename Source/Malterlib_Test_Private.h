@@ -176,7 +176,20 @@ namespace NMib::NTest::NPrivate
 			{
 				ETestResult Result;
 				NStr::CStr ValueDesc;
-				Result = (ETestResult)m_Expression.f_Eval(ValueDesc);
+				bool bPotentianlyNeedValues =
+					fg_GetEnableValues()
+					&& !(m_Flags & ETestFlag_NoValues)
+					&& (fg_TestReportFlags() & ETestReportFlag_ReportValues)
+				;
+				bool bOnlyEvalOnce = m_Expression.f_OnlyEvalOnce();
+				bool bHasValue = false;
+				if (bOnlyEvalOnce && bPotentianlyNeedValues)
+				{
+					bHasValue = true;
+					Result = m_Expression.f_Eval(&ValueDesc) ? ETestResult_Success : ETestResult_Fail;
+				}
+				else
+					Result = m_Expression.f_Eval(nullptr) ? ETestResult_Success : ETestResult_Fail;
 
 				if constexpr (TCHasMember_f_IsIgnored<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void ()>::CReturnType>::mc_Value)
 				{
@@ -191,10 +204,7 @@ namespace NMib::NTest::NPrivate
 				NStr::CStr Desc;
 
 				if constexpr (TCHasMember_f_ModifyDescription<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void ()>::CReturnType>::mc_Value)
-				{
-					NStr::CStr Dummy;
-					Desc = m_Expression.f_GetVariable(Dummy, false).f_ModifyDescription(m_Expression.f_GetDesc());
-				}
+					Desc = m_Expression.f_GetVariable(nullptr, false).f_ModifyDescription(m_Expression.f_GetDesc());
 				else
 					Desc = m_Expression.f_GetDesc();
 
@@ -217,23 +227,20 @@ namespace NMib::NTest::NPrivate
 						Result == ETestResult_Success
 						|| ((Result == ETestResult_Fail) && (m_FailureAction == ETest_ExpectFail || m_FailureAction == ETest_ExpectFailAndStop))
 					;
-					bool bNeedValues =
-						fg_GetEnableValues()
-						&& !(m_Flags & ETestFlag_NoValues)
+					bool bNeedValues = bPotentianlyNeedValues
 						&&
 						(
 							!(m_Flags & ETestFlag_NoValuesOnSuccess)
 							|| !bIsSuccess
 						)
-						&& (fg_TestReportFlags() & ETestReportFlag_ReportValues)
 					;
 
 					NStr::CStr ExtraData;
 					if constexpr (TCHasMember_f_GetExtraData<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void ()>::CReturnType>::mc_Value)
-					{
-						NStr::CStr Dummy;
-						ExtraData =  m_Expression.f_GetVariable(Dummy, false).f_GetExtraData();
-					}
+						ExtraData =  m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
+
+					if (bNeedValues && !bHasValue)
+						m_Expression.f_Eval(&ValueDesc);
 
 					fg_ReportTestResult
 						(

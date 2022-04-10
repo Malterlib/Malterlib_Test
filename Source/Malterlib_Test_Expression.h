@@ -327,9 +327,9 @@ namespace NMib::NTest::NExpression
 
 #define DMibTemp_ImplementExpressionInterface(_ThisType) \
 	public:\
-		bool f_Eval(NStr::CStr &o_ValueDesc) const\
+		bool f_Eval(NStr::CStr *o_pValueDesc) const\
 		{\
-			return NPrivate::fg_ConvertToBool(f_GetVariable(o_ValueDesc, false));\
+			return NPrivate::fg_ConvertToBool(f_GetVariable(o_pValueDesc, false));\
 		}\
 	DImplementExpressionInterfaceNoEval(_ThisType)
 #define DMibTemp_ImplementBinaryOperator(_OperatorType, _OperatorDesc, _OperatorCpp)\
@@ -344,27 +344,30 @@ namespace NMib::NTest::NExpression
 		TCExpressionWithOperator(const t_CLeft &_Left, const t_CRight &_Right)	: m_Left(_Left), m_Right(_Right){}\
 		NStr::CStr f_GetDesc() const { return m_Left.f_GetDescRecursive() + _OperatorDesc + m_Right.f_GetDescRecursive(); }\
 		NStr::CStr f_GetDescRecursive() const { return "(" + m_Left.f_GetDescRecursive() + _OperatorDesc + m_Right.f_GetDescRecursive() + ")"; }\
-		auto f_GetVariable(NStr::CStr &o_ValueDesc, bool _bRecursive) const -> decltype (fsp_GetLeft().f_GetVariable(o_ValueDesc, _bRecursive) _OperatorCpp fsp_GetRight().f_GetVariable(o_ValueDesc, _bRecursive))\
+		bool f_OnlyEvalOnce() const { return m_Left.f_OnlyEvalOnce() || m_Right.f_OnlyEvalOnce(); }\
+		auto f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const -> decltype (fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) _OperatorCpp fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive))\
 		{\
+			if (!o_pValueDesc) \
+				return m_Left.f_GetVariable(nullptr, true) _OperatorCpp m_Right.f_GetVariable(nullptr, true);\
 			NStr::CStr LeftDesc;\
 			NStr::CStr RightDesc;\
-			auto Return = m_Left.f_GetVariable(LeftDesc, true) _OperatorCpp m_Right.f_GetVariable(RightDesc, true);\
+			auto Return = m_Left.f_GetVariable(&LeftDesc, true) _OperatorCpp m_Right.f_GetVariable(&RightDesc, true);\
 			NStr::CStr ThisValue;\
 			if (!NPrivate::fg_IsVariableBoolean(Return))\
 				ThisValue = NStr::CStr::fs_ToStr(Return);\
 			if (_bRecursive)\
 			{\
 				if (ThisValue.f_IsEmpty())\
-					o_ValueDesc = "(" + LeftDesc + _OperatorDesc + RightDesc + ")"; \
+					*o_pValueDesc = "(" + LeftDesc + _OperatorDesc + RightDesc + ")"; \
 				else\
-					o_ValueDesc = ThisValue + " [" + LeftDesc + _OperatorDesc + RightDesc + "]"; \
+					*o_pValueDesc = ThisValue + " [" + LeftDesc + _OperatorDesc + RightDesc + "]"; \
 			}\
 			else\
 			{\
 				if (ThisValue.f_IsEmpty())\
-					o_ValueDesc = LeftDesc + _OperatorDesc + RightDesc; \
+					*o_pValueDesc = LeftDesc + _OperatorDesc + RightDesc; \
 				else\
-					o_ValueDesc = ThisValue + " [" + LeftDesc + _OperatorDesc + RightDesc + "]"; \
+					*o_pValueDesc = ThisValue + " [" + LeftDesc + _OperatorDesc + RightDesc + "]"; \
 			}\
 			return Return;\
 		}\
@@ -381,11 +384,14 @@ namespace NMib::NTest::NExpression
 		TCExpressionWithOperator(const t_CLeft &_Left)	: m_Left(_Left) {}\
 		NStr::CStr f_GetDesc() const { return _OperatorDesc + m_Left.f_GetDescRecursive();	}\
 		NStr::CStr f_GetDescRecursive() const { return _OperatorDesc + m_Left.f_GetDescRecursive();	}\
-		auto f_GetVariable(NStr::CStr &o_ValueDesc, bool _bRecursive) const -> decltype (_OperatorCpp fsp_GetLeft().f_GetVariable(o_ValueDesc, _bRecursive))\
+		bool f_OnlyEvalOnce() const { return m_Left.f_OnlyEvalOnce(); }\
+		auto f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const -> decltype (_OperatorCpp fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive))\
 		{\
+			if (!o_pValueDesc)\
+				return _OperatorCpp m_Left.f_GetVariable(nullptr, true);\
 			NStr::CStr LeftDesc;\
-			auto Return = _OperatorCpp m_Left.f_GetVariable(LeftDesc, true);\
-			o_ValueDesc = _OperatorDesc + LeftDesc;\
+			auto Return = _OperatorCpp m_Left.f_GetVariable(&LeftDesc, true);\
+			*o_pValueDesc = _OperatorDesc + LeftDesc;\
 			return Return;\
 		}\
 		DMibTemp_ImplementExpressionInterface(TCExpressionWithOperator);\
@@ -401,11 +407,14 @@ namespace NMib::NTest::NExpression
 		TCExpressionWithOperator(const t_CLeft &_Left)	: m_Left(_Left) {}\
 		NStr::CStr f_GetDesc() const { return m_Left.f_GetDescRecursive() + _OperatorDesc;}\
 		NStr::CStr f_GetDescRecursive() const { return m_Left.f_GetDescRecursive() + _OperatorDesc;}\
-		auto f_GetVariable(NStr::CStr &o_ValueDesc, bool _bRecursive) const -> decltype (fsp_GetLeft().f_GetVariable(o_ValueDesc, _bRecursive) _OperatorCpp)\
+		bool f_OnlyEvalOnce() const { return m_Left.f_OnlyEvalOnce(); }\
+		auto f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const -> decltype (fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) _OperatorCpp)\
 		{\
+			if (!o_pValueDesc)\
+				return m_Left.f_GetVariable(nullptr, true) _OperatorCpp;\
 			NStr::CStr LeftDesc;\
-			auto Return = m_Left.f_GetVariable(LeftDesc, true) _OperatorCpp;\
-			o_ValueDesc = LeftDesc + _OperatorDesc;\
+			auto Return = m_Left.f_GetVariable(&LeftDesc, true) _OperatorCpp;\
+			*o_pValueDesc = LeftDesc + _OperatorDesc;\
 			return Return;\
 		}\
 		DMibTemp_ImplementExpressionInterface(TCExpressionWithOperator);\
@@ -422,12 +431,15 @@ namespace NMib::NTest::NExpression
 		TCExpressionWithOperator(const t_CLeft &_Left, const t_CRight &_Right)	: m_Left(_Left), m_Right(_Right){}
 		NStr::CStr f_GetDesc() const { return m_Left.f_GetDescRecursive() + " && " + m_Right.f_GetDescRecursive(); }
 		NStr::CStr f_GetDescRecursive() const { return "(" + m_Left.f_GetDescRecursive() + " && " + m_Right.f_GetDescRecursive() + ")"; }
-		auto f_GetVariable(NStr::CStr &o_ValueDesc, bool _bRecursive) const -> decltype (fsp_GetLeft().f_GetVariable(o_ValueDesc, _bRecursive) && fsp_GetRight().f_GetVariable(o_ValueDesc, _bRecursive))
+		bool f_OnlyEvalOnce() const { return m_Left.f_OnlyEvalOnce() || m_Right.f_OnlyEvalOnce(); }
+		auto f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const -> decltype (fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) && fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive))
 		{
+			if (!o_pValueDesc)
+				return m_Left.f_GetVariable(nullptr, true) && m_Right.f_GetVariable(nullptr, true);
 			using namespace NStr;
 			CStr LeftDesc;
 			CStr RightDesc = "NoEval";
-			auto Return = m_Left.f_GetVariable(LeftDesc, true) && m_Right.f_GetVariable(RightDesc, true);
+			auto Return = m_Left.f_GetVariable(&LeftDesc, true) && m_Right.f_GetVariable(&RightDesc, true);
 
 			CStr ThisDesc;
 			if (!NPrivate::fg_IsVariableBoolean(Return))
@@ -436,21 +448,21 @@ namespace NMib::NTest::NExpression
 			if (ThisDesc.f_IsEmpty())
 			{
 				if (_bRecursive)
-					o_ValueDesc = "(";
-				o_ValueDesc += LeftDesc;
-				o_ValueDesc += " && ";
-				o_ValueDesc += RightDesc;
+					*o_pValueDesc = "(";
+				*o_pValueDesc += LeftDesc;
+				*o_pValueDesc += " && ";
+				*o_pValueDesc += RightDesc;
 				if (_bRecursive)
-					o_ValueDesc += ")";
+					*o_pValueDesc += ")";
 			}
 			else
 			{
-				o_ValueDesc = ThisDesc;
-				o_ValueDesc += " [";
-				o_ValueDesc += LeftDesc;
-				o_ValueDesc += " && ";
-				o_ValueDesc += RightDesc;
-				o_ValueDesc += "]";
+				*o_pValueDesc = ThisDesc;
+				*o_pValueDesc += " [";
+				*o_pValueDesc += LeftDesc;
+				*o_pValueDesc += " && ";
+				*o_pValueDesc += RightDesc;
+				*o_pValueDesc += "]";
 			}
 
 			return Return;
@@ -470,11 +482,15 @@ namespace NMib::NTest::NExpression
 		TCExpressionWithOperator(const t_CLeft &_Left, const t_CRight &_Right)	: m_Left(_Left), m_Right(_Right){}
 		NStr::CStr f_GetDesc() const { return m_Left.f_GetDescRecursive() + " || " + m_Right.f_GetDescRecursive(); }
 		NStr::CStr f_GetDescRecursive() const { return "(" + m_Left.f_GetDescRecursive() + " || " + m_Right.f_GetDescRecursive() + ")"; }
-		auto f_GetVariable(NStr::CStr &o_ValueDesc, bool _bRecursive) const -> decltype (fsp_GetLeft().f_GetVariable(o_ValueDesc, _bRecursive) || fsp_GetRight().f_GetVariable(o_ValueDesc, _bRecursive))
+		bool f_OnlyEvalOnce() const { return m_Left.f_OnlyEvalOnce() || m_Right.f_OnlyEvalOnce(); }
+		auto f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const -> decltype (fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) || fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive))
 		{
+			if (!o_pValueDesc)
+				return m_Left.f_GetVariable(nullptr, true) || m_Right.f_GetVariable(nullptr, true);
+
 			NStr::CStr LeftDesc;
 			NStr::CStr RightDesc = "NoEval";
-			auto Return = m_Left.f_GetVariable(LeftDesc, true) || m_Right.f_GetVariable(RightDesc, true);
+			auto Return = m_Left.f_GetVariable(&LeftDesc, true) || m_Right.f_GetVariable(&RightDesc, true);
 
 			NStr::CStr ThisDesc;
 			if (!NPrivate::fg_IsVariableBoolean(Return))
@@ -483,21 +499,21 @@ namespace NMib::NTest::NExpression
 			if (ThisDesc.f_IsEmpty())
 			{
 				if (_bRecursive)
-					o_ValueDesc = "(";
-				o_ValueDesc += LeftDesc;
-				o_ValueDesc += " || ";
-				o_ValueDesc += RightDesc;
+					*o_pValueDesc = "(";
+				*o_pValueDesc += LeftDesc;
+				*o_pValueDesc += " || ";
+				*o_pValueDesc += RightDesc;
 				if (_bRecursive)
-					o_ValueDesc += ")";
+					*o_pValueDesc += ")";
 			}
 			else
 			{
-				o_ValueDesc = ThisDesc;
-				o_ValueDesc += " [";
-				o_ValueDesc += LeftDesc;
-				o_ValueDesc += " || ";
-				o_ValueDesc += RightDesc;
-				o_ValueDesc += "]";
+				*o_pValueDesc = ThisDesc;
+				*o_pValueDesc += " [";
+				*o_pValueDesc += LeftDesc;
+				*o_pValueDesc += " || ";
+				*o_pValueDesc += RightDesc;
+				*o_pValueDesc += "]";
 			}
 
 			return Return;
@@ -545,18 +561,20 @@ namespace NMib::NTest::NExpression
 		const ch8 *m_pDescription;
 	public:
 
-		bool f_Eval(NStr::CStr &o_ValueDesc) const
+		bool f_Eval(NStr::CStr *o_pValueDesc) const
 		{
+			DMibFastCheck(o_pValueDesc); // Should only be called once
+
 			typedef decltype (m_Lambda()) CReturnType;
 			if constexpr (NTraits::TCIsVoid<CReturnType>::mc_Value)
 			{
-				o_ValueDesc = "void";
+				*o_pValueDesc = "void";
 				return false;
 			}
 			else
 			{
 				auto Value = m_Lambda();
-				o_ValueDesc = NStr::CStr::fs_ToStr(Value);
+				*o_pValueDesc = NStr::CStr::fs_ToStr(Value);
 				return NPrivate::fg_ConvertToBool(Value);
 			}
 		}
@@ -571,24 +589,31 @@ namespace NMib::NTest::NExpression
 			return m_pDescription;
 		}
 
+		bool f_OnlyEvalOnce() const
+		{
+			return true;
+		}
+
 		NStr::CStr f_GetValueDescRecursive() const
 		{
 			typedef decltype (m_Lambda()) CReturnType;
 			return fs_ValueDesc<CReturnType>(m_Lambda);
 		}
 
-		t_CLambdaReturn f_GetVariable(NStr::CStr &o_ValueDesc, bool _bRecursive) const
+		t_CLambdaReturn f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
 		{
+			DMibFastCheck(o_pValueDesc);
+
 			typedef decltype (m_Lambda()) CReturnType;
 			if constexpr (NTraits::TCIsVoid<CReturnType>::mc_Value)
 			{
-				o_ValueDesc = "void";
+				*o_pValueDesc = "void";
 				return false;
 			}
 			else
 			{
 				auto Return = m_Lambda();
-				o_ValueDesc = NStr::CStr::fs_ToStr(Return);
+				*o_pValueDesc = NStr::CStr::fs_ToStr(Return);
 				return Return;
 			}
 		}
@@ -608,7 +633,7 @@ namespace NMib::NTest::NExpression
 		const ch8 *m_pDescription;
 	public:
 
-		bool f_Eval(NStr::CStr &o_ValueDesc) const
+		bool f_Eval(NStr::CStr *o_pValueDesc) const
 		{
 			return false;
 		}
@@ -623,9 +648,15 @@ namespace NMib::NTest::NExpression
 			return m_pDescription;
 		}
 
-		t_CType f_GetVariable(NStr::CStr &o_ValueDesc, bool _bRecursive) const
+		bool f_OnlyEvalOnce() const
 		{
-			NTest::NPrivate::fg_RegisterDynamicValue(&o_ValueDesc);
+			return true;
+		}
+
+		t_CType f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
+		{
+			DMibFastCheck(o_pValueDesc);
+			NTest::NPrivate::fg_RegisterDynamicValue(o_pValueDesc);
 			return m_Lambda;
 		}
 
@@ -654,9 +685,15 @@ namespace NMib::NTest::NExpression
 			return m_pDescription;
 		}
 
-		t_CType const &f_GetVariable(NStr::CStr &o_ValueDesc, bool _bRecursive) const
+		bool f_OnlyEvalOnce() const
 		{
-			o_ValueDesc = NStr::CStr::fs_ToStr(m_Variable);
+			return false;
+		}
+
+		t_CType const &f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
+		{
+			if (o_pValueDesc)
+				*o_pValueDesc = NStr::CStr::fs_ToStr(m_Variable);
 			return m_Variable;
 		}
 
@@ -683,10 +720,11 @@ namespace NMib::NTest::NExpression
 			virtual ~CExpressionInternal()
 			{
 			}
-			virtual bool f_Eval(NStr::CStr &o_ValueDesc) const = 0;
+			virtual bool f_Eval(NStr::CStr *o_pValueDesc) const = 0;
 			virtual NStr::CStr f_GetDesc() const = 0;
 			virtual NStr::CStr f_GetDescRecursive() const = 0;
 			virtual NStr::CStr f_GetValueDescRecursive() const = 0;
+			virtual bool f_OnlyEvalOnce() const = 0;
 		};
 
 		template <typename t_CImpl>
@@ -698,23 +736,23 @@ namespace NMib::NTest::NExpression
 				: m_Impl(_Impl)
 			{
 			}
-			virtual bool f_Eval(NStr::CStr &o_ValueDesc) const
+			bool f_Eval(NStr::CStr *o_pValueDesc) const override
 			{
-				return m_Impl.f_Eval(o_ValueDesc);
+				return m_Impl.f_Eval(o_pValueDesc);
 			}
-			virtual NStr::CStr f_GetDesc() const
+			bool f_OnlyEvalOnce() const override
+			{
+				return m_Impl.f_OnlyEvalOnce();
+			}
+			NStr::CStr f_GetDesc() const override
 			{
 				return m_Impl.f_GetDesc();
 			}
-			virtual NStr::CStr f_GetDescRecursive() const
+			NStr::CStr f_GetDescRecursive() const override
 			{
 				return m_Impl.f_GetDescRecursive();
 			}
-			virtual NStr::CStr f_GetValueDesc() const
-			{
-				return m_Impl.f_GetValueDesc();
-			}
-			virtual NStr::CStr f_GetValueDescRecursive() const
+			NStr::CStr f_GetValueDescRecursive() const override
 			{
 				return m_Impl.f_GetValueDescRecursive();
 			}
@@ -755,9 +793,14 @@ namespace NMib::NTest::NExpression
 			return m_pExpression->f_GetValueDescRecursive();
 		}
 
-		bool f_Eval(NStr::CStr &o_ValueDesc) const
+		bool f_Eval(NStr::CStr *o_pValueDesc) const
 		{
-			return m_pExpression->f_Eval(o_ValueDesc);
+			return m_pExpression->f_Eval(o_pValueDesc);
+		}
+
+		bool f_OnlyEvalOnce() const
+		{
+			return m_pExpression->f_OnlyEvalOnce();
 		}
 	};
 
