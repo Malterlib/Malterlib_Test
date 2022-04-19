@@ -64,6 +64,12 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Default"_= false
 							, "Description"_= "Loop tests until aborted.\n"
 						}
+						, "LaunchPerSuite?"_=
+						{
+							"Names"_= {"--launch-per-suite"}
+							, "Default"_= false
+							, "Description"_= "Launch the executable per suite.\n"
+						}
 #if DMalterlibCodeCoverage
  						, "Coverage?"_=
 						{
@@ -107,7 +113,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 				}
 				, [this](NEncoding::CEJSON const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
 				{
-					return fp_RunTests(_Parameters);
+					return fp_RunTests(_Parameters, _CommandLineClient.f_AnsiEncoding());
 				}
 			)
 		;
@@ -135,6 +141,7 @@ private:
 			, m_bParallel(_Parameters["Parallel"].f_Boolean())
 			, m_bLoopTests(_Parameters["Loop"].f_Boolean())
 			, m_bQuiet(_Parameters["Quiet"].f_Boolean())
+			, m_bLaunchPerSuite(_Parameters["LaunchPerSuite"].f_Boolean())
 #if DMalterlibCodeCoverage
 			, m_bCoverage(_Parameters["Coverage"].f_Boolean())
 			, m_bCoverageOnly(_Parameters["CoverageOnly"].f_Boolean())
@@ -155,6 +162,7 @@ private:
 		bool m_bParallel = true;
 		bool m_bLoopTests = false;
 		bool m_bQuiet = true;
+		bool m_bLaunchPerSuite = false;
 	};
 
 #if DMalterlibCodeCoverage
@@ -332,7 +340,7 @@ private:
 	}
 #endif
 
-	uint32 fp_ExecuteTests(CSettings const &_Settings)
+	uint32 fp_ExecuteTests(CSettings const &_Settings, CAnsiEncoding const &_AnsiEncoding)
 	{
 #if DMalterlibCodeCoverage
 
@@ -361,6 +369,8 @@ private:
 #endif
 
 		uint32 CombinedExitCode = 0;
+		mint nFailed = 0;
+		mint nTotalLaunches = 0;
 
 		while (true)
 		{
@@ -369,7 +379,8 @@ private:
 			TCLinkedList<CProcessLaunchParams> NotLaunched;
 			mint nRunning = 0;
 			mint nDone = 0;
-			mint nTotalLaunches = 0;
+			nFailed = 0;
+			nTotalLaunches = 0;
 			mint nMaxRunning = _Settings.m_bParallel ? NSys::fg_Thread_GetVirtualCores() : 1;
 
 			{
@@ -409,16 +420,38 @@ private:
 					}
 				;
 
+				struct CTestSuite
+				{
+					CStr m_Executable;
+					CStr m_Suite;
+				};
+
+				TCVector<CTestSuite> TestSuites;
+
 				for (mint i = 0; i < g_nAllTests; ++i)
 				{
-					CStr Test = g_AllTests[i];
+					CStr Executable = g_AllTests[i];
+
+					if (_Settings.m_bLaunchPerSuite)
+					{
+						auto Suites = CProcessLaunch::fs_LaunchTool(Executable, {"-l"});
+						for (auto &Suite : Suites.f_SplitLine<true>())
+							TestSuites.f_Insert({Executable, Suite});
+					}
+					else
+						TestSuites.f_Insert({Executable, ""});
+				}
+
+				for (auto &Suite : TestSuites)
+				{
+					CStr Executable = Suite.m_Executable;
 
 					NStorage::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
-					CStr LaunchPath = NFile::CFile::fs_GetProgramDirectory() / Test;
+					CStr LaunchPath = NFile::CFile::fs_GetProgramDirectory() / Executable;
 
 					TCSharedPointer<CStr> pOutput = fg_Construct();
 
-					auto fOutputThisTest = [pOutput, Test, MaxTestLen]
+					auto fOutputThisTest = [pOutput, MaxTestLen]
 						{
 							for (auto &Line : pOutput->f_Trim().f_SplitLine())
 								DMibConOut2(" {sz*,a-}  {}\n", "", MaxTestLen, Line);
@@ -426,19 +459,29 @@ private:
 						}
 					;
 
+					auto TestParams = _Settings.m_TestParams;
+
+					if (_Settings.m_bLaunchPerSuite)
+						TestParams.f_Insert(Suite.m_Suite);
+
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
 							LaunchPath
-							, _Settings.m_TestParams
+							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
-							, [&, pExited, Test, pClock, pOutput, fOutputThisTest](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
+							, [&, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 							{
 								if (*pExited)
 									return;
 								if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
 								{
 									if (!_Settings.m_bQuiet)
-										DMibConOut2(" {sz*,a-}  Launched{\n}", Test, MaxTestLen);
+									{
+										if (_Settings.m_bLaunchPerSuite)
+											DMibConOut2(" {sz*,a-}  Launched: {}{\n}", Executable, MaxTestLen, Suite.m_Suite);
+										else
+											DMibConOut2(" {sz*,a-}  Launched{\n}", Executable, MaxTestLen);
+									}
 									pClock->f_Start();
 								}
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
@@ -450,12 +493,24 @@ private:
 									CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
 									if (ExitCode != 0)
 									{
-										DMibConOut2(" {sz*,a-}  Exited uncleanly with {}{\n}", Test, MaxTestLen, ExitCode);
+										++nFailed;
+										CStr Color = _AnsiEncoding.f_StatusError();
+										CStr Default = _AnsiEncoding.f_Default();
+										if (_Settings.m_bLaunchPerSuite)
+											DMibConOut2(" {sz*,a-}  {}Exited uncleanly with{} {} ({}){\n}", Executable, MaxTestLen, Color, Default, ExitCode, Suite.m_Suite);
+										else
+											DMibConOut2(" {sz*,a-}  {}Exited uncleanly with{} {}{\n}", Executable, MaxTestLen, Color, Default, ExitCode);
 										fOutputThisTest();
 									}
 									else if (!_Settings.m_bQuiet)
 									{
-										DMibConOut2(" {sz*,a-}  {fe1} s   {}/{} done{\n}", Test, MaxTestLen, pClock->f_GetTime(), (nDone), nTotalLaunches);
+										CStr Color = _AnsiEncoding.f_StatusNormal();
+										CStr Default = _AnsiEncoding.f_Default();
+
+										if (_Settings.m_bLaunchPerSuite)
+											DMibConOut2(" {sz*,a-}  {}{fe1} s{}   {}/{} done ({}){\n}", Executable, MaxTestLen, Color, pClock->f_GetTime(), Default, (nDone), nTotalLaunches, Suite.m_Suite);
+										else
+											DMibConOut2(" {sz*,a-}  {}{fe1} s{}   {}/{} done{\n}", Executable, MaxTestLen, Color, pClock->f_GetTime(), Default, (nDone), nTotalLaunches);
 										fOutputThisTest();
 									}
 
@@ -467,8 +522,14 @@ private:
 								{
 									--nRunning;
 									++nDone;
+									++nFailed;
 									CombinedExitCode = fg_Max(CombinedExitCode, uint32(254));
-									DMibConOut2(" {sz*,a-}  Failed to launch: {}{\n}", Test, MaxTestLen, _StateChange.f_Get<EProcessLaunchState_LaunchFailed>());
+									CStr Color = _AnsiEncoding.f_StatusError();
+									CStr Default = _AnsiEncoding.f_Default();
+									if (_Settings.m_bLaunchPerSuite)
+										DMibConOut2(" {sz*,a-}  {}Failed to launch{} ({}): {}{\n}", Executable, MaxTestLen, Color, Default, Suite.m_Suite, _StateChange.f_Get<EProcessLaunchState_LaunchFailed>());
+									else
+										DMibConOut2(" {sz*,a-}  {}Failed to launch{}: {}{\n}", Executable, MaxTestLen, Color, Default, _StateChange.f_Get<EProcessLaunchState_LaunchFailed>());
 								}
 								fAddLaunches();
 							}
@@ -486,13 +547,13 @@ private:
 
 					OutputDeferredOutput.f_Insert() = fOutputThisTest;
 
-					Params.m_fOnOutput = [&, pOutput, pClock, Test](EProcessLaunchOutputType _OutputType, CStr const &_Output)
+					Params.m_fOnOutput = [&, pOutput, pClock](EProcessLaunchOutputType _OutputType, CStr const &_Output)
 						{
 							*pOutput += _Output;
 						}
 					;
 
-					fModifyEnvironment(Params, Test);
+					fModifyEnvironment(Params, Executable);
 
 					NotLaunched.f_Insert(fg_Move(Params));
 				}
@@ -552,10 +613,20 @@ private:
 				break;
 		}
 
+		if (nFailed)
+		{
+			CStr Color = _AnsiEncoding.f_StatusError();
+			CStr Default = _AnsiEncoding.f_Default();
+			if (_Settings.m_bLaunchPerSuite)
+				DMibConErrOut2("{}{} ouf of {} suites failed{}\n", Color, nFailed, nTotalLaunches, Default);
+			else
+				DMibConErrOut2("{}{} ouf of {} executables failed{}\n", Color, nFailed, nTotalLaunches, Default);
+		}
+
 		return CombinedExitCode;
 	}
 
-	aint fp_RunTests(NEncoding::CEJSON const &_Parameters)
+	aint fp_RunTests(NEncoding::CEJSON const &_Parameters, CAnsiEncoding const &_AnsiEncoding)
 	{
 		CSettings Settings(_Parameters);
 
@@ -565,12 +636,12 @@ private:
 		{
 			if (Settings.m_bCoverage && CFile::fs_FileExists(Settings.m_CoverageDirectory))
 				CFile::fs_DeleteDirectoryRecursive(Settings.m_CoverageDirectory);
-			Result = fp_ExecuteTests(Settings);
+			Result = fp_ExecuteTests(Settings, _AnsiEncoding);
 		}
 		if (Settings.m_bCoverage)
 			fp_DisplayCoverage(Settings);
 #else
-		Result = fp_ExecuteTests(Settings);
+		Result = fp_ExecuteTests(Settings, _AnsiEncoding);
 #endif
 		return Result;
 	}
