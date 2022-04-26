@@ -67,6 +67,7 @@ namespace NMib::NTest
 		ETestReportFlag_CompareToBaseline = DMibBit(12),
 		ETestReportFlag_CrashOnException = DMibBit(13),
 		ETestReportFlag_ReportValues = DMibBit(14),
+		ETestReportFlag_EnableLogs = DMibBit(15),
 
 		ETestReportFlag_Default = ETestReportFlag_Warning | ETestReportFlag_Fail | ETestReportFlag_FailAndStop,
 		ETestReportFlag_All = ETestReportFlag_Default | ETestReportFlag_Success | ETestReportFlag_ExpectFail | ETestReportFlag_ExpectFailAndStop | ETestReportFlag_Ignored

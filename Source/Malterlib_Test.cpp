@@ -719,13 +719,61 @@ namespace NMib::NTest
 		uint32 fg_RunTests(CTestResults *_pResults, CRunTestOptions const &_Options)
 		{
 			NFunction::TCFunction<void(NContract::CContractViolation const&)> OldLogger = NContract::fg_SetContractLoggerThrowExceptions();
+			auto Cleanup = g_OnScopeExit / [&]
+				{
+					NContract::fg_SetContractLogger(OldLogger);
+				}
+			;
 
 			if (_Options.m_ReportFlags & ETestReportFlag_ReportCategories)
 				fg_StepIntoSuites(true);
+
 			bool bOldEnableExceptionTrace = NException::fg_SetEnableExceptionTrace(false);
+			auto Cleanup2 = g_OnScopeExit / [&]
+				{
+					NException::fg_SetEnableExceptionTrace(bOldEnableExceptionTrace);
+				}
+			;
+
 #			if DMibEnableSafeCheck > 0
 				bool bOldAssethThrow = NContract::fg_MibSafeCheckSetThrowsException(true);
+				auto Cleanup3 = g_OnScopeExit / [&]
+					{
+						NContract::fg_MibSafeCheckSetThrowsException(bOldAssethThrow);
+					}
+				;
 #			endif
+
+
+			NConcurrency::TCActor<NConcurrency::CActor> LogActor;
+			auto CleanupLogs = g_OnScopeExit / [&]
+				{
+					fg_GetSys()->f_GetLogger().f_SetDispatcher(nullptr);
+					LogActor->f_BlockDestroy();
+				}
+			;
+
+			if ((_Options.m_ReportFlags & ETestReportFlag_EnableLogs) && !(_Options.m_ReportFlags & ETestReportFlag_ProcessRecursive))
+			{
+				LogActor = NMib::NConcurrency::fg_ConstructActor<NMib::NConcurrency::CSeparateThreadActor>(fg_Construct("Log Dispatcher"));
+				fg_GetSys()->f_GetLogger().f_SetDispatcher
+					(
+						[LogActor](NFunction::TCFunctionMovable<void ()> &&_fToDispatch)
+						{
+							fg_Dispatch
+								(
+									LogActor
+									, fg_Move(_fToDispatch)
+								)
+								> NConcurrency::fg_DiscardResult()
+							;
+						}
+					)
+				;
+				fg_GetSys()->f_AddStdErrLogger();
+			}
+			else
+				CleanupLogs.f_Clear();
 
 			CTestManager *pManager = g_Tests;
 
@@ -854,11 +902,6 @@ namespace NMib::NTest
 				, pManager->m_nIgnored.f_Load()
 			);
 
-#			if DMibEnableSafeCheck > 0
-				NContract::fg_MibSafeCheckSetThrowsException(bOldAssethThrow);
-#			endif
-			NContract::fg_SetContractLogger(OldLogger);
-			NException::fg_SetEnableExceptionTrace(bOldEnableExceptionTrace);
 			if (pManager->m_nFailed.f_Load() != 0 || pManager->m_nSuccessUnexpected.f_Load() != 0)
 				return 1;
 			return pManager->m_ReturnValue;
@@ -1042,6 +1085,9 @@ namespace NMib::NTest
 
 				if (auto pValue = _Parameters.f_GetMember("CrashOnException"); pValue && pValue->f_Boolean())
 					RunOptions.m_ReportFlags |= ETestReportFlag_CrashOnException;
+
+				if (auto pValue = _Parameters.f_GetMember("EnableLogs"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_EnableLogs;
 
 				auto fGetGroups = [&](NEncoding::CEJSON const &_Groups)
 					{
@@ -1239,6 +1285,13 @@ namespace NMib::NTest
 				, "Description"_= "Crash instead of capturing exceptions.\n"
 			}
 		;
+		auto Option_EnableLogs = "EnableLogs?"_=
+			{
+				"Names"_= {"--logs"}
+				, "Default"_= false
+				, "Description"_= "Enable application logs to stderr.\n"
+			}
+		;
 
 		auto TestCommand = Section.f_RegisterDirectCommand
 			(
@@ -1261,6 +1314,7 @@ namespace NMib::NTest
 						, Option_CompareToBaseline
 						, Option_CrashOnException
 						, Option_ExtraData
+						, Option_EnableLogs
 					}
 					, "Parameters"_=
 					{
@@ -1288,6 +1342,7 @@ namespace NMib::NTest
 						, Option_ExcludeGroups
 						, Option_Logger
 						, Option_ExtraData
+						, Option_EnableLogs
 					}
 					, "Parameters"_=
 					{

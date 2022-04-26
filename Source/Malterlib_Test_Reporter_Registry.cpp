@@ -141,6 +141,8 @@ namespace NMib::NTest
 			fg_AddStrSep(Ret, "CompareToBaseline", ',');
 		if (_Flags & ETestReportFlag_CrashOnException)
 			fg_AddStrSep(Ret, "CrashOnException", ',');
+		if (_Flags & ETestReportFlag_EnableLogs)
+			fg_AddStrSep(Ret, "EnableLogs", ',');
 
 		return Ret;
 	}
@@ -179,6 +181,8 @@ namespace NMib::NTest
 				Ret |= ETestReportFlag_DetailedMemory;
 			else if (Flag == "BreakOnFail")
 				Ret |= ETestReportFlag_BreakOnFail;
+			else if (Flag == "EnableLogs")
+				Ret |= ETestReportFlag_EnableLogs;
 		}
 		return Ret;
 	}
