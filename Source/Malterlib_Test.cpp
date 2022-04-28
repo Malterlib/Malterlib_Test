@@ -294,7 +294,7 @@ namespace NMib::NTest
 						NStorage::TCSharedPointer<NConcurrency::CDefaultRunLoop> pRunLoop = fg_Construct();
 						auto CleanupRunLoop = g_OnScopeExit / [&]
 							{
-								while (pRunLoop->f_RefCountGet() > 0)
+								while (pRunLoop->m_RefCount.f_Get() > 0)
 									pRunLoop->f_WaitOnceTimeout(0.1);
 							}
 						;
