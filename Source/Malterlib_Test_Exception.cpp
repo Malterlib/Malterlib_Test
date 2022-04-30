@@ -99,6 +99,8 @@ namespace NMib::NTest::NPrivate
 			if (NStr::fg_StrCmp(pExceptionBase->f_GetClass(), "CExceptionCoroutineWrapper") == 0)
 				return;
 		}
+		else
+			return; // Not our exception
 
 		if (m_pStackTraceInfo)
 			NSys::fg_Debug_ReleaseStackTraceInfo(m_pStackTraceInfo);
