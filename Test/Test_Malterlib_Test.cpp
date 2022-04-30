@@ -87,12 +87,12 @@ namespace
 				DMibTest(DMibExpr((NMib::NTest::TCThrowsException<int32, fp32, fp64>())) == DMibLExpr(Object.f_Test1()));
 				DMibTest(DMibExpr((NMib::NTest::TCThrowsException<int32, fp32, fp64>())) == DMibLExpr(Object.f_Test2(2)));
 
-				DMibTest(DMibExpr(fg_ThrowsException(int32(2))) == DMibLExpr(Object.f_Test0()));
-				DMibTest(DMibExpr(fg_ThrowsException(fp32(3.0))) == DMibLExpr(Object.f_Test1()));
-				DMibTest(DMibExpr(fg_ThrowsException(fp64(4.0))) == DMibLExpr(Object.f_Test2(2)));
-				DMibTest(DMibExpr(fg_ThrowsException(int32(2), fp32(3.0), fp64(4.0))) == DMibLExpr(Object.f_Test0()));
-				DMibTest(DMibExpr(fg_ThrowsException(int32(2), fp32(3.0), fp64(4.0))) == DMibLExpr(Object.f_Test1()));
-				DMibTest(DMibExpr(fg_ThrowsException(int32(2), fp32(3.0), fp64(4.0))) == DMibLExpr(Object.f_Test2(2)));
+				DMibExpectException(Object.f_Test0(), int32(2));
+				DMibExpectException(Object.f_Test1(), fp32(3.0));
+				DMibExpectException(Object.f_Test2(2), fp64(4.0));
+				DMibExpectException(Object.f_Test0(), int32(2), fp32(3.0), fp64(4.0));
+				DMibExpectException(Object.f_Test1(), int32(2), fp32(3.0), fp64(4.0));
+				DMibExpectException(Object.f_Test2(2), int32(2), fp32(3.0), fp64(4.0));
 			};
 			DMibTestSuite("Contracts")
 			{

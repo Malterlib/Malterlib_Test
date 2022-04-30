@@ -470,21 +470,21 @@ namespace NMib::NTest
 		#define DMibTestMark
 #	endif
 
-#	define DMibAssert(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
-#	define DMibAssertException(d_Expression, d_Exception) DMibTest(DMibExpr(NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
-#	define DMibAssertExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
-#	define DMibAssertViolatesRequire(d_Expression, ...) DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire(__VA_ARGS__)) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
-#	define DMibAssertViolatesSafeCheck(d_Expression, ...) DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck(__VA_ARGS__)) == DMibLExpr(d_Expression))(::NMib::NTest::ETest_FailAndStop)
-#	define DMibAssertTrue(d_Right) DMibTest(DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
-#	define DMibAssertFalse(d_Right) DMibTest(!DMibExpr(d_Right))(::NMib::NTest::ETest_FailAndStop)
-
 #	define DMibExpect(d_Left, d_Operator, d_Right) DMibTest(DMibExpr(d_Left) d_Operator DMibExpr(d_Right))
-#	define DMibExpectException(d_Expression, d_Exception) DMibTest(DMibExpr(::NMib::NTest::fg_ThrowsException(d_Exception)) == DMibLExpr(d_Expression))
-#	define DMibExpectExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibExpr(::NMib::NTest::TCThrowsException<d_ExceptionType>()) == DMibLExpr(d_Expression))
-#	define DMibExpectViolatesRequire(d_Expression, ...) DMibTest(DMibExpr(::NMib::NTest::fg_ViolatesRequire(__VA_ARGS__)) == DMibLExpr(d_Expression))
-#	define DMibExpectViolatesSafeCheck(d_Expression, ...) DMibTest(DMibExpr(::NMib::NTest::fg_ViolatesSafeCheck(__VA_ARGS__)) == DMibLExpr(d_Expression))
+#	define DMibExpectException(d_Expression, ...) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::fg_ThrowsException(__VA_ARGS__)))
+#	define DMibExpectExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::TCThrowsException<d_ExceptionType>()))
+#	define DMibExpectViolatesRequire(d_Expression, ...) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::fg_ViolatesRequire(__VA_ARGS__)))
+#	define DMibExpectViolatesSafeCheck(d_Expression, ...) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::fg_ViolatesSafeCheck(__VA_ARGS__)))
 #	define DMibExpectTrue(d_Right) DMibTest(DMibExpr(d_Right))
 #	define DMibExpectFalse(d_Right) DMibTest(!DMibExpr(d_Right))
+
+#	define DMibAssert(d_Left, d_Operator, d_Right) DMibExpect(d_Left, d_Operator, d_Right)(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertException(d_Expression, ...) DMibExpectException(d_Expression, __VA_ARGS__)(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertExceptionType(d_Expression, d_ExceptionType) DMibExpectExceptionType(d_Expression, d_ExceptionType)(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertViolatesRequire(d_Expression, ...) DMibExpectViolatesRequire(d_Expression, __VA_ARGS__)(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertViolatesSafeCheck(d_Expression, ...) DMibExpectViolatesSafeCheck(d_Expression, __VA_ARGS__)(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertTrue(d_Right) DMibExpectTrue(d_Right)(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertFalse(d_Right) DMibExpectFalse(d_Right)(::NMib::NTest::ETest_FailAndStop)
 
 #	ifndef DMibPNoShortCuts
 #		define DTest DMibTest
