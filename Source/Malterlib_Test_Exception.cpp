@@ -168,6 +168,9 @@ namespace NMib::NTest::NPrivate
 			}
 		}
 
+		if (ExtraReportData.f_Trim())
+			ExtraReportData = NStr::CStr("{\n}{\n}{}"_f << ExtraReportData);
+
 		try
 		{
 			try
@@ -176,7 +179,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NContract::CContractException_Require const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
+				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -194,7 +197,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NContract::CContractException_Check const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
+				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -212,7 +215,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NContract::CContractException_Ensure const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
+				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -230,7 +233,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NContract::CContractException_Invariant const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
+				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -248,7 +251,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NContract::CContractException_NeverGetHere const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
+				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -266,7 +269,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NContract::CContractException const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
+				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -284,7 +287,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NException::CExceptionSafeCheck const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " {}{\n}{\n}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
+				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -302,7 +305,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (NException::CException const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " Uncaught {} exception:{\n}{}{\n}{\n}{}"_f
+				CStr ReportData = DMibPFileLineFormat " Uncaught {} exception:{\n}{}{}"_f
 					<< _Exception.f_GetFile()
 					<< _Exception.f_GetLine()
 					<< _Exception.f_GetClass()
@@ -326,10 +329,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (std::exception const& _Exception)
 			{
-				CStr ReportData = " Uncaught {} exception{\n}{\n}{}"_f
-					<< NStr::CStr(_Exception.what())
-					<< ExtraReportData
-				;
+				CStr ReportData = " Uncaught {} exception{}"_f << NStr::CStr(_Exception.what()) << NStr::CStr(ExtraReportData);
 				fg_ReportTestResult
 					(
 						ETestResult_Fail

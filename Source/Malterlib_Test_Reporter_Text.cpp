@@ -171,14 +171,18 @@ namespace NMib::NTest
 		}
 		else
 		{
+			CStr Values;
+			if (_Values)
+				Values = "{\n}{}{\n}{\n}"_f << fp_ColorValues("{}"_f << _Values.f_Indent("    ", true));
+
 			fp_ReportText
 				(
-					"{} {} {}{\n}{\n}{}{\n}{\n}{}{\n}{\n}"_f
+					"{} {} {}{\n}{\n}{}{\n}{}"_f
 					<< fp_ColorFileLocation("{sl100,a-}"_f << _FileLocation)
 					<< fp_ColorSeverity("{sl24,a-}"_f << _Result, _Severity)
 					<< fp_ColorPath(_TestPath)
 					<< fp_ColorExpression("{}"_f << _Expression.f_Indent("    ", true))
-					<< fp_ColorValues("{}"_f << _Values.f_Indent("    ", true))
+					<< Values
 					, _Severity
 				)
 			;
@@ -282,13 +286,16 @@ namespace NMib::NTest
 			if (!_ExtraMultiLineReportData.f_IsEmpty())
 			{
 				fp_ReportText("	" DMibNewLine, ETestSeverity_None);
-				NStr::CStr Temp = _ExtraMultiLineReportData;
-				while (!Temp.f_IsEmpty())
+
+				bool bLastEmpty = false;
+				for (auto &Line : _ExtraMultiLineReportData.f_SplitLine())
 				{
-					NStr::CStr Line = NStr::fg_GetStrLineSep(Temp);
+					bLastEmpty = Line.f_IsEmpty();
 					fp_ReportText(NStr::CStr::CFormat("	{}" DMibNewLine) << Line, ETestSeverity_None);
 				}
-				fp_ReportText("	" DMibNewLine, ETestSeverity_None);
+
+				if (!bLastEmpty)
+					fp_ReportText("	" DMibNewLine, ETestSeverity_None);
 			}
 		};
 		if (_Result == ETestResult_Fail)
