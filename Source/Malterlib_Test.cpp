@@ -782,6 +782,7 @@ namespace NMib::NTest
 #			endif
 
 
+#if DMibSysLogSeverities
 			NConcurrency::TCActor<NConcurrency::CActor> LogActor;
 			auto CleanupLogs = g_OnScopeExit / [&]
 				{
@@ -811,6 +812,7 @@ namespace NMib::NTest
 			}
 			else
 				CleanupLogs.f_Clear();
+#endif
 
 			CTestManager *pManager = g_Tests;
 
