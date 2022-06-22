@@ -393,6 +393,8 @@ namespace NMib::NTest
 	NStr::CStr fg_TestGetExtraData();
 	NContainer::TCMap<NStr::CStr> fg_TestGetCurrentGroups();
 
+	void fg_TestAddCleanupPath(NStr::CStr const &_Directory);
+
 	bool fg_GroupActive(NStr::CStr const &_Group);
 
 	void fg_TestSetReturnValue(uint32 _RetValue); // Set the return value for the application

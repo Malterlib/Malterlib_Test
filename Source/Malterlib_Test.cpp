@@ -48,6 +48,10 @@ namespace NMib::NTest
 
 			NThread::CMutual m_ThreadLocalLock;
 
+			NThread::CMutual m_CleanupPathsLock;
+			NContainer::TCSet<NStr::CStr> m_CleanupPaths;
+			bool m_bDoFileCleanup = false;
+
 			static CTestManager &fs_GetManager();
 
 			class CUniqueTest
@@ -151,6 +155,34 @@ namespace NMib::NTest
 
 			NThread::TCThreadLocal<CThreadLocal, NMemory::CAllocator_Heap, NThread::EThreadLocalFlag_Inherit> m_ThreadLocal;
 
+			CTestManager()
+			{
+				if (fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true" || fg_GetSys()->f_GetEnvironmentVariable("MalterlibCleanupTestFiles", "") == "true")
+					m_bDoFileCleanup = true;
+			}
+
+			~CTestManager()
+			{
+				if (!m_bDoFileCleanup)
+					return;
+
+				for (auto &Path : m_CleanupPaths)
+				{
+					try
+					{
+						if (NFile::CFile::fs_FileExists(Path))
+							NFile::CFile::fs_DeleteDirectoryRecursive(Path);
+
+						NStr::CStr ParentDir = NFile::CFile::fs_GetPath(Path);
+						if (NFile::CFile::fs_FindFiles(ParentDir / "*").f_IsEmpty())
+							NFile::CFile::fs_DeleteDirectory(ParentDir);
+					}
+					catch (NFile::CExceptionFile const &)
+					{
+					}
+				}
+			}
+
 			CTestResults *f_GetResults(CThreadLocal const &_ThreadLocal) const
 			{
 				if (_ThreadLocal.m_pResults)
@@ -169,6 +201,11 @@ namespace NMib::NTest
 				m_nIgnored.f_Exchange(0);
 			}
 
+			void f_AddCleanupPath(NStr::CStr const &_Directory)
+			{
+				DMibLock(m_CleanupPathsLock);
+				m_CleanupPaths[_Directory];
+			}
 		};
 
 		constinit static NStorage::TCAggregate<CTestManager, 256> g_Tests = {DAggregateInit};
@@ -1005,6 +1042,15 @@ namespace NMib::NTest
 #		else
 			return ETestReportFlag_None;
 #		endif
+	}
+
+	void fg_TestAddCleanupPath(NStr::CStr const &_Directory)
+	{
+#		if DMibConfig_Tests_Enable
+			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+			pTestManager->f_AddCleanupPath(_Directory);
+#		endif
+
 	}
 
 	NContainer::TCVector<NStr::CStr> fg_StrSplit(NStr::CStr const& _String, ch8 const* _pSplit)
