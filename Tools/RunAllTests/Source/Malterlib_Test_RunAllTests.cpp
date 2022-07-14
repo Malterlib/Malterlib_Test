@@ -34,6 +34,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 		pCommandLineSpec->f_AddTerminalOptions();
 
 		auto Section = pCommandLineSpec->f_AddSection("Test", "Run tests");
+		auto GroupsList = NCommandLine::COneOf{"Default", "Performance", "Torture", "Memory", "Unfinished", "Expensive", "Manual", "SuperUser"};
 		auto RunAllTestsCommand = Section.f_RegisterDirectCommand
 			(
 				{
@@ -81,6 +82,23 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							"Names"_= {"--launch-per-suite"}
 							, "Default"_= true
 							, "Description"_= "Launch the executable per suite.\n"
+						}
+						, "Groups?"_=
+						{
+							"Names"_= {"--groups", "-g"}
+							, "Default"_= {"Default"}
+							, "Type"_= {GroupsList}
+							, "Description"_= "Specify the groups to include in test.\n"
+							"@Indent=17\r"
+							"   Default:      Run tests without a group specified.\r"
+							"   Performance:  Run tests with Performance group specified.\r"
+							"   Torture:      Run tests with Torgutre group specified.\r"
+							"   Memory:       Run tests with Performance group specified.\r"
+							"   Unfinished:   Run tests with Unfinished group specified.\r"
+							"   Expensive:    Run tests with Expensive group specified.\r"
+							"   Manual:       Run tests with Manual group specified.\r"
+							"   SuperUser:    Run tests with SuperUser group specified.\r"
+							"\r"
 						}
 #if DMalterlibCodeCoverage
  						, "Coverage?"_=
@@ -150,6 +168,7 @@ private:
 	{
 		CSettings(NEncoding::CEJSON const &_Parameters)
 			: m_TestParams(_Parameters["TestParams"].f_StringArray())
+			, m_TestGroups(_Parameters["Groups"].f_StringArray())
 			, m_bParallel(_Parameters["Parallel"].f_Boolean())
 			, m_bLoopTests(_Parameters["Loop"].f_Boolean())
 			, m_bQuiet(_Parameters["Quiet"].f_Boolean())
@@ -168,6 +187,8 @@ private:
 		}
 
 		TCVector<CStr> m_TestParams;
+		TCVector<CStr> m_TestGroups;
+
 		int64 m_nLoops = 0;
 #if DMalterlibCodeCoverage
 		CStr m_CoverageExecutable;
@@ -512,7 +533,7 @@ private:
 						auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 							(
 								ProgramDirectory / ExecutableName
-								, {"-l"}
+								, {"-l", "-g", CStr::fs_Join(_Settings.m_TestGroups, ",")}
 								, ProgramDirectory
 								, [pTestState, ExecutableName](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 								{
@@ -571,7 +592,7 @@ private:
 						}
 
 						for (auto &Suite : Result.m_Output.f_SplitLine<true>())
-							TestSuites.f_Insert({ExecutableName, Suite});
+							TestSuites.f_Insert({ExecutableName, Suite.f_Split(" : ")[0]});
 					}
 
 					if (bFailed)
@@ -612,6 +633,9 @@ private:
 
 					if (_Settings.m_bLaunchPerSuite)
 						TestParams.f_Insert(Suite.m_Suite);
+
+					TestParams.f_Insert("-g");
+					TestParams.f_Insert(CStr::fs_Join(_Settings.m_TestGroups, ","));
 
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
