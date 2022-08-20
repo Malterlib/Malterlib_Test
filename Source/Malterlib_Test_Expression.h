@@ -87,7 +87,9 @@ namespace NMib::NTest::NExpression
 		{
 			return false;
 		}
-
+		
+		NStr::CStr fg_LineBreakDescLeft(NStr::CStr const &_Desc);
+		NStr::CStr fg_LineBreakDescRight(NStr::CStr const &_Desc);
 	}
 	template <typename t_CLeft, typename t_CRight, COperatorUnderlying _Operator>
 	class TCExpressionWithOperator;
@@ -358,16 +360,16 @@ namespace NMib::NTest::NExpression
 			if (_bRecursive)\
 			{\
 				if (ThisValue.f_IsEmpty())\
-					*o_pValueDesc = "(" + LeftDesc + _OperatorDesc + RightDesc + ")"; \
+					*o_pValueDesc = "(" + NPrivate::fg_LineBreakDescLeft(LeftDesc) + _OperatorDesc + NPrivate::fg_LineBreakDescRight(RightDesc) + ")"; \
 				else\
-					*o_pValueDesc = ThisValue + " [" + LeftDesc + _OperatorDesc + RightDesc + "]"; \
+					*o_pValueDesc = ThisValue + " [" + NPrivate::fg_LineBreakDescLeft(LeftDesc) + _OperatorDesc + NPrivate::fg_LineBreakDescRight(RightDesc) + "]"; \
 			}\
 			else\
 			{\
 				if (ThisValue.f_IsEmpty())\
-					*o_pValueDesc = LeftDesc + _OperatorDesc + RightDesc; \
+					*o_pValueDesc = NPrivate::fg_LineBreakDescLeft(LeftDesc) + _OperatorDesc + NPrivate::fg_LineBreakDescRight(RightDesc); \
 				else\
-					*o_pValueDesc = ThisValue + " [" + LeftDesc + _OperatorDesc + RightDesc + "]"; \
+					*o_pValueDesc = ThisValue + " [" + NPrivate::fg_LineBreakDescLeft(LeftDesc) + _OperatorDesc + NPrivate::fg_LineBreakDescRight(RightDesc) + "]"; \
 			}\
 			return Return;\
 		}\
@@ -449,9 +451,9 @@ namespace NMib::NTest::NExpression
 			{
 				if (_bRecursive)
 					*o_pValueDesc = "(";
-				*o_pValueDesc += LeftDesc;
+				*o_pValueDesc += NPrivate::fg_LineBreakDescLeft(LeftDesc);
 				*o_pValueDesc += " && ";
-				*o_pValueDesc += RightDesc;
+				*o_pValueDesc += NPrivate::fg_LineBreakDescRight(RightDesc);
 				if (_bRecursive)
 					*o_pValueDesc += ")";
 			}
@@ -459,9 +461,9 @@ namespace NMib::NTest::NExpression
 			{
 				*o_pValueDesc = ThisDesc;
 				*o_pValueDesc += " [";
-				*o_pValueDesc += LeftDesc;
+				*o_pValueDesc += NPrivate::fg_LineBreakDescLeft(LeftDesc);
 				*o_pValueDesc += " && ";
-				*o_pValueDesc += RightDesc;
+				*o_pValueDesc += NPrivate::fg_LineBreakDescRight(RightDesc);
 				*o_pValueDesc += "]";
 			}
 
@@ -500,9 +502,9 @@ namespace NMib::NTest::NExpression
 			{
 				if (_bRecursive)
 					*o_pValueDesc = "(";
-				*o_pValueDesc += LeftDesc;
+				*o_pValueDesc += NPrivate::fg_LineBreakDescLeft(LeftDesc);
 				*o_pValueDesc += " || ";
-				*o_pValueDesc += RightDesc;
+				*o_pValueDesc += NPrivate::fg_LineBreakDescRight(RightDesc);
 				if (_bRecursive)
 					*o_pValueDesc += ")";
 			}
@@ -510,9 +512,9 @@ namespace NMib::NTest::NExpression
 			{
 				*o_pValueDesc = ThisDesc;
 				*o_pValueDesc += " [";
-				*o_pValueDesc += LeftDesc;
+				*o_pValueDesc += NPrivate::fg_LineBreakDescLeft(LeftDesc);
 				*o_pValueDesc += " || ";
-				*o_pValueDesc += RightDesc;
+				*o_pValueDesc += NPrivate::fg_LineBreakDescRight(RightDesc);
 				*o_pValueDesc += "]";
 			}
 

@@ -235,7 +235,7 @@ namespace NMib::NTest
 						using namespace NStr;
 #if DMibConfig_Tests_Enable
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-							NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+							NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 						else
 							NPrivate::fg_SetDynamicValue({});
 #endif
@@ -246,7 +246,7 @@ namespace NMib::NTest
 				{
 					using namespace NStr;
 #if DMibConfig_Tests_Enable
-					NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+					NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 #endif
 					return false;
 				}
@@ -265,7 +265,7 @@ namespace NMib::NTest
 					using namespace NStr;
 #if DMibConfig_Tests_Enable
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-						NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+						NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 					else
 						NPrivate::fg_SetDynamicValue({});
 #endif
@@ -283,7 +283,7 @@ namespace NMib::NTest
 		void f_Format(tf_CString &o_String) const
 		{
 			if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-				o_String += typename tf_CString::CFormat("{} {}") << m_Exception.f_GetClass() << m_Exception.f_GetErrorCharPointer();
+				o_String += typename tf_CString::CFormat("{}\n{}") << m_Exception.f_GetClass() << m_Exception.f_GetErrorCharPointer();
 			else
 				o_String += typename tf_CString::CFormat("{}") << fg_GetTypeName<t_CException>();
 		}
@@ -326,7 +326,7 @@ namespace NMib::NTest
 						using namespace NStr;
 #if DMibConfig_Tests_Enable
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-							NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+							NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 						else
 							NPrivate::fg_SetDynamicValue({});
 #endif
@@ -337,7 +337,7 @@ namespace NMib::NTest
 				{
 					using namespace NStr;
 #if DMibConfig_Tests_Enable
-					NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+					NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 #endif
 					return false;
 				}
@@ -353,7 +353,7 @@ namespace NMib::NTest
 					using namespace NStr;
 #if DMibConfig_Tests_Enable
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-						NPrivate::fg_SetDynamicValue("{} {}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
+						NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 					else
 						NPrivate::fg_SetDynamicValue({});
 #endif
@@ -373,7 +373,7 @@ namespace NMib::NTest
 			TCThrowsExceptionExactImpl<false, tp_CExceptions...>::f_Format(o_String);
 
 			if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-				o_String += typename tf_CString::CFormat("\n{} {}") << m_Exception.f_GetClass() << m_Exception.f_GetErrorCharPointer();
+				o_String += typename tf_CString::CFormat("\n{}\n{}") << m_Exception.f_GetClass() << m_Exception.f_GetErrorCharPointer();
 			else
 				o_String += typename tf_CString::CFormat("{}") << fg_GetTypeName<t_CException>();
 		}
