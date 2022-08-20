@@ -459,19 +459,15 @@ namespace NMib::NTest
 
 			Results.m_Results.f_Sort
 				(
-					[](CTestPerformanceResult const& _Left, CTestPerformanceResult const& _Right) -> bool
+					[](CTestPerformanceResult const& _Left, CTestPerformanceResult const& _Right) -> COrdering_Partial
 					{
-						if (_Left.m_MeasureType == ETestMeasureType_Baseline && _Right.m_MeasureType != ETestMeasureType_Baseline)
-							return true;
-						if (_Left.m_MeasureType != ETestMeasureType_Baseline && _Right.m_MeasureType == ETestMeasureType_Baseline)
-							return false;
+						if (auto Result = (_Left.m_MeasureType == ETestMeasureType_Baseline) <=> (_Right.m_MeasureType == ETestMeasureType_Baseline); Result != 0)
+							return Result;
 
-						if (_Left.m_MeasureType == ETestMeasureType_Debug && _Right.m_MeasureType != ETestMeasureType_Debug)
-							return false;
-						if (_Left.m_MeasureType != ETestMeasureType_Debug && _Right.m_MeasureType == ETestMeasureType_Debug)
-							return true;
+						if (auto Result = (_Left.m_MeasureType == ETestMeasureType_Debug) <=> (_Right.m_MeasureType == ETestMeasureType_Debug); Result != 0)
+							return Result;
 
-						return _Left.m_Time.m_Min < _Right.m_Time.m_Min;
+						return _Left.m_Time.m_Min <=> _Right.m_Time.m_Min;
 					}
 				)
 			;
