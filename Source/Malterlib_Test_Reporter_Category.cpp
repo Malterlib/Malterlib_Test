@@ -30,15 +30,15 @@ namespace NMib::NTest::NPrivate
 	{
 	}
 
-	void CCategoryLister::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
+	void CCategoryLister::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
 	{
 		NStr::CStr Groups;
 		NMisc::fg_ForEach
 			(
 				_TestGroups
-				, [&](NContainer::CMapNoData const &_Group)
+				, [&](NStr::CStr const &_Group)
 				{
-					NStr::fg_AddStrSep(Groups, NContainer::TCMap<NStr::CStr>::fs_GetKey(_Group), ',');
+					NStr::fg_AddStrSep(Groups, _Group, ',');
 				}
 			)
 		;

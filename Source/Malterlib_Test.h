@@ -293,7 +293,7 @@ namespace NMib::NTest
 	class CTestCategory
 	{
 		NStr::CStr m_Category;
-		NContainer::TCMap<NStr::CStr> m_Groups;
+		NContainer::TCSet<NStr::CStr> m_Groups;
 	public:
 		CTestCategory(ch8 const *_pCategory)
 			: m_Category(_pCategory)
@@ -316,7 +316,7 @@ namespace NMib::NTest
 		{
 			return m_Category;
 		}
-		NContainer::TCMap<NStr::CStr> const &f_GetGroups() const
+		NContainer::TCSet<NStr::CStr> const &f_GetGroups() const
 		{
 			return m_Groups;
 		}
@@ -369,7 +369,7 @@ namespace NMib::NTest
 				, const NStr::CStr &_ExtraMultiLineReportData
 			) = 0
 		;
-		virtual void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location) = 0;
+		virtual void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location) = 0;
 		virtual ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) = 0;
 		virtual void f_PerformanceResults(CTestPerformanceResults const &_Results) = 0;
 		virtual void f_MemoryResults(CTestMemoryResults const &_Results) = 0;
@@ -391,7 +391,7 @@ namespace NMib::NTest
 	ETestReportFlag fg_TestReportFlags();
 	NStr::CStr fg_TestGetCurrentPath();
 	NStr::CStr fg_TestGetExtraData();
-	NContainer::TCMap<NStr::CStr> fg_TestGetCurrentGroups();
+	NContainer::TCSet<NStr::CStr> fg_TestGetCurrentGroups();
 
 	void fg_TestAddCleanupPath(NStr::CStr const &_Directory);
 

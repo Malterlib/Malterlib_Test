@@ -24,7 +24,7 @@ namespace NMib::NTest::NPrivate
 				, const NStr::CStr &_ExtraMultiLineReportData
 			) override
 		;
-		void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location) override;
+		void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location) override;
 		ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) override;
 		void f_PerformanceResults(CTestPerformanceResults const &_Results) override;
 		void f_MemoryResults(CTestMemoryResults const &_Results) override;

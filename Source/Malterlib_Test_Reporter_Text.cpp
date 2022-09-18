@@ -347,7 +347,7 @@ namespace NMib::NTest
 				fReport("Ignored", ETestSeverity_None);
 		}
 	}
-	void CTextTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
+	void CTextTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
 	{
 	}
 	void CTextTestResults::f_PerformanceResults(CTestPerformanceResults const &_Results)
@@ -801,7 +801,7 @@ namespace NMib::NTest
 				, "nAllocAtMax"
 			);
 
-			NContainer::TCMap<NStr::CStr> Allocators;
+			NContainer::TCSet<NStr::CStr> Allocators;
 			Allocators["All"];
 			mint nResults = _Results.m_Results.f_GetLen();
 			for (mint i = 0 ; i < nResults; ++i)
@@ -825,10 +825,9 @@ namespace NMib::NTest
 			NMisc::fg_ForEach
 				(
 					Allocators
-					, [&](NContainer::CMapNoData const &_Allocator)
+					, [&](NStr::CStr const &_Allocator)
 					{
-						NStr::CStr Allocator = Allocators.fs_GetKey(_Allocator);
-						fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << Allocator, ETestSeverity_None);
+						fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << _Allocator, ETestSeverity_None);
 						mint nResults = _Results.m_Results.f_GetLen();
 						for (mint i = 0 ; i < nResults; ++i)
 						{
@@ -844,11 +843,11 @@ namespace NMib::NTest
 								Name = " " + Name;
 
 							CTestMemoryStats const *pStats = nullptr;
-							if (Allocator == "All")
+							if (_Allocator == "All")
 								pStats = &Result.m_AllAllocations;
 							else
 							{
-								pStats = Result.m_PerAllocationType.f_FindEqual(Allocator);
+								pStats = Result.m_PerAllocationType.f_FindEqual(_Allocator);
 								if (!pStats)
 									pStats = &EmptyStats;
 							}

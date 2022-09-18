@@ -79,8 +79,8 @@ namespace NMib::NTest::NPrivate
 	bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter);
 	bool fg_GetEnableExceptionFilter();
 	void fg_PopCategory(NStr::CStr const &PreviousPath);
-	NContainer::TCMap<NStr::CStr> fg_SetGroups(const NContainer::TCMap<NStr::CStr> &_Groups);
-	NContainer::TCMap<NStr::CStr> fg_GetGroups();
+	NContainer::TCSet<NStr::CStr> fg_SetGroups(const NContainer::TCSet<NStr::CStr> &_Groups);
+	NContainer::TCSet<NStr::CStr> fg_GetGroups();
 	NContainer::TCVector<NStr::CStr> fg_DumpTestException();
 	void fg_ReportTestException(const NContainer::TCVector<NStr::CStr> &_DumpFiles, const ch8 *_pFile, int32 _Line);
 	CTestResults &fg_GetResultReporter();

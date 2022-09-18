@@ -31,8 +31,8 @@ namespace NMib::NTest::NPrivate
 	void CTestCategoryScope::f_ProcessCategory(NFunction::TCFunctionMovable<void ()> &&_Function)
 	{
 		bool bLeaf = (mp_Flags & ETestCategoryFlag_Tests) != 0;
-		NContainer::TCMap<NStr::CStr> const &Groups = mp_Category.f_GetGroups();
-		NContainer::TCMap<NStr::CStr> OldGroups;
+		NContainer::TCSet<NStr::CStr> const &Groups = mp_Category.f_GetGroups();
+		NContainer::TCSet<NStr::CStr> OldGroups;
 
 		NStr::CStr PreviousPath = NMib::NTest::NPrivate::fg_PushCategory(mp_Category.f_GetCategory());
 		if (!Groups.f_IsEmpty())

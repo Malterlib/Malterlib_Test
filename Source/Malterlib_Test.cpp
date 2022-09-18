@@ -134,7 +134,7 @@ namespace NMib::NTest
 				mutable NThread::CMutual m_TestPathLock;
 				NStr::CStr m_TestPath;
 				mutable NThread::CMutual m_PropertiesLock;
-				NContainer::TCMap<NStr::CStr> m_TestGroups;
+				NContainer::TCSet<NStr::CStr> m_TestGroups;
 				CTestResults *m_pResults = nullptr;
 				const ch8 *m_pLastTestFile = nullptr;
 				int32 m_LastTestLine = 0;
@@ -453,19 +453,19 @@ namespace NMib::NTest
 			ThreadLocal.m_TestPath = PreviousPath;
 		}
 
-		NContainer::TCMap<NStr::CStr> fg_SetGroups(const NContainer::TCMap<NStr::CStr> &_Groups)
+		NContainer::TCSet<NStr::CStr> fg_SetGroups(const NContainer::TCSet<NStr::CStr> &_Groups)
 		{
 			CTestManager *pTestManager = g_Tests;
-			NContainer::TCMap<NStr::CStr> Ret = fg_Move(pTestManager->m_ThreadLocal->m_TestGroups);
+			NContainer::TCSet<NStr::CStr> Ret = fg_Move(pTestManager->m_ThreadLocal->m_TestGroups);
 			pTestManager->m_ThreadLocal->m_TestGroups = _Groups;
 
 			return Ret;
 		}
 
-		NContainer::TCMap<NStr::CStr> fg_GetGroups()
+		NContainer::TCSet<NStr::CStr> fg_GetGroups()
 		{
 			CTestManager *pTestManager = g_Tests;
-			NContainer::TCMap<NStr::CStr> Ret = pTestManager->m_ThreadLocal->m_TestGroups;
+			NContainer::TCSet<NStr::CStr> Ret = pTestManager->m_ThreadLocal->m_TestGroups;
 
 			return Ret;
 		}
@@ -1027,12 +1027,12 @@ namespace NMib::NTest
 #		endif
 	}
 
-	NContainer::TCMap<NStr::CStr> fg_TestGetCurrentGroups()
+	NContainer::TCSet<NStr::CStr> fg_TestGetCurrentGroups()
 	{
 #		if DMibConfig_Tests_Enable
 			return NPrivate::fg_GetGroups();
 #		else
-			return NContainer::TCMap<NStr::CStr>();
+			return NContainer::TCSet<NStr::CStr>();
 #		endif
 	}
 

@@ -453,7 +453,7 @@ namespace NMib::NTest
 		pReg->f_SetValue("ExtraData", _ExtraMultiLineReportData);
 		DMibConOut("{}", Registry.f_GenerateStr());
 	}
-	void CRegistryTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
+	void CRegistryTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
 	{
 		NContainer::CRegistry Registry;
 		NContainer::CRegistry *pReg = Registry.f_CreateChild("Category");
@@ -465,10 +465,10 @@ namespace NMib::NTest
 		NMisc::fg_ForEach
 			(
 				_TestGroups
-				, [&](NContainer::CMapNoData const &_Group)
+				, [&](NStr::CStr const &_Group)
 				{
 					NContainer::CRegistry *pGroup = pGroups->f_CreateChild("Group", true);
-					pGroup->f_SetThisValue(NContainer::TCMap<NStr::CStr>::fs_GetKey(_Group));
+					pGroup->f_SetThisValue(_Group);
 				}
 			)
 		;

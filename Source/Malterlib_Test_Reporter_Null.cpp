@@ -41,7 +41,7 @@ namespace NMib::NTest::NPrivate
 	{
 	}
 
-	void CNullTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCMap<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
+	void CNullTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
 	{
 	}
 
