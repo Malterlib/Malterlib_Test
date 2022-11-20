@@ -27,6 +27,19 @@ extern mint g_nAllTests;
 
 struct CRunAllTestsApplication : public NMib::CApplication
 {
+	CRunAllTestsApplication()
+	{
+#		if DMibPPtrBits <= 32
+			mp_bParallelDefault = false;
+#		else
+			mp_bParallelDefault = true;
+#			if defined(DMibSanitizerEnabled)
+				if (NProcess::NPlatform::fg_Process_GetPhysicalMemory() < 24_uint64 * 1024 * 1024 * 1024)
+					mp_bParallelDefault = false;
+#			endif
+#		endif
+	}
+
 	aint f_Main()
 	{
 		NStorage::TCSharedPointer<NMib::NCommandLine::CCommandLineSpecification> pCommandLineSpec = fg_Construct();
@@ -45,12 +58,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						"Parallel?"_=
 						{
 							"Names"_= {"--parallel", "-p"}
-#if DMibPPtrBits <= 32
-							, "Default"_= false
-#else
-							, "Default"_= true
-#endif
-
+							, "Default"_= mp_bParallelDefault
 							, "Description"_= "Run tests in paralell utilizing all cores.\n"
 						}
 						, "Quiet?"_=
@@ -577,6 +585,9 @@ private:
 								}
 							)
 						;
+
+						if (!mp_bParallelDefault)
+							LaunchHandler.f_BlockOnExit();
 					}
 
 					LaunchHandler.f_BlockOnExit();
@@ -798,6 +809,9 @@ private:
 #endif
 		return Result;
 	}
+
+private:
+	bool mp_bParallelDefault = false;
 };
 
 DMibAppImplement(CRunAllTestsApplication);
