@@ -172,10 +172,6 @@ namespace NMib::NTest
 					{
 						if (NFile::CFile::fs_FileExists(Path))
 							NFile::CFile::fs_DeleteDirectoryRecursive(Path);
-
-						NStr::CStr ParentDir = NFile::CFile::fs_GetPath(Path);
-						if (NFile::CFile::fs_FindFiles(ParentDir / "*").f_IsEmpty())
-							NFile::CFile::fs_DeleteDirectory(ParentDir);
 					}
 					catch (NFile::CExceptionFile const &)
 					{
