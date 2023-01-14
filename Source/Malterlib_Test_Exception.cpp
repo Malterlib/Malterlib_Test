@@ -285,6 +285,7 @@ namespace NMib::NTest::NPrivate
 					)
 				;
 			}
+#if DMibEnableSafeCheck > 0
 			catch (NException::CExceptionSafeCheck const &_Exception)
 			{
 				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
@@ -303,6 +304,7 @@ namespace NMib::NTest::NPrivate
 					)
 				;
 			}
+#endif
 			catch (NException::CException const &_Exception)
 			{
 				CStr ReportData = DMibPFileLineFormat " Uncaught {} exception:{\n}{}{}"_f

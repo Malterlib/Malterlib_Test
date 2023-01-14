@@ -295,8 +295,11 @@ namespace NMib::NTest
 			fg_SetTestLastLocation(_pFile, _Line);
 
 			DMibFastCheck(_Category.f_GetCategory().f_FindChar('/') < 0 && _Category.f_GetCategory().f_FindChar('\\') < 0);
-			DMibFastCheck(!NMib::NTest::NPrivate::fg_InsideTestSuite());
-			NMib::NTest::NPrivate::fg_InsideTestSuite(mp_Flags & ETestCategoryFlag_Tests);
+			DMibFastCheck(!(_Flags & NMib::NTest::ETestCategoryFlag_Tests) || !NMib::NTest::NPrivate::fg_InsideTestSuite());
+
+			if (!NMib::NTest::NPrivate::fg_InsideTestSuite())
+				NMib::NTest::NPrivate::fg_InsideTestSuite(mp_Flags & ETestCategoryFlag_Tests);
+
 			if (_Flags & ETestCategoryFlag_DisableValues)
 				mp_bOldEnableValues = NMib::NTest::NPrivate::fg_SetEnableValues(false);
 			else if (_Flags & ETestCategoryFlag_EnableValues)
@@ -306,7 +309,6 @@ namespace NMib::NTest
 				mp_bOldEnableExceptionFilter = NMib::NTest::NPrivate::fg_SetEnableExceptionFilter(false);
 			else if (_Flags & ETestCategoryFlag_EnableExceptionFilter)
 				mp_bOldEnableExceptionFilter = NMib::NTest::NPrivate::fg_SetEnableExceptionFilter(true);
-
 		}
 
 		CTestCategoryScope::~CTestCategoryScope()
@@ -315,7 +317,8 @@ namespace NMib::NTest
 				NMib::NTest::NPrivate::fg_SetEnableValues(mp_bOldEnableValues);
 			if (mp_Flags & (ETestCategoryFlag_DisableExceptionFilter | ETestCategoryFlag_EnableExceptionFilter))
 				NMib::NTest::NPrivate::fg_SetEnableExceptionFilter(mp_bOldEnableExceptionFilter);
-			NMib::NTest::NPrivate::fg_InsideTestSuite(false);
+			if (mp_Flags & ETestCategoryFlag_Tests)
+				NMib::NTest::NPrivate::fg_InsideTestSuite(false);
 		}
 
 		void CTestCategoryScope::f_ProcessAsyncCategory(NFunction::TCFunctionMovable<NConcurrency::TCFuture<void> ()> &&_Function)
@@ -686,8 +689,10 @@ namespace NMib::NTest
 
 			CTestManager::CThreadLocal &ThreadLocal = *pManager->m_ThreadLocal;
 
+			bool bCategoryInsideSuite = !_bLeaf && fg_InsideTestSuite();
+
 			NStr::EMatchWildcardResult IncludeResult = fg_MatchPattern(ThreadLocal.m_TestPath, pManager->m_IncludePatterns, NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted);
-			if (!(IncludeResult & NStr::EMatchWildcardResult_WholeStringMatched))
+			if (!(IncludeResult & NStr::EMatchWildcardResult_WholeStringMatched) && !bCategoryInsideSuite)
 				return false;
 
 			if (_bLeaf)
