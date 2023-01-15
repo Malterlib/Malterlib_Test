@@ -177,6 +177,7 @@ namespace NMib::NTest::NPrivate
 			{
 				throw;
 			}
+#if defined DMibContract_AnyEnabled
 			catch (NContract::CContractException_Require const &_Exception)
 			{
 				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
@@ -285,6 +286,7 @@ namespace NMib::NTest::NPrivate
 					)
 				;
 			}
+#endif
 #if DMibEnableSafeCheck > 0
 			catch (NException::CExceptionSafeCheck const &_Exception)
 			{

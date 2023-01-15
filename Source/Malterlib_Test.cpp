@@ -756,12 +756,14 @@ namespace NMib::NTest
 
 		uint32 fg_RunTests(CTestResults *_pResults, CRunTestOptions const &_Options)
 		{
+#ifdef DMibNeedDebugException
 			NFunction::TCFunction<void(NContract::CContractViolation const&)> OldLogger = NContract::fg_SetContractLoggerThrowExceptions();
 			auto Cleanup = g_OnScopeExit / [&]
 				{
 					NContract::fg_SetContractLogger(OldLogger);
 				}
 			;
+#endif
 
 			if (_Options.m_ReportFlags & ETestReportFlag_ReportCategories)
 				fg_StepIntoSuites(true);
