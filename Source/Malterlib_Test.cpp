@@ -7,6 +7,7 @@
 #include <Mib/CommandLine/CommandLineClient>
 #include <Mib/Core/RuntimeType>
 #include <Mib/Encoding/JSONShortcuts>
+#include <Mib/Log/AnsiLogger>
 
 #include "Malterlib_Test_Reporter_Null.h"
 #include "Malterlib_Test_Reporter_Text.h"
@@ -811,7 +812,22 @@ namespace NMib::NTest
 						}
 					)
 				;
-				fg_GetSys()->f_AddStdErrLogger();
+
+				if (fg_GetSys()->f_GetEnvironmentVariable("MalterlibTestLogColorOutput", "true") == "true")
+				{
+					fg_GetSys()->f_GetLogger().f_PushGlobalDestination
+						(
+							NLog::CLogToStdErrAnsi
+							(
+								NCommandLine::EAnsiEncodingFlag_Color | NCommandLine::EAnsiEncodingFlag_Color24Bit | NCommandLine::EAnsiEncodingFlag_BoxDrawing
+								, NLog::ESeverity_All
+								, false
+							)
+						)
+					;
+				}
+				else
+					fg_GetSys()->f_AddStdErrLogger();
 			}
 			else
 				CleanupLogs.f_Clear();
