@@ -73,6 +73,12 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Default"_= false
 							, "Description"_= "Loop tests until aborted.\n"
 						}
+						, "Timeout?"_=
+						{
+							"Names"_= {"--timeout"}
+							, "Default"_= fp64::fs_Inf()
+							, "Description"_= "Stop tests after this timeout.\n"
+						}
 						, "LoopIterations?"_=
 						{
 							"Names"_= {"--iterations", "-i"}
@@ -183,6 +189,7 @@ private:
 			, m_bLaunchPerSuite(_Parameters["LaunchPerSuite"].f_Boolean())
 			, m_bAbortOnFailure(_Parameters["LoopAbortOnFailure"].f_Boolean())
 			, m_nLoops(_Parameters["LoopIterations"].f_Integer())
+			, m_Timeout(_Parameters["Timeout"].f_Float())
 #if DMalterlibCodeCoverage
 			, m_bCoverage(_Parameters["Coverage"].f_Boolean())
 			, m_bCoverageOnly(_Parameters["CoverageOnly"].f_Boolean())
@@ -198,6 +205,7 @@ private:
 		TCVector<CStr> m_TestGroups;
 
 		int64 m_nLoops = 0;
+		fp64 m_Timeout = fp64::fs_Inf();
 #if DMalterlibCodeCoverage
 		CStr m_CoverageExecutable;
 		TCVector<CStr> m_CoverageSources;
@@ -424,8 +432,10 @@ private:
 		bool bSignalled = false;
 		bool bShouldOutput = false;
 		CClock SignalClock;
+		CClock TimeoutClock;
 		fp64 LastSignal = 0.0;
 		SignalClock.f_Start();
+		TimeoutClock.f_Start();
 		NThread::CEventAutoReset DispatchEvent;
 
 		auto Cleaunup = NProcess::NPlatform::fg_Process_WaitForTermination
@@ -765,6 +775,13 @@ private:
 								bShouldOutput = true;
 
 							LastSignal = SignalClock.f_GetTime();
+						}
+
+						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutClock.f_GetTime() > _Settings.m_Timeout)
+						{
+							CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
+							bCancelled = true;
+							break;
 						}
 					}
 				}
