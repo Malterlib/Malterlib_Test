@@ -27,17 +27,22 @@ extern mint g_nAllTests;
 
 struct CRunAllTestsApplication : public NMib::CApplication
 {
+	constexpr static uint64 mc_DefaultMemoryPerTestBase = (3 * 1024) / 2;
+
+#if defined(DMibSanitizerEnabled_UndefinedBehavior)
+	constexpr static uint64 mc_DefaultMemoryPerTest = (mc_DefaultMemoryPerTestBase * 3) / 2;
+#elif defined(DMibSanitizerEnabled_Address)
+	constexpr static uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase * 8;
+#elif defined(DMibSanitizerEnabled_Thread)
+	constexpr static uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase * 3;
+#elif defined(DMibDebug)
+	constexpr static uint64 mc_DefaultMemoryPerTest = (mc_DefaultMemoryPerTestBase * 5) / 2;
+#else
+	constexpr static uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase;
+#endif
+
 	CRunAllTestsApplication()
 	{
-#		if DMibPPtrBits <= 32
-			mp_bParallelDefault = false;
-#		else
-			mp_bParallelDefault = true;
-#			if defined(DMibSanitizerEnabled)
-				if (NProcess::NPlatform::fg_Process_GetPhysicalMemory() < 24_uint64 * 1024 * 1024 * 1024)
-					mp_bParallelDefault = false;
-#			endif
-#		endif
 	}
 
 	aint f_Main()
@@ -58,7 +63,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						"Parallel?"_=
 						{
 							"Names"_= {"--parallel", "-p"}
-							, "Default"_= mp_bParallelDefault
+							, "Default"_= true
 							, "Description"_= "Run tests in paralell utilizing all cores.\n"
 						}
 						, "Quiet?"_=
@@ -67,11 +72,23 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Default"_= true
 							, "Description"_= "Don't output test results unless a failure occurs.\n"
 						}
+						, "QuietStats?"_=
+						{
+							"Names"_= {"--quiet-stats"}
+							, "Default"_= false
+							, "Description"_= "Don't output memory and concurrency statistics.\n"
+						}
 						, "Loop?"_=
 						{
 							"Names"_= {"--loop"}
 							, "Default"_= false
 							, "Description"_= "Loop tests until aborted.\n"
+						}
+						, "MemoryPerTest?"_=
+						{
+							"Names"_= {"--memory-per-test"}
+							, "Default"_= mc_DefaultMemoryPerTest
+							, "Description"_= "The amount of memory needed per test. Concurrency will be limited by amount of available memory.\n"
 						}
 						, "Timeout?"_=
 						{
@@ -113,6 +130,13 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							"   Manual:       Run tests with Manual group specified.\r"
 							"   SuperUser:    Run tests with SuperUser group specified.\r"
 							"\r"
+						}
+						, "Paths?"_=
+						{
+							"Names"_= {"--paths"}
+							, "Default"_= _[_]
+							, "Type"_= {""}
+							, "Description"_= "Specify the paths to include in test.\n"
 						}
 #if DMalterlibCodeCoverage
  						, "Coverage?"_=
@@ -183,13 +207,16 @@ private:
 		CSettings(NEncoding::CEJSON const &_Parameters)
 			: m_TestParams(_Parameters["TestParams"].f_StringArray())
 			, m_TestGroups(_Parameters["Groups"].f_StringArray())
+			, m_TestPaths(_Parameters["Paths"].f_StringArray())
 			, m_bParallel(_Parameters["Parallel"].f_Boolean())
 			, m_bLoopTests(_Parameters["Loop"].f_Boolean())
 			, m_bQuiet(_Parameters["Quiet"].f_Boolean())
+			, m_bQuietStats(_Parameters["QuietStats"].f_Boolean())
 			, m_bLaunchPerSuite(_Parameters["LaunchPerSuite"].f_Boolean())
 			, m_bAbortOnFailure(_Parameters["LoopAbortOnFailure"].f_Boolean())
 			, m_nLoops(_Parameters["LoopIterations"].f_Integer())
 			, m_Timeout(_Parameters["Timeout"].f_Float())
+			, m_MemoryPerTest(_Parameters["MemoryPerTest"].f_Integer())
 #if DMalterlibCodeCoverage
 			, m_bCoverage(_Parameters["Coverage"].f_Boolean())
 			, m_bCoverageOnly(_Parameters["CoverageOnly"].f_Boolean())
@@ -203,9 +230,11 @@ private:
 
 		TCVector<CStr> m_TestParams;
 		TCVector<CStr> m_TestGroups;
+		TCVector<CStr> m_TestPaths;
 
 		int64 m_nLoops = 0;
 		fp64 m_Timeout = fp64::fs_Inf();
+		uint64 m_MemoryPerTest = 0;
 #if DMalterlibCodeCoverage
 		CStr m_CoverageExecutable;
 		TCVector<CStr> m_CoverageSources;
@@ -216,6 +245,7 @@ private:
 		bool m_bParallel = true;
 		bool m_bLoopTests = false;
 		bool m_bQuiet = true;
+		bool m_bQuietStats = false;
 		bool m_bLaunchPerSuite = false;
 		bool m_bAbortOnFailure = false;
 	};
@@ -449,10 +479,21 @@ private:
 		;
 
 		int64 nLoops = 0;
+		mint nThreads = NSys::fg_Thread_GetVirtualCores();
+
+		struct CTestSuite
+		{
+			CStr m_Executable;
+			CStr m_Suite;
+		};
+
+		TCVector<CProcessStatistics> MemoryStats;
+		TCVector<CTestSuite> TestSuites;
 
 		while (!bCancelled && (!_Settings.m_nLoops || (nLoops < _Settings.m_nLoops)) && (!_Settings.m_bAbortOnFailure || !nFailed))
 		{
 			++nLoops;
+			MemoryStats.f_Clear();
 			CProcessLaunchHandler LaunchHandler;
 
 			TCSharedPointer<bool> pExited = fg_Construct(false);
@@ -475,7 +516,15 @@ private:
 			mint nDone = 0;
 			nFailed = 0;
 			nTotalLaunches = 0;
-			mint nMaxRunning = _Settings.m_bParallel ? NSys::fg_Thread_GetVirtualCores() : 1;
+			mint nMaxRunning = 1;
+			if (_Settings.m_bParallel)
+				nMaxRunning = fg_Clamp(NProcess::NPlatform::fg_Process_GetPhysicalMemory() / (_Settings.m_MemoryPerTest * 1024 * 1024), 1, nThreads);
+
+			if (!_Settings.m_bQuietStats && nLoops == 1)
+			{
+				DMibConOut2("Concurrency         {sj8,ns,}{\n}", nMaxRunning);
+				DMibConOut2("Memory per test     {sj8,ns,} MiB{\n}", _Settings.m_MemoryPerTest);
+			}
 
 			{
 				auto fAddLaunches = [&]
@@ -513,13 +562,7 @@ private:
 					MaxTestLen = fg_Max(MaxTestLen, (mint)Test.f_GetLen());
 				}
 
-				struct CTestSuite
-				{
-					CStr m_Executable;
-					CStr m_Suite;
-				};
-
-				TCVector<CTestSuite> TestSuites;
+				TestSuites.f_Clear();
 
 				CClock PerfClock{true};
 				if (_Settings.m_bLaunchPerSuite)
@@ -548,10 +591,15 @@ private:
 					{
 						CStr ExecutableName = g_AllTests[i];
 
+						LaunchHandler.f_BlockOnExit(0.0, nMaxRunning - 1);
+
+						TCVector<CStr> ExecutableParams = {"-l", "-g", CStr::fs_Join(_Settings.m_TestGroups, ",")};
+						ExecutableParams.f_Insert(_Settings.m_TestPaths);
+
 						auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 							(
 								ProgramDirectory / ExecutableName
-								, {"-l", "-g", CStr::fs_Join(_Settings.m_TestGroups, ",")}
+								, ExecutableParams
 								, ProgramDirectory
 								, [pTestState, ExecutableName](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 								{
@@ -595,9 +643,6 @@ private:
 								}
 							)
 						;
-
-						if (!mp_bParallelDefault)
-							LaunchHandler.f_BlockOnExit();
 					}
 
 					LaunchHandler.f_BlockOnExit();
@@ -624,6 +669,9 @@ private:
 					for (mint i = 0; i < g_nAllTests; ++i)
 						TestSuites.f_Insert({g_AllTests[i], ""});
 				}
+
+				if (!_Settings.m_bQuietStats && nLoops == 1)
+					DMibConOut2("Test suite launches {sj8,ns,}{\n}", TestSuites.f_GetLen());
 
 				for (auto &Suite : TestSuites)
 				{
@@ -657,6 +705,8 @@ private:
 
 					TestParams.f_Insert("-g");
 					TestParams.f_Insert(CStr::fs_Join(_Settings.m_TestGroups, ","));
+					if (!_Settings.m_bLaunchPerSuite)
+						TestParams.f_Insert(_Settings.m_TestPaths);
 
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
@@ -780,6 +830,7 @@ private:
 						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutClock.f_GetTime() > _Settings.m_Timeout)
 						{
 							CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
+							DMibConOut2("Timed out - aborting remaining tests{\n}");
 							bCancelled = true;
 							break;
 						}
@@ -789,8 +840,79 @@ private:
 					(*Entry)();
 
 				LaunchHandler.f_StopAll();
-				LaunchHandler.f_BlockOnExit(1.0);
-				LaunchHandler.f_TerminateAll(true);
+				LaunchHandler.f_BlockOnExit(1.0, 0, &MemoryStats);
+				LaunchHandler.f_TerminateAll(true, &MemoryStats);
+			}
+		}
+
+		if (!_Settings.m_bQuietStats)
+		{
+			struct CSuiteMemory
+			{
+				auto operator <=> (CSuiteMemory const &_Right) const
+				{
+					return _Right.m_Memory <=> m_Memory;
+				}
+
+				CStr m_Name;
+				fp64 m_Memory = 0.0;
+			};
+			TCVector<CSuiteMemory> AllUsages;
+
+			mint iStat = 0;
+			for (auto &Statistics : MemoryStats)
+			{
+				fp64 TotalMemoryUsage = 0.0;
+				auto fGetValue = [&](ch8 const *_pName) -> fp64
+					{
+						auto *pValue = Statistics.m_Statistics.f_FindEqual(_pName);
+						if (pValue)
+							return pValue->m_Value / (1024.0 * 1024.0);
+						return 0.0;
+					}
+				;
+				TotalMemoryUsage += fg_Max(fGetValue("Peak page file usage"), fGetValue("Peak working set size"), fGetValue("Max resident size"));
+				TotalMemoryUsage += fGetValue("Peak non paged pool usage");
+				TotalMemoryUsage += fGetValue("Peak paged pool usage");
+				auto &Usage = AllUsages.f_Insert();
+
+				Usage.m_Memory = TotalMemoryUsage;
+				if (TestSuites.f_IsPosValid(iStat))
+					Usage.m_Name = TestSuites[iStat].m_Suite;
+
+				++iStat;
+			}
+			AllUsages.f_Sort();
+			if (!AllUsages.f_IsEmpty())
+			{
+				mint nUsages = 0;
+				fp64 WorstCaseUsage = 0;
+				fp64 WorstCaseUsage2Core = 0;
+				for (auto &Usage : AllUsages)
+				{
+					WorstCaseUsage += Usage.m_Memory;
+					if (nUsages < 2)
+						WorstCaseUsage2Core += Usage.m_Memory;
+
+					++nUsages;
+					if (nUsages >= nThreads)
+						break;
+				}
+
+				DMibConOut2("Max memory          {sj8,ns,} MiB{\n}", AllUsages.f_GetFirst().m_Memory.f_ToInt());
+				DMibConOut2("Worst case usage    {sj8,ns,} MiB{\n}", WorstCaseUsage.f_ToInt());
+				DMibConOut2("Worst case usage 2c {sj8,ns,} MiB{\n}", WorstCaseUsage2Core.f_ToInt());
+				DMibConOut2("Suggested memory    {sj8,ns,} MiB{\n}", ((WorstCaseUsage * 1.5) / fp64 (fg_Min(nThreads, AllUsages.f_GetLen()))).f_ToInt());
+				DMibConOut2("Suggested memory 2c {sj8,ns,} MiB{\n}", ((WorstCaseUsage2Core * 1.5) / fg_Min(2u, AllUsages.f_GetLen())).f_ToInt());
+				DMibConOut2("Top ten{\n}");
+
+				mint nLogged = 0;
+				for (auto &Usage : AllUsages)
+				{
+					DMibConOut2("{sj8,ns,} MiB   {}{\n}", Usage.m_Memory.f_ToInt(), Usage.m_Name);
+					if (++nLogged >= 10)
+						break;
+				}
 			}
 		}
 
@@ -826,9 +948,6 @@ private:
 #endif
 		return Result;
 	}
-
-private:
-	bool mp_bParallelDefault = false;
 };
 
 DMibAppImplement(CRunAllTestsApplication);
