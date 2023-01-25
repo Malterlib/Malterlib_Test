@@ -903,7 +903,7 @@ private:
 				DMibConOut2("Worst case usage    {sj8,ns,} MiB{\n}", WorstCaseUsage.f_ToInt());
 				DMibConOut2("Worst case usage 2c {sj8,ns,} MiB{\n}", WorstCaseUsage2Core.f_ToInt());
 				DMibConOut2("Suggested memory    {sj8,ns,} MiB{\n}", ((WorstCaseUsage * 1.5) / fp64 (fg_Min(nThreads, AllUsages.f_GetLen()))).f_ToInt());
-				DMibConOut2("Suggested memory 2c {sj8,ns,} MiB{\n}", ((WorstCaseUsage2Core * 1.5) / fg_Min(2, AllUsages.f_GetLen())).f_ToInt());
+				DMibConOut2("Suggested memory 2c {sj8,ns,} MiB{\n}", ((WorstCaseUsage2Core * 1.5) / fg_Min(2u, AllUsages.f_GetLen())).f_ToInt());
 				DMibConOut2("Top ten{\n}");
 
 				mint nLogged = 0;
