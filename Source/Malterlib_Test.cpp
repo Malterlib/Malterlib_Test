@@ -1207,7 +1207,20 @@ namespace NMib::NTest
 						RunOptions.m_ExcludePatterns.f_Insert(Path.f_String());
 				}
 
-				return fg_RunTests(pResults, RunOptions);
+				if (RunOptions.m_ReportFlags & ETestReportFlag_CrashOnException)
+					return fg_RunTests(pResults, RunOptions);
+				else
+				{
+					try
+					{
+						return fg_RunTests(pResults, RunOptions);
+					}
+					catch (NException::CException const &_Exception)
+					{
+						DMibConErrOut("{}\n", _Exception);
+						return 1;
+					}
+				}
 			}
 		;
 
@@ -1429,15 +1442,18 @@ namespace NMib::NTest
 
 		NCommandLine::CCommandLineClient Client(pCommandLineSpec);
 
+		NCommandLine::CCommandLineSpecification::CParsedCommandLine ParsedCommandLine;
 		try
 		{
-			return Client.f_RunCommandLine();
+			ParsedCommandLine = Client.f_ParseCommandLine();
 		}
-		catch (NException::CException const &_Exception)
+		catch (NException::CException const &_Error)
 		{
-			DMibConErrOut("{}\n", _Exception);
+			DMibConErrOut("{}\n", _Error.f_GetErrorStr());
 			return 1;
 		}
+
+		return Client.f_RunCommand(ParsedCommandLine.m_Command, ParsedCommandLine.m_Params);
 	}
 
 	bool fg_GroupActive(NStr::CStr const &_Group)
