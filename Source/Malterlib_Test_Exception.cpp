@@ -4,6 +4,8 @@
 #include <Mib/Test/Test>
 #include <Mib/Test/Exception>
 
+#include <exception>
+
 namespace NMib::NTest
 {
 #if defined DMibContractConfigure_RequireEnabled
