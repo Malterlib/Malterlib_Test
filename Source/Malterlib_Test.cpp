@@ -1074,17 +1074,6 @@ namespace NMib::NTest
 
 	}
 
-	NContainer::TCVector<NStr::CStr> fg_StrSplit(NStr::CStr const& _String, ch8 const* _pSplit)
-	{
-		NContainer::TCVector<NStr::CStr> Ret;
-
-		NStr::CStr String = _String;
-		while (!String.f_IsEmpty())
-			Ret.f_Insert(NStr::fg_GetStrSep(String, _pSplit));
-
-		return Ret;
-	}
-
 	uint32 fg_RunTests()
 	{
 		NStorage::TCSharedPointer<NMib::NCommandLine::CCommandLineSpecification> pCommandLineSpec = fg_Construct();
