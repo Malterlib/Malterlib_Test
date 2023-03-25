@@ -274,13 +274,13 @@ namespace NMib::NTest
 		{
 			DMibRequire
 				(
-				 	_Group == "Performance"
-				 	|| _Group == "Torture"
-				 	|| _Group == "Memory"
-				 	|| _Group == "Unfinished"
-				 	|| _Group == "Expensive"
-				 	|| _Group == "Manual"
-				 	|| _Group == "SuperUser"
+					_Group == "Performance"
+					|| _Group == "Torture"
+					|| _Group == "Memory"
+					|| _Group == "Unfinished"
+					|| _Group == "Expensive"
+					|| _Group == "Manual"
+					|| _Group == "SuperUser"
 				)
 			;
 		}

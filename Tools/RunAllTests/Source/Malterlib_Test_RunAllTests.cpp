@@ -139,19 +139,19 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Description"_= "Specify the paths to include in test.\n"
 						}
 #if DMalterlibCodeCoverage
- 						, "Coverage?"_=
+						, "Coverage?"_=
 						{
 							"Names"_= {"--coverage"}
 							, "Default"_= true
 							, "Description"_= "Record code coverage and report results.\n"
 						}
- 						, "CoverageOnly?"_=
+						, "CoverageOnly?"_=
 						{
 							"Names"_= {"--coverage-only"}
 							, "Default"_= false
 							, "Description"_= "Only display coverage results from previous run, don't run tests.\n"
 						}
- 						, "CoverageSources?"_=
+						, "CoverageSources?"_=
 						{
 							"Names"_= {"--coverage-sources"}
 							, "Default"_= _[_]
