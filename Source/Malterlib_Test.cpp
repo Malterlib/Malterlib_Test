@@ -241,7 +241,7 @@ namespace NMib::NTest
 				CoroutineState.m_Path = ThreadLocal.m_TestPath;
 			}
 
-			NFunction::TCFunctionMovable<void (bool _bException)> f_StoreState(bool _bFromSuspend) override
+			NFunction::TCFunctionMovable<void (bool _bException) noexcept> f_StoreState(bool _bFromSuspend) override
 			{
 				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
 				auto &CoroutineState = ThreadLocal.m_CoroutineState;
@@ -259,7 +259,7 @@ namespace NMib::NTest
 					ThreadLocal.m_TestPath = CoroutineState.m_Path;
 				}
 
-				return [Path, pFile, Line, pForwardingScope = NStorage::TCSharedPointer<CTestPathRestoringScope>{}](bool _bException) mutable
+				return [Path, pFile, Line, pForwardingScope = NStorage::TCSharedPointer<CTestPathRestoringScope>{}](bool _bException) mutable noexcept
 					{
 						auto &ThreadLocal = *g_Tests->m_ThreadLocal;
 						auto &CoroutineState = ThreadLocal.m_CoroutineState;

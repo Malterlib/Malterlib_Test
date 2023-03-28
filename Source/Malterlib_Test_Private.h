@@ -389,8 +389,8 @@ namespace NMib::NTest::NPrivate
 		CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line);
 		~CTestPathScope();
 
-		void f_Suspend() override;
-		void f_Resume() override;
+		void f_Suspend() noexcept override;
+		void f_ResumeNoExcept() noexcept override;
 
 	private:
 		NStr::CStr m_PreviousPath;

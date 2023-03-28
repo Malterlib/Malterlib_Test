@@ -20,11 +20,11 @@ namespace NMib::NTest::NPrivate
 		NMib::NTest::NPrivate::fg_PopCategory(m_PreviousPath);
 	}
 
-	void CTestPathScope::f_Suspend()
+	void CTestPathScope::f_Suspend() noexcept
 	{
 	}
 
-	void CTestPathScope::f_Resume()
+	void CTestPathScope::f_ResumeNoExcept() noexcept
 	{
 	}
 
