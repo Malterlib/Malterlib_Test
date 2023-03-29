@@ -387,7 +387,10 @@ namespace NMib::NTest
 	template <typename ...tfp_CException>
 	auto fg_ThrowsException(tfp_CException && ...p_Exceptions)
 	{
-		return TCThrowsExceptionExact<typename NTraits::TCRemoveReferenceAndQualifiers<tfp_CException>::CType...>(fg_Forward<tfp_CException>(p_Exceptions)...);
+		if constexpr (sizeof...(p_Exceptions) == 0)
+			return TCThrowsException<>();
+		else
+			return TCThrowsExceptionExact<typename NTraits::TCRemoveReferenceAndQualifiers<tfp_CException>::CType...>(fg_Forward<tfp_CException>(p_Exceptions)...);
 	}
 
 #if defined DMibContractConfigure_RequireEnabled
