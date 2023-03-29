@@ -97,10 +97,7 @@ namespace NMib::NTest::NPrivate
 
 		NException::CExceptionBase *pExceptionBase = fg_AutoStaticCast(_pExceptionData);
 		if (pExceptionBase && pExceptionBase->f_IsValid())
-		{
-			if (NStr::fg_StrCmp(pExceptionBase->f_GetClass(), "CExceptionCoroutineWrapper") == 0)
-				return;
-		}
+			;
 		else
 			return; // Not our exception
 
