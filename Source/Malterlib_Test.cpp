@@ -812,12 +812,21 @@ namespace NMib::NTest
 
 				if (fg_GetSys()->f_GetEnvironmentVariable("MalterlibTestLogColorOutput", "true") == "true")
 				{
+					NLog::ESeverity LogSeverities = NLog::ESeverity_All;
+					auto CustomSevereties = fg_GetSys()->f_GetEnvironmentVariable("MalterlibTestLogSevereties", "");
+					if (CustomSevereties)
+					{
+						LogSeverities = NLog::ESeverity_None;
+						for (auto &SeverityName : CustomSevereties.f_Split(","))
+							LogSeverities |= NLog::fg_LookupSeverity(SeverityName.f_Trim());
+					}
+
 					fg_GetSys()->f_GetLogger().f_PushGlobalDestination
 						(
 							NLog::CLogToStdErrAnsi
 							(
 								NCommandLine::EAnsiEncodingFlag_Color | NCommandLine::EAnsiEncodingFlag_Color24Bit | NCommandLine::EAnsiEncodingFlag_BoxDrawing
-								, NLog::ESeverity_All
+								, LogSeverities
 								, false
 							)
 						)
