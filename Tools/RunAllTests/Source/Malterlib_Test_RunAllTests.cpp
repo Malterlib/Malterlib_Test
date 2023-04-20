@@ -653,7 +653,16 @@ private:
 						auto &ExecutableName = pTestState->m_Executables.fs_GetKey(Result);
 						if (Result.m_ExitResult != 0)
 						{
-							DMibConOut2(" {sz*,a-}  Failed enumerate tests:{\n}{}{\n}n", ExecutableName, MaxTestLen, Result.m_OutputWithErrors.f_Trim());
+							DMibConOut2
+								(
+									" {sz*,a-}  Failed enumerate tests ({}, 0x{nfh,sj8,sf0}):{\n}{}{\n}n"
+									, ExecutableName
+									, MaxTestLen
+									, Result.m_ExitResult
+									, Result.m_ExitResult
+									, Result.m_OutputWithErrors.f_Trim()
+								)
+							;
 							bFailed = true;
 						}
 
@@ -740,7 +749,7 @@ private:
 										++nFailed;
 										CStr Color = _AnsiEncoding.f_StatusError();
 										CStr Default = _AnsiEncoding.f_Default();
-										fOutputThisTest("{}Exited uncleanly with{} {}"_f << Color << Default << ExitCode, true);
+										fOutputThisTest("{}Exited uncleanly with{} {} (0x{nfh,sj8,sf0})"_f << Color << Default << ExitCode << ExitCode, true);
 									}
 									else if (!_Settings.m_bQuiet)
 									{
