@@ -114,6 +114,14 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Default"_= true
 							, "Description"_= "Launch the executable per suite.\n"
 						}
+						, "FlakySuites?"_=
+						{
+							"Names"_= {"--flaky-suites"}
+							, "Type"_= {""}
+							, "Default"_= fg_GetSys()->f_GetEnvironmentVariable("MalterlibFlakySuites", "").f_Split<true>(";")
+							, "Description"_= "Wildcard for test paths that are expected flaky. These tests will be rerun up to 10 times to check for success.\n"
+							"Will only be respected when --launch-per-suite is true.\n"
+						}
 						, "Groups?"_=
 						{
 							"Names"_= {"--groups", "-g"}
@@ -217,6 +225,7 @@ private:
 			, m_nLoops(_Parameters["LoopIterations"].f_Integer())
 			, m_Timeout(_Parameters["Timeout"].f_Float())
 			, m_MemoryPerTest(_Parameters["MemoryPerTest"].f_Integer())
+			, m_FlakySuites(TCSet<CStr>::fs_FromContainer(_Parameters["FlakySuites"].f_StringArray()))
 #if DMalterlibCodeCoverage
 			, m_bCoverage(_Parameters["Coverage"].f_Boolean())
 			, m_bCoverageOnly(_Parameters["CoverageOnly"].f_Boolean())
@@ -231,6 +240,8 @@ private:
 		TCVector<CStr> m_TestParams;
 		TCVector<CStr> m_TestGroups;
 		TCVector<CStr> m_TestPaths;
+
+		TCSet<CStr> m_FlakySuites;
 
 		int64 m_nLoops = 0;
 		fp64 m_Timeout = fp64::fs_Inf();
@@ -655,7 +666,7 @@ private:
 						{
 							DMibConOut2
 								(
-									" {sz*,a-}  Failed enumerate tests ({}, 0x{nfh,sj8,sf0}):{\n}{}{\n}n"
+									" {sz*,a-}  Failed to enumerate tests ({}, 0x{nfh,sj8,sf0}):{\n}{}{\n}n"
 									, ExecutableName
 									, MaxTestLen
 									, Result.m_ExitResult
@@ -717,12 +728,23 @@ private:
 					if (!_Settings.m_bLaunchPerSuite)
 						TestParams.f_Insert(_Settings.m_TestPaths);
 
+					struct CFlakyState
+					{
+						mint m_nTries = 1;
+						NProcess::CProcessLaunchParams m_Params;
+					};
+
+					TCSharedPointer<CFlakyState> pFlakyState = fg_Construct();
+
+					constexpr mint c_MaxFlakyTries = 10;
+
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
 							LaunchPath
 							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
-							, [&, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite](CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
+							, [&, pFlakyState, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
+							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 							{
 								if (*pExited)
 									return;
@@ -740,13 +762,10 @@ private:
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
 								{
 									--nRunning;
-									++nDone;
 
 									auto ExitCode = _StateChange.f_Get<EProcessLaunchState_Exited>();
-									CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
 									if (ExitCode != 0)
 									{
-										++nFailed;
 										CStr Color = _AnsiEncoding.f_StatusError();
 										CStr Default = _AnsiEncoding.f_Default();
 										fOutputThisTest("{}Exited uncleanly with{} {} (0x{nfh,sj8,sf0})"_f << Color << Default << ExitCode << ExitCode, true);
@@ -757,6 +776,28 @@ private:
 										CStr Default = _AnsiEncoding.f_Default();
 
 										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << pClock->f_GetTime() << Default << nDone << nTotalLaunches, true);
+									}
+
+
+									if
+										(
+											_Settings.m_bLaunchPerSuite
+											&& ExitCode != 0
+											&& fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, _Settings.m_FlakySuites)
+											&& pFlakyState->m_nTries < c_MaxFlakyTries
+										)
+									{
+										fOutputThisTest("Test suite is flaky, rescheduling {}/{}"_f << pFlakyState->m_nTries << c_MaxFlakyTries, true);
+										++pFlakyState->m_nTries;
+										NotLaunched.f_Insert(pFlakyState->m_Params);
+									}
+									else
+									{
+										if (ExitCode != 0)
+											++nFailed;
+
+										++nDone;
+										CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
 									}
 
 									fAddLaunches();
@@ -798,6 +839,7 @@ private:
 
 					fModifyEnvironment(Params, Executable);
 
+					pFlakyState->m_Params = Params;
 					NotLaunched.f_Insert(fg_Move(Params));
 				}
 				nTotalLaunches = NotLaunched.f_GetLen();
