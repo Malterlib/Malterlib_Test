@@ -340,9 +340,7 @@ namespace NMib::NTest
 							}
 						;
 
-						CTestPathRestoringScope RestorePathScope;
-
-						auto &ThreadLocal = **g_SystemThreadLocal;
+						auto &ThreadLocal = fg_SystemThreadLocal();
 						auto OldFlags = ThreadLocal.m_ExtraCoroutineFlags;
 						ThreadLocal.m_ExtraCoroutineFlags |= NConcurrency::ECoroutineFlag_CaptureExceptions;
 
@@ -352,7 +350,13 @@ namespace NMib::NTest
 							}
 						;
 
-						(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_Function)).f_CallSync(pRunLoop);
+						if (fg_GroupActive("Performance"))
+							(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_Function)).f_CallSync(pRunLoop);
+						else
+						{
+							CTestPathRestoringScope RestorePathScope;
+							(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_Function)).f_CallSync(pRunLoop);
+						}
 					}
 				)
 			;
