@@ -56,78 +56,78 @@ struct CRunAllTestsApplication : public NMib::CApplication
 		auto RunAllTestsCommand = Section.f_RegisterDirectCommand
 			(
 				{
-					"Names"_= {"--run-all-tests"}
-					, "Description"_= "List test suites contained in this binary.\n"
-					, "Options"_=
+					"Names"_o= {"--run-all-tests"}
+					, "Description"_o= "List test suites contained in this binary.\n"
+					, "Options"_o=
 					{
-						"Parallel?"_=
+						"Parallel?"_o=
 						{
-							"Names"_= {"--parallel", "-p"}
-							, "Default"_= true
-							, "Description"_= "Run tests in paralell utilizing all cores.\n"
+							"Names"_o= {"--parallel", "-p"}
+							, "Default"_o= true
+							, "Description"_o= "Run tests in paralell utilizing all cores.\n"
 						}
-						, "Quiet?"_=
+						, "Quiet?"_o=
 						{
-							"Names"_= {"--quiet"}
-							, "Default"_= true
-							, "Description"_= "Don't output test results unless a failure occurs.\n"
+							"Names"_o= {"--quiet"}
+							, "Default"_o= true
+							, "Description"_o= "Don't output test results unless a failure occurs.\n"
 						}
-						, "QuietStats?"_=
+						, "QuietStats?"_o=
 						{
-							"Names"_= {"--quiet-stats"}
-							, "Default"_= false
-							, "Description"_= "Don't output memory and concurrency statistics.\n"
+							"Names"_o= {"--quiet-stats"}
+							, "Default"_o= false
+							, "Description"_o= "Don't output memory and concurrency statistics.\n"
 						}
-						, "Loop?"_=
+						, "Loop?"_o=
 						{
-							"Names"_= {"--loop"}
-							, "Default"_= false
-							, "Description"_= "Loop tests until aborted.\n"
+							"Names"_o= {"--loop"}
+							, "Default"_o= false
+							, "Description"_o= "Loop tests until aborted.\n"
 						}
-						, "MemoryPerTest?"_=
+						, "MemoryPerTest?"_o=
 						{
-							"Names"_= {"--memory-per-test"}
-							, "Default"_= mc_DefaultMemoryPerTest
-							, "Description"_= "The amount of memory needed per test. Concurrency will be limited by amount of available memory.\n"
+							"Names"_o= {"--memory-per-test"}
+							, "Default"_o= mc_DefaultMemoryPerTest
+							, "Description"_o= "The amount of memory needed per test. Concurrency will be limited by amount of available memory.\n"
 						}
-						, "Timeout?"_=
+						, "Timeout?"_o=
 						{
-							"Names"_= {"--timeout"}
-							, "Default"_= fp64::fs_Inf()
-							, "Description"_= "Stop tests after this timeout.\n"
+							"Names"_o= {"--timeout"}
+							, "Default"_o= fp64::fs_Inf()
+							, "Description"_o= "Stop tests after this timeout.\n"
 						}
-						, "LoopIterations?"_=
+						, "LoopIterations?"_o=
 						{
-							"Names"_= {"--iterations", "-i"}
-							, "Default"_= 0
-							, "Description"_= "Abort loop after iterations.\n"
+							"Names"_o= {"--iterations", "-i"}
+							, "Default"_o= 0
+							, "Description"_o= "Abort loop after iterations.\n"
 						}
-						, "LoopAbortOnFailure?"_=
+						, "LoopAbortOnFailure?"_o=
 						{
-							"Names"_= {"--abort-on-failure", "-a"}
-							, "Default"_= false
-							, "Description"_= "Abort loop after first failure.\n"
+							"Names"_o= {"--abort-on-failure", "-a"}
+							, "Default"_o= false
+							, "Description"_o= "Abort loop after first failure.\n"
 						}
-						, "LaunchPerSuite?"_=
+						, "LaunchPerSuite?"_o=
 						{
-							"Names"_= {"--launch-per-suite"}
-							, "Default"_= true
-							, "Description"_= "Launch the executable per suite.\n"
+							"Names"_o= {"--launch-per-suite"}
+							, "Default"_o= true
+							, "Description"_o= "Launch the executable per suite.\n"
 						}
-						, "FlakySuites?"_=
+						, "FlakySuites?"_o=
 						{
-							"Names"_= {"--flaky-suites"}
-							, "Type"_= {""}
-							, "Default"_= fg_GetSys()->f_GetEnvironmentVariable("MalterlibFlakySuites", "").f_Split<true>(";")
-							, "Description"_= "Wildcard for test paths that are expected flaky. These tests will be rerun up to 10 times to check for success.\n"
+							"Names"_o= {"--flaky-suites"}
+							, "Type"_o= {""}
+							, "Default"_o= fg_GetSys()->f_GetEnvironmentVariable("MalterlibFlakySuites", "").f_Split<true>(";")
+							, "Description"_o= "Wildcard for test paths that are expected flaky. These tests will be rerun up to 10 times to check for success.\n"
 							"Will only be respected when --launch-per-suite is true.\n"
 						}
-						, "Groups?"_=
+						, "Groups?"_o=
 						{
-							"Names"_= {"--groups", "-g"}
-							, "Default"_= {"Default"}
-							, "Type"_= {GroupsList}
-							, "Description"_= "Specify the groups to include in test.\n"
+							"Names"_o= {"--groups", "-g"}
+							, "Default"_o= {"Default"}
+							, "Type"_o= {GroupsList}
+							, "Description"_o= "Specify the groups to include in test.\n"
 							"@Indent=17\r"
 							"   Default:      Run tests without a group specified.\r"
 							"   Performance:  Run tests with Performance group specified.\r"
@@ -139,55 +139,55 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							"   SuperUser:    Run tests with SuperUser group specified.\r"
 							"\r"
 						}
-						, "Paths?"_=
+						, "Paths?"_o=
 						{
-							"Names"_= {"--paths"}
-							, "Default"_= _[_]
-							, "Type"_= {""}
-							, "Description"_= "Specify the paths to include in test.\n"
+							"Names"_o= {"--paths"}
+							, "Default"_o= _[_]
+							, "Type"_o= {""}
+							, "Description"_o= "Specify the paths to include in test.\n"
 						}
 #if DMalterlibCodeCoverage
-						, "Coverage?"_=
+						, "Coverage?"_o=
 						{
-							"Names"_= {"--coverage"}
-							, "Default"_= true
-							, "Description"_= "Record code coverage and report results.\n"
+							"Names"_o= {"--coverage"}
+							, "Default"_o= true
+							, "Description"_o= "Record code coverage and report results.\n"
 						}
-						, "CoverageOnly?"_=
+						, "CoverageOnly?"_o=
 						{
-							"Names"_= {"--coverage-only"}
-							, "Default"_= false
-							, "Description"_= "Only display coverage results from previous run, don't run tests.\n"
+							"Names"_o= {"--coverage-only"}
+							, "Default"_o= false
+							, "Description"_o= "Only display coverage results from previous run, don't run tests.\n"
 						}
-						, "CoverageSources?"_=
+						, "CoverageSources?"_o=
 						{
-							"Names"_= {"--coverage-sources"}
-							, "Default"_= _[_]
-							, "Type"_= {""}
-							, "Description"_= "Only display coverage for these source files. Can use wildcarcds.\n"
+							"Names"_o= {"--coverage-sources"}
+							, "Default"_o= _[_]
+							, "Type"_o= {""}
+							, "Description"_o= "Only display coverage for these source files. Can use wildcarcds.\n"
 						}
-						, "CoverageExecutable?"_=
+						, "CoverageExecutable?"_o=
 						{
-							"Names"_= {"--coverage-executable"}
-							, "Default"_= ""
-							, "Description"_= "Specify the executable used to display code coverage results\n"
+							"Names"_o= {"--coverage-executable"}
+							, "Default"_o= ""
+							, "Description"_o= "Specify the executable used to display code coverage results\n"
 						}
 #endif
 					}
-					, "Parameters"_=
+					, "Parameters"_o=
 					{
-						"TestParams...?"_=
+						"TestParams...?"_o=
 						{
-							"Type"_= {""}
-							, "Default"_= _[_]
-							, "Description"_= "The parameters to forward to the individual tests."
+							"Type"_o= {""}
+							, "Default"_o= _[_]
+							, "Description"_o= "The parameters to forward to the individual tests."
 						}
 					}
-					, "ErrorOnCommandAsParameter"_= false
-					, "ErrorOnOptionAsParameter"_= false
-					, "GreedyDefaultCommandParameters"_= true
+					, "ErrorOnCommandAsParameter"_o= false
+					, "ErrorOnOptionAsParameter"_o= false
+					, "GreedyDefaultCommandParameters"_o= true
 				}
-				, [this](NEncoding::CEJSON const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
+				, [this](NEncoding::CEJSONSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
 				{
 					return fp_RunTests(_Parameters, _CommandLineClient.f_AnsiEncoding());
 				}
@@ -212,7 +212,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 private:
 	struct CSettings
 	{
-		CSettings(NEncoding::CEJSON const &_Parameters)
+		CSettings(NEncoding::CEJSONSorted const &_Parameters)
 			: m_TestParams(_Parameters["TestParams"].f_StringArray())
 			, m_TestGroups(_Parameters["Groups"].f_StringArray())
 			, m_TestPaths(_Parameters["Paths"].f_StringArray())
@@ -980,7 +980,7 @@ private:
 		return CombinedExitCode;
 	}
 
-	aint fp_RunTests(NEncoding::CEJSON const &_Parameters, CAnsiEncoding const &_AnsiEncoding)
+	aint fp_RunTests(NEncoding::CEJSONSorted const &_Parameters, CAnsiEncoding const &_AnsiEncoding)
 	{
 		CSettings Settings(_Parameters);
 
