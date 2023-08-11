@@ -734,7 +734,7 @@ private:
 						NProcess::CProcessLaunchParams m_Params;
 					};
 
-					TCSharedPointer<CFlakyState> pFlakyState = fg_Construct();
+					TCSharedPointerSupportWeak<CFlakyState> pFlakyState = fg_Construct();
 
 					constexpr mint c_MaxFlakyTries = 10;
 
@@ -743,7 +743,7 @@ private:
 							LaunchPath
 							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
-							, [&, pFlakyState, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
+							, [&, pFlakyStateWeak = pFlakyState.f_Weak(), pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
 							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 							{
 								if (*pExited)
@@ -778,12 +778,15 @@ private:
 										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << pClock->f_GetTime() << Default << nDone << nTotalLaunches, true);
 									}
 
+									auto pFlakyState = pFlakyStateWeak.f_Lock();
+
 
 									if
 										(
 											_Settings.m_bLaunchPerSuite
 											&& ExitCode != 0
 											&& fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, _Settings.m_FlakySuites)
+											&& pFlakyState
 											&& pFlakyState->m_nTries < c_MaxFlakyTries
 										)
 									{
