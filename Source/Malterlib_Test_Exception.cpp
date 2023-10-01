@@ -332,7 +332,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (std::exception const& _Exception)
 			{
-				CStr ReportData = " Uncaught {} exception{}"_f << NStr::CStr(_Exception.what()) << NStr::CStr(ExtraReportData);
+				CStr ReportData = "Uncaught exception: {}{}"_f << NStr::CStr(_Exception.what()) << NStr::CStr(ExtraReportData);
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
