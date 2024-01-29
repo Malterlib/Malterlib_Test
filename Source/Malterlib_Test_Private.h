@@ -64,6 +64,7 @@ namespace NMib::NTest::NPrivate
 		, ETestResultReportFlag_Report = DMibBit(0)
 		, ETestResultReportFlag_AskReport = DMibBit(1)
 		, ETestResultReportFlag_Abort = DMibBit(2)
+		, ETestResultReportFlag_FromException = DMibBit(3)
 	};
 
 	void fg_SetTestLastLocation(const ch8 *_pFile, int32 _Line);
@@ -79,6 +80,7 @@ namespace NMib::NTest::NPrivate
 	bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter);
 	bool fg_GetEnableExceptionFilter();
 	void fg_PopCategory(NStr::CStr const &PreviousPath);
+	NStr::CStr fg_GetExceptionCategoryPath();
 	NContainer::TCSet<NStr::CStr> fg_SetGroups(const NContainer::TCSet<NStr::CStr> &_Groups);
 	NContainer::TCSet<NStr::CStr> fg_GetGroups();
 	NContainer::TCVector<NStr::CStr> fg_DumpTestException();

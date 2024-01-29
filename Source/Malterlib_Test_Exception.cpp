@@ -191,7 +191,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -209,7 +209,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -227,7 +227,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -245,7 +245,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -263,7 +263,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -281,7 +281,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -301,7 +301,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -326,7 +326,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -344,7 +344,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}
@@ -361,7 +361,7 @@ namespace NMib::NTest::NPrivate
 						, _Line
 						, ExtraReportData
 						, ETestFlag_None
-						, ETestResultReportFlag_AskReport
+						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)
 				;
 			}

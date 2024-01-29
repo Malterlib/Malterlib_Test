@@ -134,6 +134,7 @@ namespace NMib::NTest
 				NStorage::TCAutoClearPtr<CThreadLocal const> m_pInherit;
 				mutable NThread::CMutual m_TestPathLock;
 				NStr::CStr m_TestPath;
+				NStr::CStr m_ExceptionTestPath;
 				mutable NThread::CMutual m_PropertiesLock;
 				NContainer::TCSet<NStr::CStr> m_TestGroups;
 				CTestResults *m_pResults = nullptr;
@@ -446,11 +447,23 @@ namespace NMib::NTest
 			o_Line = ThreadLocal.m_LastTestLine;
 		}
 
+		NStr::CStr fg_GetExceptionCategoryPath()
+		{
+			CTestManager *pTestManager = g_Tests;
+			CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
+			DMibLock(ThreadLocal.m_TestPathLock);
+			if (ThreadLocal.m_ExceptionTestPath)
+				return fg_Move(ThreadLocal.m_ExceptionTestPath);
+			return {};
+		}
+
 		void fg_PopCategory(NStr::CStr const &PreviousPath)
 		{
 			CTestManager *pTestManager = g_Tests;
 			CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
 			DMibLock(ThreadLocal.m_TestPathLock);
+			if (!ThreadLocal.m_ExceptionTestPath && NException::fg_UncaughtExceptions() > 0)
+				ThreadLocal.m_ExceptionTestPath = ThreadLocal.m_TestPath;
 			ThreadLocal.m_TestPath = PreviousPath;
 		}
 
@@ -621,6 +634,11 @@ namespace NMib::NTest
 				, ETestResultReportFlag _AlwaysReport
 			)
 		{
+			NStr::CStr TestPath;
+
+			if (_AlwaysReport & ETestResultReportFlag_FromException)
+				TestPath = fg_GetExceptionCategoryPath();
+
 			if
 				(
 					_AlwaysReport & ETestResultReportFlag_Report
@@ -634,10 +652,13 @@ namespace NMib::NTest
 				CTestManager *pTestManager = g_Tests;
 				auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 
+				if (!TestPath)
+					TestPath = ThreadLocal.m_TestPath;
+
 				pTestManager->f_GetResults(ThreadLocal)->f_ReportResult
 					(
 						_Result
-						, ThreadLocal.m_TestPath
+						, TestPath
 						, _Description
 						, _Values
 						, CTestLocation(_File, _Line)
