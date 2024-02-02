@@ -1111,7 +1111,7 @@ namespace NMib::NTest
 		pCommandLineSpec->f_AddHelpCommand();
 		pCommandLineSpec->f_AddTerminalOptions();
 
-		auto Section = pCommandLineSpec->f_AddSection("Test", "Commands for running tests");
+		auto Section = pCommandLineSpec->f_AddSection("Test", "Commands for running tests.");
 
 		auto fRunTests = [](NEncoding::CEJSONSorted const &_Parameters, CRunTestOptions const &_RunOptions, NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags) -> uint32
 			{
@@ -1274,7 +1274,7 @@ namespace NMib::NTest
 				, "Description"_o= "Filter test results.\n"
 				"@Indent=23\r"
 				"   All:                Report all test results.\r"
-				"   Default:            Report default test results. This includes Warning, Fail, FailAndStop\r"
+				"   Default:            Report default test results. This includes Warning, Fail, FailAndStop.\r"
 				"   Success:            Report successful tests.\r"
 				"   Ignore:             Report ignored tests.\r"
 				"   Warning:            Report tests with warnings.\r"

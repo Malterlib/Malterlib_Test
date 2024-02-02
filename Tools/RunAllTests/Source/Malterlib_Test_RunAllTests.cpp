@@ -51,7 +51,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 		pCommandLineSpec->f_AddHelpCommand();
 		pCommandLineSpec->f_AddTerminalOptions();
 
-		auto Section = pCommandLineSpec->f_AddSection("Test", "Run tests");
+		auto Section = pCommandLineSpec->f_AddSection("Test", "Run tests.");
 		auto GroupsList = NCommandLine::COneOf{"Default", "Performance", "Torture", "Memory", "Unfinished", "Expensive", "Manual", "SuperUser"};
 		auto RunAllTestsCommand = Section.f_RegisterDirectCommand
 			(
@@ -170,7 +170,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						{
 							"Names"_o= {"--coverage-executable"}
 							, "Default"_o= ""
-							, "Description"_o= "Specify the executable used to display code coverage results\n"
+							, "Description"_o= "Specify the executable used to display code coverage results.\n"
 						}
 #endif
 					}
