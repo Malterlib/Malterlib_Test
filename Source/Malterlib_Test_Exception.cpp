@@ -141,7 +141,8 @@ namespace NMib::NTest::NPrivate
 	NContainer::TCVector<NStr::CStr> fg_DumpTestException()
 	{
 		NContainer::TCVector<NStr::CStr> GeneratedLogs;
-		NSys::fg_Debug_GenerateCrashDump("", "", GeneratedLogs, false);
+		// Disable for now. Can cause deadlock in Nt Loader
+		// NSys::fg_Debug_GenerateCrashDump("", "", GeneratedLogs, false);
 		return GeneratedLogs;
 	}
 
