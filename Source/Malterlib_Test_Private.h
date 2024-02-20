@@ -134,12 +134,6 @@ namespace NMib::NTest::NPrivate
 
 	class CTest;
 
-	DMibTypeTraitsImplement_MemberTraits(f_TestReport);
-	DMibTypeTraitsImplement_MemberTraits(f_IsIgnored);
-	DMibTypeTraitsImplement_MemberTraits(f_GetVariable);
-	DMibTypeTraitsImplement_MemberTraits(f_ModifyDescription);
-	DMibTypeTraitsImplement_MemberTraits(f_GetExtraData);
-
 	struct CDummyExpression
 	{
 	};
@@ -193,7 +187,13 @@ namespace NMib::NTest::NPrivate
 				else
 					Result = m_Expression.f_Eval(nullptr) ? ETestResult_Success : ETestResult_Fail;
 
-				if constexpr (TCHasMember_f_IsIgnored<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void (NStr::CStr *, bool)>::CReturnType>::mc_Value)
+				if constexpr 
+					(
+						requires ()
+						{
+							m_Expression.f_GetVariable(nullptr, false).f_IsIgnored();
+						}
+					)
 				{
 					if (m_Expression.f_GetVariable(nullptr, false).f_IsIgnored())
 						Result = ETestResult_Ignored;
@@ -204,8 +204,16 @@ namespace NMib::NTest::NPrivate
 
 				NStr::CStr Desc;
 
-				if constexpr (TCHasMember_f_ModifyDescription<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void (NStr::CStr *, bool)>::CReturnType>::mc_Value)
+				if constexpr 
+					(
+						requires ()
+						{
+							m_Expression.f_GetVariable(nullptr, false).f_ModifyDescription(m_Expression.f_GetDesc());
+						}
+					)
+				{
 					Desc = m_Expression.f_GetVariable(nullptr, false).f_ModifyDescription(m_Expression.f_GetDesc());
+				}
 				else
 					Desc = m_Expression.f_GetDesc();
 
@@ -237,8 +245,16 @@ namespace NMib::NTest::NPrivate
 					;
 
 					NStr::CStr ExtraData;
-					if constexpr (TCHasMember_f_GetExtraData<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void (NStr::CStr *, bool)>::CReturnType>::mc_Value)
+					if constexpr 
+						(
+							requires ()
+							{
+								m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
+							}
+						)
+					{
 						ExtraData =  m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
+					}
 
 					if (bNeedValues && !bHasValue)
 						m_Expression.f_Eval(&ValueDesc);
@@ -258,8 +274,16 @@ namespace NMib::NTest::NPrivate
 						)
 					;
 
-					if constexpr (TCHasMember_f_TestReport<typename TCIsMemberCallableWith_f_GetVariable<t_CExpression, void (NStr::CStr *, bool)>::CReturnType>::mc_Value)
+					if constexpr 
+						(
+							requires ()
+							{
+								m_Expression.f_GetVariable(nullptr, false).f_TestReport(fg_GetResultReporter());
+							}
+						)
+					{
 						m_Expression.f_GetVariable(nullptr, false).f_TestReport(fg_GetResultReporter());
+					}
 				}
 
 				return Result != ETestResult_Fail;
@@ -416,11 +440,11 @@ namespace NMib::NTest::NPrivate
 				(
 					NConcurrency::NPrivate::TCIsFuture
 					<
-						typename NTraits::TCIsCallableWith
+						NTraits::TCCallableReturnTypeFor
 						<
 							typename NTraits::TCRemoveReferenceAndQualifiers<tf_CFunction>::CType
 							, void ()
-						>::CReturnType
+						>
 					>::mc_Value
 				)
 			{

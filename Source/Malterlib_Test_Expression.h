@@ -59,19 +59,18 @@ namespace NMib::NTest::NExpression
 
 	namespace NPrivate
 	{
-		DMibPrivateTypeTraitsImplement_MemberTraitsWithNameTraits(Operator, Bool, operator bool, 0, (), , bool, ;, CBaseMixin::*, Normal)
-		DMibPrivateTypeTraitsImplement_MemberTraitsWithNameHas(Operator, Bool, operator bool, 0, (), , ;, CBaseMixin::*, Normal)
-
 		template <typename t_CType>
-		typename TCEnableIf<NTraits::TCIsConvertible<t_CType, bool>::mc_Value || TCHasOperator_Bool<typename NTraits::TCRemoveReference<t_CType>::CType>::mc_Value, bool>::CType
-		fg_ConvertToBool(t_CType &&_Value)
+		bool fg_ConvertToBool(t_CType &&_Value)
+			requires requires (t_CType &&_Value)
+			{
+				bool(_Value);
+			}
 		{
 			return bool(_Value);
 		}
 
 		template <typename t_CType>
-		typename TCEnableIf<!(NTraits::TCIsConvertible<t_CType, bool>::mc_Value || TCHasOperator_Bool<typename NTraits::TCRemoveReference<t_CType>::CType>::mc_Value), bool>::CType
-		fg_ConvertToBool(t_CType &&_Value)
+		bool fg_ConvertToBool(t_CType &&_Value)
 		{
 			return false;
 		}
