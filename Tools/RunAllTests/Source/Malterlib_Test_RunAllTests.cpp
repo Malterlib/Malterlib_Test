@@ -522,6 +522,15 @@ private:
 				}
 			;
 
+			struct CFlakyState
+			{
+				mint m_nTries = 1;
+				NProcess::CProcessLaunchParams m_Params;
+			};
+
+			TCMap<mint, CFlakyState> FlakyStateStates;
+			mint iNextFlakyID = 0;
+
 			TCLinkedList<CProcessLaunchParams> NotLaunched;
 			mint nRunning = 0;
 			mint nDone = 0;
@@ -728,22 +737,17 @@ private:
 					if (!_Settings.m_bLaunchPerSuite)
 						TestParams.f_Insert(_Settings.m_TestPaths);
 
-					struct CFlakyState
-					{
-						mint m_nTries = 1;
-						NProcess::CProcessLaunchParams m_Params;
-					};
-
-					TCSharedPointerSupportWeak<CFlakyState> pFlakyState = fg_Construct();
-
 					constexpr mint c_MaxFlakyTries = 10;
+
+					auto iFlakyID = iNextFlakyID++;
+					auto &FlakyState = FlakyStateStates[iFlakyID];
 
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
 							LaunchPath
 							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
-							, [&, pFlakyStateWeak = pFlakyState.f_Weak(), pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
+							, [&, iFlakyID, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
 							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 							{
 								if (*pExited)
@@ -778,8 +782,7 @@ private:
 										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << pClock->f_GetTime() << Default << nDone << nTotalLaunches, true);
 									}
 
-									auto pFlakyState = pFlakyStateWeak.f_Lock();
-
+									auto pFlakyState = FlakyStateStates.f_FindEqual(iFlakyID);
 
 									if
 										(
@@ -797,7 +800,23 @@ private:
 									else
 									{
 										if (ExitCode != 0)
+										{
+											if (pFlakyState && pFlakyState->m_nTries > 1)
+												fOutputThisTest("Flaky test suite failed on all {} tries"_f << c_MaxFlakyTries, true);
+
 											++nFailed;
+										}
+										else
+										{
+											if (pFlakyState && pFlakyState->m_nTries > 1)
+											{
+												if (_Settings.m_bQuiet)
+													pOutput->f_Clear();
+												fOutputThisTest("Flaky test suite succeeded after {}/{} tries"_f << pFlakyState->m_nTries << c_MaxFlakyTries, true);
+											}
+										}
+
+										FlakyStateStates.f_Remove(iFlakyID);
 
 										++nDone;
 										CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
@@ -842,7 +861,7 @@ private:
 
 					fModifyEnvironment(Params, Executable);
 
-					pFlakyState->m_Params = Params;
+					FlakyState.m_Params = Params;
 					NotLaunched.f_Insert(fg_Move(Params));
 				}
 				nTotalLaunches = NotLaunched.f_GetLen();
