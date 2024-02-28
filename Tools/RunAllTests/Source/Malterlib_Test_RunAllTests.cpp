@@ -528,7 +528,7 @@ private:
 				NProcess::CProcessLaunchParams m_Params;
 			};
 
-			TCMap<mint, CFlakyState> FlakyStateStates;
+			TCSharedPointer<TCMap<mint, CFlakyState>> pFlakyStateStates = fg_Construct();
 			mint iNextFlakyID = 0;
 
 			TCLinkedList<CProcessLaunchParams> NotLaunched;
@@ -740,14 +740,14 @@ private:
 					constexpr mint c_MaxFlakyTries = 10;
 
 					auto iFlakyID = iNextFlakyID++;
-					auto &FlakyState = FlakyStateStates[iFlakyID];
+					auto &FlakyState = (*pFlakyStateStates)[iFlakyID];
 
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
 							LaunchPath
 							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
-							, [&, iFlakyID, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
+							, [&, pFlakyStateStates, iFlakyID, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
 							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
 							{
 								if (*pExited)
@@ -782,7 +782,7 @@ private:
 										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << pClock->f_GetTime() << Default << nDone << nTotalLaunches, true);
 									}
 
-									auto pFlakyState = FlakyStateStates.f_FindEqual(iFlakyID);
+									auto pFlakyState = pFlakyStateStates->f_FindEqual(iFlakyID);
 
 									if
 										(
@@ -816,7 +816,7 @@ private:
 											}
 										}
 
-										FlakyStateStates.f_Remove(iFlakyID);
+										pFlakyStateStates->f_Remove(iFlakyID);
 
 										++nDone;
 										CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
