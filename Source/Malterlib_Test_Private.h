@@ -143,6 +143,12 @@ namespace NMib::NTest::NPrivate
 	{
 	public:
 		bool fp_Evaluate() const
+#ifndef DCompiler_MSVC_Workaround
+			requires NTraits::TCIsSame<t_CExpression, bool>::mc_Value || requires()
+			{
+				this->m_Expression.f_Eval(nullptr);
+			}
+#endif
 		{
 			if constexpr (NTraits::TCIsSame<t_CExpression, bool>::mc_Value)
 			{
@@ -334,6 +340,12 @@ namespace NMib::NTest::NPrivate
 		}
 
 		operator bool () const
+#ifndef DCompiler_MSVC_Workaround
+			requires requires()
+			{
+				fp_Evaluate();
+			}
+#endif
 		{
 			DMibFastCheck(m_bValid);
 			DMibFastCheck(NMib::NTest::NPrivate::fg_InsideTestSuite());
