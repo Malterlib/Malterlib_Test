@@ -90,6 +90,14 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Default"_o= mc_DefaultMemoryPerTest
 							, "Description"_o= "The amount of memory needed per test. Concurrency will be limited by amount of available memory.\n"
 						}
+						, "SuiteOrder?"_o=
+						{
+							"Names"_o= {"--suite-order"}
+							, "Type"_o= COneOf{"natural", "slow_first", "fast_first", "random"}
+							, "Default"_o= "fast_first"
+							, "Description"_o= "The order to schedule the test suites in.\n"
+							"If no previous run time statistics exists, slow_first and fast_first suite order will behave the same as natural order."
+						}
 						, "Timeout?"_o=
 						{
 							"Names"_o= {"--timeout"}
@@ -232,6 +240,7 @@ private:
 			, m_CoverageExecutable(_Parameters["CoverageExecutable"].f_String())
 			, m_CoverageSources(_Parameters["CoverageSources"].f_StringArray())
 #endif
+			, m_SuiteOrder(_Parameters["SuiteOrder"].f_String())
 		{
 			if (!m_bLoopTests)
 				m_nLoops = 1;
@@ -242,6 +251,8 @@ private:
 		TCVector<CStr> m_TestPaths;
 
 		TCSet<CStr> m_FlakySuites;
+
+		CStr m_SuiteOrder;
 
 		int64 m_nLoops = 0;
 		fp64 m_Timeout = fp64::fs_Inf();
@@ -436,6 +447,20 @@ private:
 	}
 #endif
 
+	struct CTestSuite
+	{
+		auto operator <=> (CTestSuite const &) const = default;
+
+		template <typename tf_CStr>
+		void f_Format(tf_CStr &o_Str) const
+		{
+			o_Str += typename tf_CStr::CFormat("{}: {}") << m_Executable << m_Suite;
+		}
+
+		CStr m_Executable;
+		CStr m_Suite;
+	};
+
 	uint32 fp_ExecuteTests(CSettings const &_Settings, CAnsiEncoding const &_AnsiEncoding)
 	{
 #if DMalterlibCodeCoverage
@@ -492,14 +517,60 @@ private:
 		int64 nLoops = 0;
 		mint nThreads = NSys::fg_Thread_GetVirtualCores();
 
-		struct CTestSuite
-		{
-			CStr m_Executable;
-			CStr m_Suite;
-		};
+		CStr ProgramDirectory = NFile::CFile::fs_GetProgramDirectory();
+
+		CHash_SHA256 RuntimesHash;
+
+		auto fAddStringHash = [&](CStr const &_String)
+			{
+				RuntimesHash.f_AddData(_String.f_GetStr(), _String.f_GetLen());
+			}
+		;
+
+		fAddStringHash(ProgramDirectory);
+		fAddStringHash(DMibStringize(DConfig));
+		fAddStringHash(DMibStringize(DArchitecture));
+#ifdef DMibSanitizerEnabled_UndefinedBehavior
+		fAddStringHash("DMibSanitizerEnabled_UndefinedBehavior");
+#endif
+#ifdef DMibSanitizerEnabled_Address
+		fAddStringHash("DMibSanitizerEnabled_Address");
+#endif
+#ifdef DMibSanitizerEnabled_Thread
+		fAddStringHash("DMibSanitizerEnabled_Thread");
+#endif
+		
+		CStr RuntimesPath = CFile::fs_GetUserHomeDirectory() / (".Malterlib/TestRuntimes/{}/TestRuntimes.json"_f << RuntimesHash.f_GetDigest().f_GetString().f_Left(8));
 
 		TCVector<CProcessStatistics> MemoryStats;
 		TCVector<CTestSuite> TestSuites;
+
+		struct CSortedTestSuite
+		{
+			CTestSuite const *m_pTestSuite = nullptr;
+			fp64 m_PreviousRunTime = 0.0;
+			mint m_Index = 0;
+		};
+
+		TCVector<CSortedTestSuite> SortedTestSuites;
+
+		TCMap<CTestSuite, fp64> PreviousRunTimes;
+
+		if (CFile::fs_FileExists(RuntimesPath))
+		{
+			CEJSONSorted OutputJSON = CEJSONSorted::fs_FromString(CFile::fs_ReadStringFromFile(RuntimesPath, true), RuntimesPath);
+			for (auto &Suites : fg_Const(OutputJSON).f_Object())
+			{
+				auto Executable = Suites.f_Name();
+
+				for (auto &RunTimes : Suites.f_Value().f_Object())
+					PreviousRunTimes[CTestSuite{.m_Executable = Executable, .m_Suite = RunTimes.f_Name()}] = RunTimes.f_Value().f_Float();
+			}
+		}
+		else if (_Settings.m_SuiteOrder == "fast_first" || _Settings.m_SuiteOrder == "slow_first")
+			DMibConOut2("Warning: No previous runtimes exists for suites{\n}");
+
+		TCMap<CTestSuite, fp64> RunTimes;
 
 		while (!bCancelled && (!_Settings.m_nLoops || (nLoops < _Settings.m_nLoops)) && (!_Settings.m_bAbortOnFailure || !nFailed))
 		{
@@ -605,8 +676,6 @@ private:
 
 					TCSharedPointer<CTestState> pTestState = fg_Construct();
 
-					CStr ProgramDirectory = NFile::CFile::fs_GetProgramDirectory();
-
 					for (mint i = 0; i < g_nAllTests; ++i)
 					{
 						CStr ExecutableName = g_AllTests[i];
@@ -702,8 +771,53 @@ private:
 				if (!_Settings.m_bQuietStats && nLoops == 1)
 					DMibConOut2("Test suite launches {sj8,ns,}{\n}", TestSuites.f_GetLen());
 
-				for (auto &Suite : TestSuites)
 				{
+					mint iSuite = 0;
+					for (auto &Suite : TestSuites)
+					{
+						auto pPrevious = PreviousRunTimes.f_FindEqual(Suite);
+						SortedTestSuites.f_Insert(CSortedTestSuite{.m_pTestSuite = &Suite, .m_PreviousRunTime = pPrevious ? *pPrevious : 0.0, .m_Index = iSuite++});
+					}
+				}
+
+				if (_Settings.m_SuiteOrder == "fast_first" || _Settings.m_SuiteOrder == "slow_first")
+				{
+					SortedTestSuites.f_Sort
+						(
+							[&](CSortedTestSuite const &_Left, CSortedTestSuite const &_Right) -> COrdering_Partial
+							{
+								if (auto Compare = _Left.m_PreviousRunTime <=> _Right.m_PreviousRunTime; Compare != 0)
+									return Compare;
+
+								return _Left.m_Index <=> _Right.m_Index;
+							}
+						)
+					;
+
+					if (_Settings.m_SuiteOrder == "slow_first")
+						SortedTestSuites = SortedTestSuites.f_Reverse();
+				}
+				else if (_Settings.m_SuiteOrder == "random")
+				{
+					for (auto &Suite : SortedTestSuites)
+						Suite.m_Index = fg_GetRandomUnsigned();
+
+					SortedTestSuites.f_Sort
+						(
+							[&](CSortedTestSuite const &_Left, CSortedTestSuite const &_Right) -> COrdering_Partial
+							{
+								if (auto Compare = _Left.m_Index <=> _Right.m_Index; Compare != 0)
+									return Compare;
+
+								return &_Left <=> &_Right;
+							}
+						)
+					;
+				}
+
+				for (auto &SortedSuite : SortedTestSuites)
+				{
+					auto &Suite = *SortedSuite.m_pTestSuite;
 					CStr Executable = Suite.m_Executable;
 
 					NStorage::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
@@ -748,12 +862,14 @@ private:
 							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
 							, [&, pFlakyStateStates, iFlakyID, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
-							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch)
+							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch) mutable
 							{
 								if (*pExited)
 									return;
+
 								if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
 								{
+									pClock->f_Start();
 									if (!_Settings.m_bQuiet)
 									{
 										if (_Settings.m_bLaunchPerSuite)
@@ -761,11 +877,14 @@ private:
 										else
 											DMibConOut2(" {sz*,a-}  Launched{\n}", Executable, MaxTestLen);
 									}
-									pClock->f_Start();
 								}
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
 								{
 									--nRunning;
+
+									auto RunTime = pClock->f_GetTime();
+
+									RunTimes[Suite] = RunTime;
 
 									auto ExitCode = _StateChange.f_Get<EProcessLaunchState_Exited>();
 									if (ExitCode != 0)
@@ -779,7 +898,7 @@ private:
 										CStr Color = _AnsiEncoding.f_StatusNormal();
 										CStr Default = _AnsiEncoding.f_Default();
 
-										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << pClock->f_GetTime() << Default << nDone << nTotalLaunches, true);
+										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << RunTime << Default << nDone << nTotalLaunches, true);
 									}
 
 									auto pFlakyState = pFlakyStateStates->f_FindEqual(iFlakyID);
@@ -950,8 +1069,8 @@ private:
 				auto &Usage = AllUsages.f_Insert();
 
 				Usage.m_Memory = TotalMemoryUsage;
-				if (TestSuites.f_IsPosValid(iStat))
-					Usage.m_Name = TestSuites[iStat].m_Suite;
+				if (SortedTestSuites.f_IsPosValid(iStat))
+					Usage.m_Name = SortedTestSuites[iStat].m_pTestSuite->m_Suite;
 
 				++iStat;
 			}
@@ -997,6 +1116,15 @@ private:
 				DMibConErrOut2("{}{} ouf of {} suites failed{}\n", Color, nFailed, nTotalLaunches, Default);
 			else
 				DMibConErrOut2("{}{} ouf of {} executables failed{}\n", Color, nFailed, nTotalLaunches, Default);
+		}
+
+		{
+			CEJSONSorted OutputJSON = EJSONType_Object;
+			for (auto &RuntimeEntry : RunTimes.f_Entries())
+				OutputJSON[RuntimeEntry.f_Key().m_Executable][RuntimeEntry.f_Key().m_Suite] = RuntimeEntry.f_Value();
+
+			CFile::fs_CreateDirectoryForFile(RuntimesPath);
+			CFile::fs_WriteStringToFile(RuntimesPath, OutputJSON.f_ToString(), false);
 		}
 
 		return CombinedExitCode;
