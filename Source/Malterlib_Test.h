@@ -6,6 +6,7 @@
 #include "Malterlib_Test_Expression.h"
 #include <Mib/Core/RuntimeType>
 #include <Mib/Container/Registry>
+#include <Mib/CommandLine/AnsiEncoding>
 
 namespace NMib::NConcurrency
 {
@@ -383,6 +384,7 @@ namespace NMib::NTest
 		NContainer::TCVector<NStr::CStr> m_ExcludeGroups;
 		ETestReportFlag m_ReportFlags = ETestReportFlag_Default | ETestReportFlag_ReportValues;
 		NMib::NStr::CStr m_ExtraData;
+		NCommandLine::EAnsiEncodingFlag m_AnsiEncodingFlags = NCommandLine::EAnsiEncodingFlag_None;
 	};
 
 	uint32 fg_RunTests(CRunTestOptions const &_Options);

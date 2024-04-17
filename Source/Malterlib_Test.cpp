@@ -850,7 +850,7 @@ namespace NMib::NTest
 						(
 							NLog::CLogToStdErrAnsi
 							(
-								NCommandLine::EAnsiEncodingFlag_Color | NCommandLine::EAnsiEncodingFlag_Color24Bit | NCommandLine::EAnsiEncodingFlag_BoxDrawing
+								_Options.m_AnsiEncodingFlags
 								, LogSeverities
 								, false
 							)
@@ -1122,6 +1122,7 @@ namespace NMib::NTest
 				NPrivate::CNullTestResults NullResults;
 
 				auto RunOptions = _RunOptions;
+				RunOptions.m_AnsiEncodingFlags = _AnsiEncodingFlags;
 				CTestResults *pResults = &DefaultResults;
 				if (RunOptions.m_ReportFlags & ETestReportFlag_ReportCategories)
 					pResults = &CategoryResults;
