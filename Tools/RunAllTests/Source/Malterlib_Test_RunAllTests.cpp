@@ -51,20 +51,76 @@ struct CRunAllTestsApplication : public NMib::CApplication
 		pCommandLineSpec->f_AddHelpCommand();
 		pCommandLineSpec->f_AddTerminalOptions();
 
-		auto Section = pCommandLineSpec->f_AddSection("Test", "Run tests.");
 		auto GroupsList = NCommandLine::COneOf{"Default", "Performance", "Torture", "Memory", "Unfinished", "Expensive", "Manual", "SuperUser"};
+
+		auto Option_SuiteOrder = "SuiteOrder?"_o=
+			{
+				"Names"_o= {"--suite-order"}
+				, "Type"_o= COneOf{"natural", "slow_first", "fast_first", "random"}
+				, "Default"_o= "fast_first"
+				, "Description"_o= "The order to schedule the test suites in.\n"
+				"If no previous run time statistics exists, slow_first and fast_first suite order will behave the same as natural order."
+			}
+		;
+		auto Option_Groups = "Groups?"_o=
+			{
+				"Names"_o= {"--groups", "-g"}
+				, "Default"_o= {"Default"}
+				, "Type"_o= {GroupsList}
+				, "Description"_o= "Specify the groups to include in test.\n"
+				"@Indent=17\r"
+				"   Default:      Run tests without a group specified.\r"
+				"   Performance:  Run tests with Performance group specified.\r"
+				"   Torture:      Run tests with Torture group specified.\r"
+				"   Memory:       Run tests with Performance group specified.\r"
+				"   Unfinished:   Run tests with Unfinished group specified.\r"
+				"   Expensive:    Run tests with Expensive group specified.\r"
+				"   Manual:       Run tests with Manual group specified.\r"
+				"   SuperUser:    Run tests with SuperUser group specified.\r"
+				"\r"
+			}
+		;
+		auto Option_Paths = "Paths?"_o=
+			{
+				"Names"_o= {"--paths"}
+				, "Default"_o= _[_]
+				, "Type"_o= {""}
+				, "Description"_o= "Specify the paths to include in test.\n"
+			}
+		;
+
+		auto Section = pCommandLineSpec->f_AddSection("Test", "Run tests.");
+		Section.f_RegisterDirectCommand
+			(
+				{
+					"Names"_o= {"--list-all-tests"}
+					, "Description"_o= "List all test suites in all test binaries.\n"
+					, "Options"_o=
+					{
+						Option_Groups
+						, Option_Paths
+						, Option_SuiteOrder
+					}
+				}
+				, [this](NEncoding::CEJSONSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
+				{
+					return fp_RunTests(_Parameters, _CommandLineClient.f_AnsiEncoding(), true);
+				}
+			)
+		;
+
 		auto RunAllTestsCommand = Section.f_RegisterDirectCommand
 			(
 				{
 					"Names"_o= {"--run-all-tests"}
-					, "Description"_o= "List test suites contained in this binary.\n"
+					, "Description"_o= "Run all test suites in all test binaries.\n"
 					, "Options"_o=
 					{
 						"Parallel?"_o=
 						{
 							"Names"_o= {"--parallel", "-p"}
 							, "Default"_o= true
-							, "Description"_o= "Run tests in paralell utilizing all cores.\n"
+							, "Description"_o= "Run tests in parallel utilizing all cores.\n"
 						}
 						, "Quiet?"_o=
 						{
@@ -89,14 +145,6 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							"Names"_o= {"--memory-per-test"}
 							, "Default"_o= mc_DefaultMemoryPerTest
 							, "Description"_o= "The amount of memory needed per test. Concurrency will be limited by amount of available memory.\n"
-						}
-						, "SuiteOrder?"_o=
-						{
-							"Names"_o= {"--suite-order"}
-							, "Type"_o= COneOf{"natural", "slow_first", "fast_first", "random"}
-							, "Default"_o= "fast_first"
-							, "Description"_o= "The order to schedule the test suites in.\n"
-							"If no previous run time statistics exists, slow_first and fast_first suite order will behave the same as natural order."
 						}
 						, "Timeout?"_o=
 						{
@@ -130,30 +178,9 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Description"_o= "Wildcard for test paths that are expected flaky. These tests will be rerun up to 10 times to check for success.\n"
 							"Will only be respected when --launch-per-suite is true.\n"
 						}
-						, "Groups?"_o=
-						{
-							"Names"_o= {"--groups", "-g"}
-							, "Default"_o= {"Default"}
-							, "Type"_o= {GroupsList}
-							, "Description"_o= "Specify the groups to include in test.\n"
-							"@Indent=17\r"
-							"   Default:      Run tests without a group specified.\r"
-							"   Performance:  Run tests with Performance group specified.\r"
-							"   Torture:      Run tests with Torgutre group specified.\r"
-							"   Memory:       Run tests with Performance group specified.\r"
-							"   Unfinished:   Run tests with Unfinished group specified.\r"
-							"   Expensive:    Run tests with Expensive group specified.\r"
-							"   Manual:       Run tests with Manual group specified.\r"
-							"   SuperUser:    Run tests with SuperUser group specified.\r"
-							"\r"
-						}
-						, "Paths?"_o=
-						{
-							"Names"_o= {"--paths"}
-							, "Default"_o= _[_]
-							, "Type"_o= {""}
-							, "Description"_o= "Specify the paths to include in test.\n"
-						}
+						, Option_Groups
+						, Option_Paths
+						, Option_SuiteOrder
 #if DMalterlibCodeCoverage
 						, "Coverage?"_o=
 						{
@@ -197,7 +224,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 				}
 				, [this](NEncoding::CEJSONSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
 				{
-					return fp_RunTests(_Parameters, _CommandLineClient.f_AnsiEncoding());
+					return fp_RunTests(_Parameters, _CommandLineClient.f_AnsiEncoding(), false);
 				}
 			)
 		;
@@ -220,27 +247,51 @@ struct CRunAllTestsApplication : public NMib::CApplication
 private:
 	struct CSettings
 	{
-		CSettings(NEncoding::CEJSONSorted const &_Parameters)
-			: m_TestParams(_Parameters["TestParams"].f_StringArray())
-			, m_TestGroups(_Parameters["Groups"].f_StringArray())
-			, m_TestPaths(_Parameters["Paths"].f_StringArray())
-			, m_bParallel(_Parameters["Parallel"].f_Boolean())
-			, m_bLoopTests(_Parameters["Loop"].f_Boolean())
-			, m_bQuiet(_Parameters["Quiet"].f_Boolean())
-			, m_bQuietStats(_Parameters["QuietStats"].f_Boolean())
-			, m_bLaunchPerSuite(_Parameters["LaunchPerSuite"].f_Boolean())
-			, m_bAbortOnFailure(_Parameters["LoopAbortOnFailure"].f_Boolean())
-			, m_nLoops(_Parameters["LoopIterations"].f_Integer())
-			, m_Timeout(_Parameters["Timeout"].f_Float())
-			, m_MemoryPerTest(_Parameters["MemoryPerTest"].f_Integer())
-			, m_FlakySuites(TCSet<CStr>::fs_FromContainer(_Parameters["FlakySuites"].f_StringArray()))
+		template <typename tf_CType>
+		static tf_CType fs_GetSetting(NEncoding::CEJSONSorted const &_Parameters, CStr const &_Name)
+		{
+			auto *pValue = _Parameters.f_GetMember(_Name);
+			if (!pValue)
+				return {};
+
+			if constexpr (TCIsSame<tf_CType, TCVector<CStr>>::mc_Value)
+				return pValue->f_StringArray();
+			else if constexpr (TCIsSame<tf_CType, CStr>::mc_Value)
+				return pValue->f_String();
+			else if constexpr (TCIsSame<tf_CType, bool>::mc_Value)
+				return pValue->f_Boolean();
+			else if constexpr (TCIsSame<tf_CType, fp64>::mc_Value)
+				return pValue->f_Float();
+			else if constexpr (TCIsSame<tf_CType, int64>::mc_Value)
+				return pValue->f_Integer();
+			else
+				static_assert(TCIsSame<tf_CType, void>::mc_Value, "Unsupported type");
+
+			return {};
+		}
+
+		CSettings(NEncoding::CEJSONSorted const &_Parameters, bool _bList)
+			: m_TestParams(fs_GetSetting<TCVector<CStr>>(_Parameters, "TestParams"))
+			, m_TestGroups(fs_GetSetting<TCVector<CStr>>(_Parameters, "Groups"))
+			, m_TestPaths(fs_GetSetting<TCVector<CStr>>(_Parameters, "Paths"))
+			, m_bParallel(fs_GetSetting<bool>(_Parameters, "Parallel"))
+			, m_bLoopTests(fs_GetSetting<bool>(_Parameters, "Loop"))
+			, m_bQuiet(fs_GetSetting<bool>(_Parameters, "Quiet"))
+			, m_bQuietStats(fs_GetSetting<bool>(_Parameters, "QuietStats"))
+			, m_bLaunchPerSuite(_bList || fs_GetSetting<bool>(_Parameters, "LaunchPerSuite"))
+			, m_bAbortOnFailure(fs_GetSetting<bool>(_Parameters, "LoopAbortOnFailure"))
+			, m_nLoops(fs_GetSetting<int64>(_Parameters, "LoopIterations"))
+			, m_Timeout(fs_GetSetting<fp64>(_Parameters, "Timeout"))
+			, m_MemoryPerTest(fs_GetSetting<int64>(_Parameters, "MemoryPerTest"))
+			, m_FlakySuites(TCSet<CStr>::fs_FromContainer(fs_GetSetting<TCVector<CStr>>(_Parameters, "FlakySuites")))
 #if DMalterlibCodeCoverage
-			, m_bCoverage(_Parameters["Coverage"].f_Boolean())
-			, m_bCoverageOnly(_Parameters["CoverageOnly"].f_Boolean())
-			, m_CoverageExecutable(_Parameters["CoverageExecutable"].f_String())
-			, m_CoverageSources(_Parameters["CoverageSources"].f_StringArray())
+			, m_bCoverage(fs_GetSetting<bool>(_Parameters, "Coverage"))
+			, m_bCoverageOnly(fs_GetSetting<bool>(_Parameters, "CoverageOnly"))
+			, m_CoverageExecutable(fs_GetSetting<CStr>(_Parameters, "CoverageExecutable"))
+			, m_CoverageSources(fs_GetSetting<TCVector<CStr>>(_Parameters, "CoverageSources"))
 #endif
-			, m_SuiteOrder(_Parameters["SuiteOrder"].f_String())
+			, m_SuiteOrder(fs_GetSetting<CStr>(_Parameters, "SuiteOrder"))
+			, m_bList(_bList)
 		{
 			if (!m_bLoopTests)
 				m_nLoops = 1;
@@ -270,6 +321,7 @@ private:
 		bool m_bQuietStats = false;
 		bool m_bLaunchPerSuite = false;
 		bool m_bAbortOnFailure = false;
+		bool m_bList = false;
 	};
 
 #if DMalterlibCodeCoverage
@@ -528,6 +580,7 @@ private:
 		;
 
 		fAddStringHash(ProgramDirectory);
+		fAddStringHash(CStr::fs_ToStr(_Settings.m_TestGroups));
 		fAddStringHash(DMibStringize(DConfig));
 		fAddStringHash(DMibStringize(DArchitecture));
 #ifdef DMibSanitizerEnabled_UndefinedBehavior
@@ -539,7 +592,7 @@ private:
 #ifdef DMibSanitizerEnabled_Thread
 		fAddStringHash("DMibSanitizerEnabled_Thread");
 #endif
-		
+
 		CStr RuntimesPath = CFile::fs_GetUserHomeDirectory() / (".Malterlib/TestRuntimes/{}/TestRuntimes.json"_f << RuntimesHash.f_GetDigest().f_GetString().f_Left(8));
 
 		TCVector<CProcessStatistics> MemoryStats;
@@ -611,7 +664,7 @@ private:
 			if (_Settings.m_bParallel)
 				nMaxRunning = fg_Clamp(NProcess::NPlatform::fg_Process_GetPhysicalMemory() / (_Settings.m_MemoryPerTest * 1024 * 1024), 1, nThreads);
 
-			if (!_Settings.m_bQuietStats && nLoops == 1)
+			if (!_Settings.m_bList && !_Settings.m_bQuietStats && nLoops == 1)
 			{
 				DMibConOut2("Concurrency         {sj8,ns,}{\n}", nMaxRunning);
 				DMibConOut2("Memory per test     {sj8,ns,} MiB{\n}", _Settings.m_MemoryPerTest);
@@ -768,7 +821,7 @@ private:
 						TestSuites.f_Insert({g_AllTests[i], ""});
 				}
 
-				if (!_Settings.m_bQuietStats && nLoops == 1)
+				if (!_Settings.m_bList && !_Settings.m_bQuietStats && nLoops == 1)
 					DMibConOut2("Test suite launches {sj8,ns,}{\n}", TestSuites.f_GetLen());
 
 				{
@@ -813,6 +866,17 @@ private:
 							}
 						)
 					;
+				}
+
+				if (_Settings.m_bList)
+				{
+					for (auto &SortedSuite : SortedTestSuites)
+					{
+						auto &Suite = *SortedSuite.m_pTestSuite;
+						CStr Executable = Suite.m_Executable;
+						DMibConOut2("{sz*,a-} {}{\n}", Executable, MaxTestLen, Suite.m_Suite);
+					}
+					return 0;
 				}
 
 				for (auto &SortedSuite : SortedTestSuites)
@@ -1130,9 +1194,9 @@ private:
 		return CombinedExitCode;
 	}
 
-	aint fp_RunTests(NEncoding::CEJSONSorted const &_Parameters, CAnsiEncoding const &_AnsiEncoding)
+	aint fp_RunTests(NEncoding::CEJSONSorted const &_Parameters, CAnsiEncoding const &_AnsiEncoding, bool _bList)
 	{
-		CSettings Settings(_Parameters);
+		CSettings Settings(_Parameters, _bList);
 
 		uint32 Result = 0;
 #if DMalterlibCodeCoverage
