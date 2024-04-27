@@ -212,7 +212,7 @@ Property
 		MalterlibAppTestPostCopyProject "Tests"
 		MalterlibAppTestPostCopyDestination `TestApps/@(Target.BaseFileName)/`
 		EnableTestConfigs true
-		MalterlibLog_Severities ["Error", "Critical", "Warning", "Info"]
+		MalterlibLog_Severities ["Error", "Critical", "Warning", "Info", "Debug"]
 		{
 			!!MalterlibLog_EnableVerboseDebugLog false
 		}
@@ -273,7 +273,7 @@ Property
 	{
 		MalterlibEnableFastLink false
 		EnableTestConfigs true
-		MalterlibLog_Severities ["Error", "Critical", "Warning", "Info"]
+		MalterlibLog_Severities ["Error", "Critical", "Warning", "Info", "Debug"]
 		{
 			!!MalterlibLog_EnableVerboseDebugLog false
 		}
