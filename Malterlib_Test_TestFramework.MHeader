@@ -86,6 +86,7 @@ Property
 			}
 		}
 		MalterlibBuildSystemEmbedCMake false
+		MalterlibTargetNameType "Normal"
 	}
 	Property
 	{
