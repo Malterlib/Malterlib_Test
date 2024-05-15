@@ -307,7 +307,7 @@ namespace NMib::NTest::NPrivate
 				;
 			}
 #endif
-			catch (NException::CException const &_Exception)
+			catch (NException::CExceptionBase const &_Exception)
 			{
 				CStr ReportData = DMibPFileLineFormat " Uncaught {} exception:{\n}{}{}"_f
 					<< _Exception.f_GetFile()
@@ -333,7 +333,7 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (std::exception const& _Exception)
 			{
-				CStr ReportData = "Uncaught exception: {}{}"_f << NStr::CStr(_Exception.what()) << NStr::CStr(ExtraReportData);
+				CStr ReportData = "Uncaught exception: {}{}"_f << NStr::CStr(_Exception.what()) << ExtraReportData;
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -351,6 +351,14 @@ namespace NMib::NTest::NPrivate
 			}
 			catch (...)
 			{
+				CStr ReportData;
+				if (auto Info = fg_TestGetExceptionInfo())
+					ReportData = "Uncaught exception: {}{}"_f << Info << ExtraReportData;
+				else if (auto String = NException::fg_CurrentExceptionString())
+					ReportData = "Uncaught exception: {}{}"_f << String << ExtraReportData;
+				else
+					ReportData = "Unknown exception. {}"_f << ExtraReportData;
+
 				fg_ReportTestResult
 					(
 						ETestResult_Fail
@@ -360,7 +368,7 @@ namespace NMib::NTest::NPrivate
 						, ECheckType_Message
 						, _pFile
 						, _Line
-						, ExtraReportData
+						, ReportData
 						, ETestFlag_None
 						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
 					)

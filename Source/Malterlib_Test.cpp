@@ -53,6 +53,9 @@ namespace NMib::NTest
 			NContainer::TCSet<NStr::CStr> m_CleanupPaths;
 			bool m_bDoFileCleanup = false;
 
+			NThread::CMutual m_ExceptionInfoGeneratorsLock;
+			NContainer::TCVector<NFunction::TCFunctionMovable<NStr::CStr ()>> m_ExceptionInfoGenerators;
+
 			static CTestManager &fs_GetManager();
 
 			class CUniqueTest
@@ -203,6 +206,24 @@ namespace NMib::NTest
 			{
 				DMibLock(m_CleanupPathsLock);
 				m_CleanupPaths[_Directory];
+			}
+
+			void f_AddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_ExceptionHandler)
+			{
+				DMibLock(m_ExceptionInfoGeneratorsLock);
+				m_ExceptionInfoGenerators.f_Insert(fg_Move(_ExceptionHandler));
+			}
+
+			NStr::CStr f_GetExceptionInfo()
+			{
+				DMibLock(m_ExceptionInfoGeneratorsLock);
+				for (auto &fHandler : m_ExceptionInfoGenerators)
+				{
+					if (auto HandlerInfo = fHandler())
+						return HandlerInfo;
+				}
+
+				return {};
 			}
 		};
 
@@ -1102,7 +1123,24 @@ namespace NMib::NTest
 			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
 			pTestManager->f_AddCleanupPath(_Directory);
 #		endif
+	}
 
+	void fg_TestAddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_ExceptionHandler)
+	{
+#		if DMibConfig_Tests_Enable
+			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+			pTestManager->f_AddExceptionInfoGenerator(fg_Move(_ExceptionHandler));
+#		endif
+	}
+
+	NStr::CStr fg_TestGetExceptionInfo()
+	{
+#		if DMibConfig_Tests_Enable
+			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+			return pTestManager->f_GetExceptionInfo();
+#		else
+			return {};
+#		endif
 	}
 
 	uint32 fg_RunTests()
