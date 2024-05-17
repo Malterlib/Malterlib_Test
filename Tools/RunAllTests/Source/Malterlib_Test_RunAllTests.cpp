@@ -543,9 +543,39 @@ private:
 
 		bool bRunningCI = fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true";
 
-		uint32 CombinedExitCode = 0;
-		mint nFailed = 0;
-		mint nTotalLaunches = 0;
+		struct CFlakyState
+		{
+			mint m_nTries = 1;
+			NProcess::CProcessLaunchParams m_Params;
+		};
+
+		struct CState
+		{
+			void f_Clear()
+			{
+				m_nFailed = 0;
+				m_nTotalLaunches = 0;
+				m_FlakyStateStates.f_Clear();
+				m_nRunning = 0;
+				m_nDone = 0;
+				m_NotLaunched.f_Clear();
+			}
+
+			CSettings const m_Settings;
+			CAnsiEncoding const m_AnsiEncoding;
+			TCMap<mint, CFlakyState> m_FlakyStateStates;
+			TCMap<CTestSuite, fp64> m_RunTimes;
+			TCLinkedList<CProcessLaunchParams> m_NotLaunched;
+			TCFunction<void ()> m_fAddLaunches;
+			mint m_nRunning = 0;
+			mint m_nDone = 0;
+			mint m_nFailed = 0;
+			mint m_nTotalLaunches = 0;
+			uint32 m_CombinedExitCode = 0;
+		};
+
+		TCSharedPointer<CState> pState = fg_Construct(CState{.m_Settings = _Settings, .m_AnsiEncoding = _AnsiEncoding});
+
 		bool bCancelled = false;
 		bool bSignalled = false;
 		bool bShouldOutput = false;
@@ -623,9 +653,7 @@ private:
 		else if (_Settings.m_SuiteOrder == "fast_first" || _Settings.m_SuiteOrder == "slow_first")
 			DMibConOut2("Warning: No previous runtimes exists for suites{\n}");
 
-		TCMap<CTestSuite, fp64> RunTimes;
-
-		while (!bCancelled && (!_Settings.m_nLoops || (nLoops < _Settings.m_nLoops)) && (!_Settings.m_bAbortOnFailure || !nFailed))
+		while (!bCancelled && (!_Settings.m_nLoops || (nLoops < _Settings.m_nLoops)) && (!_Settings.m_bAbortOnFailure || !pState->m_nFailed))
 		{
 			++nLoops;
 			MemoryStats.f_Clear();
@@ -646,20 +674,10 @@ private:
 				}
 			;
 
-			struct CFlakyState
-			{
-				mint m_nTries = 1;
-				NProcess::CProcessLaunchParams m_Params;
-			};
-
-			TCSharedPointer<TCMap<mint, CFlakyState>> pFlakyStateStates = fg_Construct();
 			mint iNextFlakyID = 0;
 
-			TCLinkedList<CProcessLaunchParams> NotLaunched;
-			mint nRunning = 0;
-			mint nDone = 0;
-			nFailed = 0;
-			nTotalLaunches = 0;
+			pState->f_Clear();
+
 			mint nMaxRunning = 1;
 			if (_Settings.m_bParallel)
 				nMaxRunning = fg_Clamp(NProcess::NPlatform::fg_Process_GetPhysicalMemory() / (_Settings.m_MemoryPerTest * 1024 * 1024), 1, nThreads);
@@ -673,18 +691,18 @@ private:
 			{
 				auto fAddLaunches = [&]
 					{
-						if (bCancelled || NotLaunched.f_IsEmpty() || nRunning >= nMaxRunning)
+						if (bCancelled || pState->m_NotLaunched.f_IsEmpty() || pState->m_nRunning >= nMaxRunning)
 							return false;
 
-						if (_Settings.m_bAbortOnFailure && nFailed)
+						if (_Settings.m_bAbortOnFailure && pState->m_nFailed)
 						{
-							NotLaunched.f_Clear();
+							pState->m_NotLaunched.f_Clear();
 							return false;
 						}
 
-						auto Params = NotLaunched.f_Pop();
+						auto Params = pState->m_NotLaunched.f_Pop();
 
-						++nRunning;
+						++pState->m_nRunning;
 						LaunchHandler.f_AddLaunch
 							(
 								Params
@@ -696,6 +714,12 @@ private:
 							)
 						;
 						return true;
+					}
+				;
+				pState->m_fAddLaunches = fAddLaunches;
+				auto Cleanup = g_OnScopeExit / [&]
+					{
+						pState->m_fAddLaunches.f_Clear();
 					}
 				;
 				TCVector<TCFunction<void (CStr const &_Description, bool _bForceOutput)>> OutputDeferredOutput;
@@ -915,17 +939,17 @@ private:
 					if (!_Settings.m_bLaunchPerSuite)
 						TestParams.f_Insert(_Settings.m_TestPaths);
 
-					constexpr mint c_MaxFlakyTries = 10;
+					constexpr static mint c_MaxFlakyTries = 10;
 
 					auto iFlakyID = iNextFlakyID++;
-					auto &FlakyState = (*pFlakyStateStates)[iFlakyID];
+					auto &FlakyState = pState->m_FlakyStateStates[iFlakyID];
 
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
 							LaunchPath
 							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
-							, [&, pFlakyStateStates, iFlakyID, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite]
+							, [pState, iFlakyID, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite, MaxTestLen]
 							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch) mutable
 							{
 								if (*pExited)
@@ -934,9 +958,9 @@ private:
 								if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
 								{
 									pClock->f_Start();
-									if (!_Settings.m_bQuiet)
+									if (!pState->m_Settings.m_bQuiet)
 									{
-										if (_Settings.m_bLaunchPerSuite)
+										if (pState->m_Settings.m_bLaunchPerSuite)
 											DMibConOut2(" {sz*,a-}  Launched ({}){\n}", Executable, MaxTestLen, Suite.m_Suite);
 										else
 											DMibConOut2(" {sz*,a-}  Launched{\n}", Executable, MaxTestLen);
@@ -944,41 +968,41 @@ private:
 								}
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
 								{
-									--nRunning;
+									--pState->m_nRunning;
 
 									auto RunTime = pClock->f_GetTime();
 
-									RunTimes[Suite] = RunTime;
+									pState->m_RunTimes[Suite] = RunTime;
 
 									auto ExitCode = _StateChange.f_Get<EProcessLaunchState_Exited>();
 									if (ExitCode != 0)
 									{
-										CStr Color = _AnsiEncoding.f_StatusError();
-										CStr Default = _AnsiEncoding.f_Default();
+										CStr Color = pState->m_AnsiEncoding.f_StatusError();
+										CStr Default = pState->m_AnsiEncoding.f_Default();
 										fOutputThisTest("{}Exited uncleanly with{} {} (0x{nfh,sj8,sf0})"_f << Color << Default << ExitCode << ExitCode, true);
 									}
-									else if (!_Settings.m_bQuiet)
+									else if (!pState->m_Settings.m_bQuiet)
 									{
-										CStr Color = _AnsiEncoding.f_StatusNormal();
-										CStr Default = _AnsiEncoding.f_Default();
+										CStr Color = pState->m_AnsiEncoding.f_StatusNormal();
+										CStr Default = pState->m_AnsiEncoding.f_Default();
 
-										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << RunTime << Default << nDone << nTotalLaunches, true);
+										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << RunTime << Default << pState->m_nDone << pState->m_nTotalLaunches, true);
 									}
 
-									auto pFlakyState = pFlakyStateStates->f_FindEqual(iFlakyID);
+									auto pFlakyState = pState->m_FlakyStateStates.f_FindEqual(iFlakyID);
 
 									if
 										(
-											_Settings.m_bLaunchPerSuite
+											pState->m_Settings.m_bLaunchPerSuite
 											&& ExitCode != 0
-											&& fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, _Settings.m_FlakySuites)
+											&& fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, pState->m_Settings.m_FlakySuites)
 											&& pFlakyState
 											&& pFlakyState->m_nTries < c_MaxFlakyTries
 										)
 									{
 										fOutputThisTest("Test suite is flaky, rescheduling {}/{}"_f << pFlakyState->m_nTries << c_MaxFlakyTries, true);
 										++pFlakyState->m_nTries;
-										NotLaunched.f_Insert(pFlakyState->m_Params);
+										pState->m_NotLaunched.f_Insert(pFlakyState->m_Params);
 									}
 									else
 									{
@@ -987,40 +1011,42 @@ private:
 											if (pFlakyState && pFlakyState->m_nTries > 1)
 												fOutputThisTest("Flaky test suite failed on all {} tries"_f << c_MaxFlakyTries, true);
 
-											++nFailed;
+											++pState->m_nFailed;
 										}
 										else
 										{
 											if (pFlakyState && pFlakyState->m_nTries > 1)
 											{
-												if (_Settings.m_bQuiet)
+												if (pState->m_Settings.m_bQuiet)
 													pOutput->f_Clear();
 												fOutputThisTest("Flaky test suite succeeded after {}/{} tries"_f << pFlakyState->m_nTries << c_MaxFlakyTries, true);
 											}
 										}
 
-										pFlakyStateStates->f_Remove(iFlakyID);
+										pState->m_FlakyStateStates.f_Remove(iFlakyID);
 
-										++nDone;
-										CombinedExitCode = fg_Max(CombinedExitCode, ExitCode);
+										++pState->m_nDone;
+										pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, ExitCode);
 									}
 
-									fAddLaunches();
+									if (pState->m_fAddLaunches)
+										pState->m_fAddLaunches();
 
 									return;
 								}
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_LaunchFailed)
 								{
-									--nRunning;
-									++nDone;
-									++nFailed;
-									CombinedExitCode = fg_Max(CombinedExitCode, uint32(254));
-									CStr Color = _AnsiEncoding.f_StatusError();
-									CStr Default = _AnsiEncoding.f_Default();
+									--pState->m_nRunning;
+									++pState->m_nDone;
+									++pState->m_nFailed;
+									pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(254));
+									CStr Color = pState->m_AnsiEncoding.f_StatusError();
+									CStr Default = pState->m_AnsiEncoding.f_Default();
 
 									fOutputThisTest("{}Failed to launch{}: {}"_f << Color << Default << _StateChange.f_Get<EProcessLaunchState_LaunchFailed>(), true);
 								}
-								fAddLaunches();
+								if (pState->m_fAddLaunches)
+									pState->m_fAddLaunches();
 							}
 							, [pExited, &ToDispatch, &DispatchEvent](NFunction::TCFunction<void ()> const &_Functor)
 							{
@@ -1045,19 +1071,19 @@ private:
 					fModifyEnvironment(Params, Executable);
 
 					FlakyState.m_Params = Params;
-					NotLaunched.f_Insert(fg_Move(Params));
+					pState->m_NotLaunched.f_Insert(fg_Move(Params));
 				}
-				nTotalLaunches = NotLaunched.f_GetLen();
+				pState->m_nTotalLaunches = pState->m_NotLaunched.f_GetLen();
 				while (fAddLaunches())
 					;
 
 				{
-					while (!NotLaunched.f_IsEmpty() || nRunning > 0)
+					while (!pState->m_NotLaunched.f_IsEmpty() || pState->m_nRunning > 0)
 					{
 						while (auto Entry = ToDispatch.f_Pop())
 							(*Entry)();
 
-						if (!NotLaunched.f_IsEmpty() || nRunning > 0)
+						if (!pState->m_NotLaunched.f_IsEmpty() || pState->m_nRunning > 0)
 							DispatchEvent.f_WaitTimeout(bShouldOutput ? 0.05 : 1.0);
 
 						if (bShouldOutput && (SignalClock.f_GetTime() - LastSignal > 0.25))
@@ -1073,7 +1099,7 @@ private:
 
 							if ((LastSignal && (SignalClock.f_GetTime() - LastSignal < 0.25)) || bRunningCI)
 							{
-								CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
+								pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
 								bCancelled = true;
 								break;
 							}
@@ -1085,7 +1111,7 @@ private:
 
 						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutClock.f_GetTime() > _Settings.m_Timeout)
 						{
-							CombinedExitCode = fg_Max(CombinedExitCode, uint32(255));
+							pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
 							DMibConOut2("Timed out - aborting remaining tests{\n}");
 							bCancelled = true;
 							break;
@@ -1172,26 +1198,26 @@ private:
 			}
 		}
 
-		if (nFailed)
+		if (pState->m_nFailed)
 		{
 			CStr Color = _AnsiEncoding.f_StatusError();
 			CStr Default = _AnsiEncoding.f_Default();
 			if (_Settings.m_bLaunchPerSuite)
-				DMibConErrOut2("{}{} ouf of {} suites failed{}\n", Color, nFailed, nTotalLaunches, Default);
+				DMibConErrOut2("{}{} ouf of {} suites failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
 			else
-				DMibConErrOut2("{}{} ouf of {} executables failed{}\n", Color, nFailed, nTotalLaunches, Default);
+				DMibConErrOut2("{}{} ouf of {} executables failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
 		}
 
 		{
 			CEJSONSorted OutputJSON = EJSONType_Object;
-			for (auto &RuntimeEntry : RunTimes.f_Entries())
+			for (auto &RuntimeEntry : pState->m_RunTimes.f_Entries())
 				OutputJSON[RuntimeEntry.f_Key().m_Executable][RuntimeEntry.f_Key().m_Suite] = RuntimeEntry.f_Value();
 
 			CFile::fs_CreateDirectoryForFile(RuntimesPath);
 			CFile::fs_WriteStringToFile(RuntimesPath, OutputJSON.f_ToString(), false);
 		}
 
-		return CombinedExitCode;
+		return pState->m_CombinedExitCode;
 	}
 
 	aint fp_RunTests(NEncoding::CEJSONSorted const &_Parameters, CAnsiEncoding const &_AnsiEncoding, bool _bList)
