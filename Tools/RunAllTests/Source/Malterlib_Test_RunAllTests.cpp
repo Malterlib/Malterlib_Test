@@ -57,7 +57,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 			{
 				"Names"_o= {"--suite-order"}
 				, "Type"_o= COneOf{"natural", "slow_first", "fast_first", "random"}
-				, "Default"_o= "fast_first"
+				, "Default"_o= "slow_first"
 				, "Description"_o= "The order to schedule the test suites in.\n"
 				"If no previous run time statistics exists, slow_first and fast_first suite order will behave the same as natural order."
 			}
