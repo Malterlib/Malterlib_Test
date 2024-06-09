@@ -953,6 +953,12 @@ namespace NMib::NTest
 							NMib::NTest::CTest *pObject = (NMib::NTest::CTest *)pIter->f_CreateObject();
 							if (pObject)
 							{
+								auto Cleanup = g_OnScopeExit / [&]
+									{
+										fg_DeleteObject(NMemory::CDefaultAllocator(), pObject);
+									}
+								;
+
 								CTestExceptionFilter ExceptionFilter;
 								{
 									DMibExceptionFilter(ExceptionFilter);
@@ -990,10 +996,7 @@ namespace NMib::NTest
 											);
 										}
 									}
-
-									delete pObject;
 								}
-
 							}
 						}
 					}

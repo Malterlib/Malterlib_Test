@@ -794,13 +794,13 @@ namespace NMib::NTest::NExpression
 		template <typename t_CType, CLambdaUnderlying t_bLambda>
 		CExpression(TCExpression<t_CType, t_bLambda> const&_Expression)
 		{
-			m_pExpression = DMibNew TCExpressionImpl<TCExpression<t_CType, t_bLambda>>(_Expression);
+			m_pExpression = fg_ConstructObject<TCExpressionImpl<TCExpression<t_CType, t_bLambda>>>(NMemory::CDefaultAllocator(), _Expression);
 		}
 
 		template <typename t_CLeft, typename t_CRight, COperatorUnderlying t_Operator>
 		CExpression(TCExpressionWithOperator<t_CLeft, t_CRight, t_Operator> const&_Expression)
 		{
-			m_pExpression = DMibNew TCExpressionImpl<TCExpressionWithOperator<t_CLeft, t_CRight, t_Operator>>(_Expression);
+			m_pExpression = fg_ConstructObject<TCExpressionImpl<TCExpressionWithOperator<t_CLeft, t_CRight, t_Operator>>>(NMemory::CDefaultAllocator(), _Expression);
 		}
 
 		~CExpression()
