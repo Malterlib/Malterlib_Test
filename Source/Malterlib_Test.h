@@ -385,12 +385,17 @@ namespace NMib::NTest
 		ETestReportFlag m_ReportFlags = ETestReportFlag_Default | ETestReportFlag_ReportValues;
 		NMib::NStr::CStr m_ExtraData;
 		NCommandLine::EAnsiEncodingFlag m_AnsiEncodingFlags = NCommandLine::EAnsiEncodingFlag_None;
+		uint32 m_TerminalWidth = 80;
+		uint32 m_TerminalHeight = 40;
 	};
 
 	uint32 fg_RunTests(CRunTestOptions const &_Options);
 	uint32 fg_RunTests(CTestResults *_pResults, CRunTestOptions const &_Options);
 	uint32 fg_RunTests(); // Parses command line
 	ETestReportFlag fg_TestReportFlags();
+	NCommandLine::EAnsiEncodingFlag fg_TestAnsiEncodingFlags();
+	uint32 fg_TestTerminalWidth();
+	uint32 fg_TestTerminalHeight();
 	NStr::CStr fg_TestGetCurrentPath();
 	NStr::CStr fg_TestGetExtraData();
 	NContainer::TCSet<NStr::CStr> fg_TestGetCurrentGroups();

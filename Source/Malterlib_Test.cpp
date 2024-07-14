@@ -29,7 +29,10 @@ namespace NMib::NTest
 
 			CTestResults *m_pResults;
 
-			ETestReportFlag m_ReportFlags;
+			ETestReportFlag m_ReportFlags = ETestReportFlag_None;
+			NCommandLine::EAnsiEncodingFlag m_AnsiEncodingFlags = NCommandLine::EAnsiEncodingFlag_AllFeatures;
+			uint32 m_TerminalWidth = 80;
+			uint32 m_TerminalHeight = 40;
 
 			NMib::NStr::CStr m_ExtraData;
 
@@ -888,6 +891,9 @@ namespace NMib::NTest
 			CTestManager *pManager = g_Tests;
 
 			pManager->m_ReportFlags = _Options.m_ReportFlags;
+			pManager->m_AnsiEncodingFlags = _Options.m_AnsiEncodingFlags;
+			pManager->m_TerminalWidth = _Options.m_TerminalWidth;
+			pManager->m_TerminalHeight = _Options.m_TerminalHeight;
 			pManager->m_ExtraData = _Options.m_ExtraData;
 
 			_pResults->f_ReportHeader(_Options.m_ReportFlags);
@@ -1120,6 +1126,37 @@ namespace NMib::NTest
 #		endif
 	}
 
+	NCommandLine::EAnsiEncodingFlag fg_TestAnsiEncodingFlags()
+	{
+#		if DMibConfig_Tests_Enable
+			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+			return pTestManager->m_AnsiEncodingFlags;
+#		else
+			return NCommandLine::EAnsiEncodingFlag_AllFeatures;
+#		endif
+	}
+
+	uint32 fg_TestTerminalWidth()
+	{
+#		if DMibConfig_Tests_Enable
+			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+			return pTestManager->m_TerminalWidth;
+#		else
+			return 80;
+#		endif
+	}
+
+	uint32 fg_TestTerminalHeight()
+	{
+#		if DMibConfig_Tests_Enable
+			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+			return pTestManager->m_TerminalHeight;
+#		else
+			return 40;
+#		endif
+	}
+
+
 	void fg_TestAddCleanupPath(NStr::CStr const &_Directory)
 	{
 #		if DMibConfig_Tests_Enable
@@ -1154,16 +1191,15 @@ namespace NMib::NTest
 
 		auto Section = pCommandLineSpec->f_AddSection("Test", "Commands for running tests.");
 
-		auto fRunTests = [](NEncoding::CEJSONSorted const &_Parameters, CRunTestOptions const &_RunOptions, NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags) -> uint32
+		auto fRunTests = [](NEncoding::CEJSONSorted const &_Parameters, CRunTestOptions const &_RunOptions) -> uint32
 			{
 				CRegistryTestResults RegistryResults;
-				NPrivate::CDefaultTestResults DefaultResults(_AnsiEncodingFlags);
-				NPrivate::CDefaultTestResultsBrief BriefResults(_AnsiEncodingFlags);
+				NPrivate::CDefaultTestResults DefaultResults(_RunOptions.m_AnsiEncodingFlags);
+				NPrivate::CDefaultTestResultsBrief BriefResults(_RunOptions.m_AnsiEncodingFlags);
 				NPrivate::CCategoryLister CategoryResults;
 				NPrivate::CNullTestResults NullResults;
 
 				auto RunOptions = _RunOptions;
-				RunOptions.m_AnsiEncodingFlags = _AnsiEncodingFlags;
 				CTestResults *pResults = &DefaultResults;
 				if (RunOptions.m_ReportFlags & ETestReportFlag_ReportCategories)
 					pResults = &CategoryResults;
@@ -1467,7 +1503,11 @@ namespace NMib::NTest
 				{
 					CRunTestOptions RunOptions;
 					RunOptions.m_ReportFlags = ETestReportFlag_None;
-					return fRunTests(_Parameters, RunOptions, _CommandLineClient.f_AnsiEncodingFlags());
+					RunOptions.m_AnsiEncodingFlags = _CommandLineClient.f_AnsiEncodingFlags();
+					RunOptions.m_TerminalWidth = _CommandLineClient.f_CommandLineWidth();
+					RunOptions.m_TerminalHeight = _CommandLineClient.f_CommandLineHeight();
+
+					return fRunTests(_Parameters, RunOptions);
 				}
 			)
 		;
@@ -1495,7 +1535,11 @@ namespace NMib::NTest
 				{
 					CRunTestOptions RunOptions;
 					RunOptions.m_ReportFlags = ETestReportFlag_ReportCategories;
-					return fRunTests(_Parameters, RunOptions, _CommandLineClient.f_AnsiEncodingFlags());
+					RunOptions.m_AnsiEncodingFlags = _CommandLineClient.f_AnsiEncodingFlags();
+					RunOptions.m_TerminalWidth = _CommandLineClient.f_CommandLineWidth();
+					RunOptions.m_TerminalHeight = _CommandLineClient.f_CommandLineHeight();
+
+					return fRunTests(_Parameters, RunOptions);
 				}
 			)
 		;
