@@ -408,7 +408,7 @@ namespace NMib::NSys
 
 	NTime::CClock Clock{true};
 
-	TCActorResultVector<CTestExecutable> ConcurrentTests;
+	TCFutureVector<CTestExecutable> ConcurrentTests;
 
 	bool bConcurrent = true;
 
@@ -454,13 +454,13 @@ namespace NMib::NSys
 		;
 
 		if (bConcurrent)
-			fg_ConcurrentDispatch(fg_Move(fRunTest)) > ConcurrentTests.f_AddResult();
+			fg_ConcurrentDispatch(fg_Move(fRunTest)) > ConcurrentTests;
 		else
-			fg_Dispatch(SeparateActor, fg_Move(fRunTest)) > ConcurrentTests.f_AddResult();
+			fg_Dispatch(SeparateActor, fg_Move(fRunTest)) > ConcurrentTests;
 	}
 
 	mint nTests = 0;
-	for (auto &Results : ConcurrentTests.f_GetResults().f_CallSync())
+	for (auto &Results : fg_AllDoneWrapped(ConcurrentTests).f_CallSync())
 	{
 		nTests += Results->m_Tests.f_GetLen();
 		g_TestExecutables->f_Insert(*Results);
