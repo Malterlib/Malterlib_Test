@@ -178,6 +178,14 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Description"_o= "Wildcard for test paths that are expected flaky. These tests will be rerun up to 10 times to check for success.\n"
 							"Will only be respected when --launch-per-suite is true.\n"
 						}
+						, "FlakyErrors?"_o=
+						{
+							"Names"_o= {"--flaky-errors"}
+							, "Type"_o= {""}
+							, "Default"_o= fg_GetSys()->f_GetEnvironmentVariable("MalterlibFlakyErrors", "").f_Split<true>(";")
+							, "Description"_o= "String to look for in test output to determine if the test was flaky. These tests will be rerun up to 10 times to check for success.\n"
+							"Will only be respected when --launch-per-suite is true.\n"
+						}
 						, Option_Groups
 						, Option_Paths
 						, Option_SuiteOrder
@@ -284,6 +292,7 @@ private:
 			, m_Timeout(fs_GetSetting<fp64>(_Parameters, "Timeout"))
 			, m_MemoryPerTest(fs_GetSetting<int64>(_Parameters, "MemoryPerTest"))
 			, m_FlakySuites(TCSet<CStr>::fs_FromContainer(fs_GetSetting<TCVector<CStr>>(_Parameters, "FlakySuites")))
+			, m_FlakyErrors(TCSet<CStr>::fs_FromContainer(fs_GetSetting<TCVector<CStr>>(_Parameters, "FlakyErrors")))
 #if DMalterlibCodeCoverage
 			, m_bCoverage(fs_GetSetting<bool>(_Parameters, "Coverage"))
 			, m_bCoverageOnly(fs_GetSetting<bool>(_Parameters, "CoverageOnly"))
@@ -302,6 +311,7 @@ private:
 		TCVector<CStr> m_TestPaths;
 
 		TCSet<CStr> m_FlakySuites;
+		TCSet<CStr> m_FlakyErrors;
 
 		CStr m_SuiteOrder;
 
@@ -991,11 +1001,27 @@ private:
 
 									auto pFlakyState = pState->m_FlakyStateStates.f_FindEqual(iFlakyID);
 
+									auto fHasFlakyError = [&]() -> bool
+										{
+											for (auto &ErrorString : pState->m_Settings.m_FlakyErrors)
+											{
+												if (pOutput->f_Find(ErrorString) >= 0)
+													return true;
+											}
+
+											return false;
+										}
+									;
+
 									if
 										(
 											pState->m_Settings.m_bLaunchPerSuite
 											&& ExitCode != 0
-											&& fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, pState->m_Settings.m_FlakySuites)
+											&&
+											(
+												fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, pState->m_Settings.m_FlakySuites)
+												|| fHasFlakyError()
+											)
 											&& pFlakyState
 											&& pFlakyState->m_nTries < c_MaxFlakyTries
 										)
