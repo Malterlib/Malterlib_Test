@@ -419,7 +419,7 @@ namespace NMib::NTest
 
 #include "Malterlib_Test_Private.h"
 
-#if defined(DCompiler_MSVC) && defined(DMibSanitizerEnabled_Address) && _MSC_FULL_VER == 194033811
+#if defined(DCompiler_MSVC) && defined(DMibSanitizerEnabled_Address) && _MSC_VER <= 1941
 //#pragma message("Current compiler version: " DMibStringize(_MSC_FULL_VER))
 #define DCompiler_MSVC_Workaround_DllsBroken
 #endif
