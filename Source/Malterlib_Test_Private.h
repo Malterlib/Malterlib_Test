@@ -139,9 +139,10 @@ namespace NMib::NTest::NPrivate
 	};
 
 	template <bool t_bFailureOnly, typename t_CExpression = CDummyExpression>
-	class TCTestFunctionHelper
+	struct TCTestFunctionHelper
 	{
-	public:
+		t_CExpression m_Expression;
+
 		bool fp_Evaluate() const
 #ifndef DCompiler_MSVC_Workaround
 			requires NTraits::TCIsSame<t_CExpression, bool>::mc_Value || requires()
@@ -411,7 +412,6 @@ namespace NMib::NTest::NPrivate
 			return TCTestFunctionHelper<t_bFailureOnly, bool>(fg_Move(*this), _bExpression);
 		}
 
-		t_CExpression m_Expression;
 		ETest m_FailureAction;
 		ETestFlag m_Flags;
 		const ch8 *m_pFile;
