@@ -985,22 +985,6 @@ private:
 									pState->m_RunTimes[Suite] = RunTime;
 
 									auto ExitCode = _StateChange.f_Get<EProcessLaunchState_Exited>();
-									if (ExitCode != 0)
-									{
-										CStr Color = pState->m_AnsiEncoding.f_StatusError();
-										CStr Default = pState->m_AnsiEncoding.f_Default();
-										fOutputThisTest("{}Exited uncleanly with{} {} (0x{nfh,sj8,sf0})"_f << Color << Default << ExitCode << ExitCode, true);
-									}
-									else if (!pState->m_Settings.m_bQuiet)
-									{
-										CStr Color = pState->m_AnsiEncoding.f_StatusNormal();
-										CStr Default = pState->m_AnsiEncoding.f_Default();
-
-										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << RunTime << Default << pState->m_nDone << pState->m_nTotalLaunches, true);
-									}
-
-									auto pFlakyState = pState->m_FlakyStateStates.f_FindEqual(iFlakyID);
-
 									auto fHasFlakyError = [&]() -> bool
 										{
 											for (auto &ErrorString : pState->m_Settings.m_FlakyErrors)
@@ -1013,6 +997,25 @@ private:
 										}
 									;
 
+									bool bHasFlakyError = false;
+
+									if (ExitCode != 0)
+									{
+										CStr Color = pState->m_AnsiEncoding.f_StatusError();
+										CStr Default = pState->m_AnsiEncoding.f_Default();
+										bHasFlakyError = fHasFlakyError();
+										fOutputThisTest("{}Exited uncleanly with{} {} (0x{nfh,sj8,sf0})"_f << Color << Default << ExitCode << ExitCode, true);
+									}
+									else if (!pState->m_Settings.m_bQuiet)
+									{
+										CStr Color = pState->m_AnsiEncoding.f_StatusNormal();
+										CStr Default = pState->m_AnsiEncoding.f_Default();
+
+										fOutputThisTest("{}{fe1} s{}   {}/{} done"_f << Color << RunTime << Default << pState->m_nDone << pState->m_nTotalLaunches, true);
+									}
+
+									auto pFlakyState = pState->m_FlakyStateStates.f_FindEqual(iFlakyID);
+
 									if
 										(
 											pState->m_Settings.m_bLaunchPerSuite
@@ -1020,7 +1023,7 @@ private:
 											&&
 											(
 												fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, pState->m_Settings.m_FlakySuites)
-												|| fHasFlakyError()
+												|| bHasFlakyError
 											)
 											&& pFlakyState
 											&& pFlakyState->m_nTries < c_MaxFlakyTries
