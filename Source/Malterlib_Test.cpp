@@ -365,6 +365,7 @@ namespace NMib::NTest
 							}
 						;
 
+#if DMibConfig_Tests_Enable
 						auto &ThreadLocal = fg_SystemThreadLocal();
 						auto OldFlags = ThreadLocal.m_ExtraCoroutineFlags;
 						ThreadLocal.m_ExtraCoroutineFlags |= NConcurrency::ECoroutineFlag_CaptureExceptions;
@@ -374,6 +375,7 @@ namespace NMib::NTest
 								ThreadLocal.m_ExtraCoroutineFlags = OldFlags;
 							}
 						;
+#endif
 
 						if (fg_GroupActive("Performance"))
 							(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_Function)).f_CallSync(pRunLoop);
