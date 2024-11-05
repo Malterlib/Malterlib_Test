@@ -855,7 +855,7 @@ namespace NMib::NTest
 									LogActor
 									, fg_Move(_fToDispatch)
 								)
-								> NConcurrency::fg_DiscardResult()
+								.f_DiscardResult()
 							;
 						}
 					)
@@ -1561,7 +1561,7 @@ namespace NMib::NTest
 			return 1;
 		}
 
-		return Client.f_RunCommand(ParsedCommandLine.m_Command, ParsedCommandLine.m_Params);
+		return Client.f_RunCommand(fg_Move(ParsedCommandLine.m_Command), fg_Move(ParsedCommandLine.m_Params));
 	}
 
 	bool fg_GroupActive(NStr::CStr const &_Group)
