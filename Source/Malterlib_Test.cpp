@@ -1570,4 +1570,11 @@ namespace NMib::NTest
 		return false;
 #endif
 	}
+
+	CTestCategory operator << (NStr::CStr const &_CategoryName, CTestGroup const &_Group)
+	{
+		CTestCategory Return(_CategoryName);
+		Return << _Group;
+		return Return;
+	}
 }

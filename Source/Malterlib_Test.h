@@ -266,6 +266,11 @@ namespace NMib::NTest
 		NContainer::TCVector<CTestMemoryResult> m_Results;
 	};
 
+	class CTestCategory;
+	class CTestGroup;
+
+	CTestCategory operator << (NStr::CStr const &_CategoryName, CTestGroup const &_Group);
+
 	class CTestGroup
 	{
 		NStr::CStr mp_Group;
@@ -289,6 +294,8 @@ namespace NMib::NTest
 		{
 			return mp_Group;
 		}
+
+		friend CTestCategory operator << (NStr::CStr const &_CategoryName, CTestGroup const &_Group);
 	};
 
 	class CTestCategory
