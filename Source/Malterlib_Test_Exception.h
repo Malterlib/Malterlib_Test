@@ -30,7 +30,8 @@ namespace NMib::NTest
 			catch ([[maybe_unused]] NException::CExceptionBase const &_Exception)
 			{
 #if DMibConfig_Tests_Enable
-				NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+				using namespace NStr;
+				NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 #endif
 				return false;
 			}
@@ -75,8 +76,9 @@ namespace NMib::NTest
 					catch ([[maybe_unused]] t_CException const &_Exception)
 					{
 #if DMibConfig_Tests_Enable
+						using namespace NStr;
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-							NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+							NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 						else
 							NPrivate::fg_SetDynamicValue("");
 #endif
@@ -103,8 +105,9 @@ namespace NMib::NTest
 				catch ([[maybe_unused]] t_CException const &_Exception)
 				{
 #if DMibConfig_Tests_Enable
+					using namespace NStr;
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-						NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+						NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 #endif
 					return true;
 				}
@@ -144,8 +147,9 @@ namespace NMib::NTest
 					catch ([[maybe_unused]] t_CException const &_Exception)
 					{
 #if DMibConfig_Tests_Enable
+						using namespace NStr;
 						if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-							NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+							NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 						else
 							NPrivate::fg_SetDynamicValue({});
 #endif
@@ -169,8 +173,9 @@ namespace NMib::NTest
 				catch ([[maybe_unused]] t_CException const &_Exception)
 				{
 #if DMibConfig_Tests_Enable
+					using namespace NStr;
 					if constexpr (NTraits::TCIsBaseOf<t_CException, NException::CExceptionBase>::mc_Value)
-						NPrivate::fg_SetDynamicValue(_Exception.f_GetClass());
+						NPrivate::fg_SetDynamicValue("{}\n{}"_f << _Exception.f_GetClass() << _Exception.f_GetErrorCharPointer());
 					else
 						NPrivate::fg_SetDynamicValue({});
 #endif
