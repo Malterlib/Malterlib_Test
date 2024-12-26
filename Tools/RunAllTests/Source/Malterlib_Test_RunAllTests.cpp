@@ -88,6 +88,15 @@ struct CRunAllTestsApplication : public NMib::CApplication
 				, "Description"_o= "Specify the paths to include in test.\n"
 			}
 		;
+		auto Option_FlakyErrors = "FlakyErrors?"_o=
+			{
+				"Names"_o= {"--flaky-errors"}
+				, "Type"_o= {""}
+				, "Default"_o= fg_GetSys()->f_GetEnvironmentVariable("MalterlibFlakyErrors", "").f_Split<true>(";")
+				, "Description"_o= "String to look for in test output to determine if the test was flaky. These tests will be rerun up to 10 times to check for success.\n"
+				"Will only be respected when --launch-per-suite is true.\n"
+			}
+		;
 
 		auto Section = pCommandLineSpec->f_AddSection("Test", "Run tests.");
 		Section.f_RegisterDirectCommand
@@ -100,6 +109,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						Option_Groups
 						, Option_Paths
 						, Option_SuiteOrder
+						, Option_FlakyErrors
 					}
 				}
 				, [this](NEncoding::CEJSONSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
@@ -178,14 +188,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 							, "Description"_o= "Wildcard for test paths that are expected flaky. These tests will be rerun up to 10 times to check for success.\n"
 							"Will only be respected when --launch-per-suite is true.\n"
 						}
-						, "FlakyErrors?"_o=
-						{
-							"Names"_o= {"--flaky-errors"}
-							, "Type"_o= {""}
-							, "Default"_o= fg_GetSys()->f_GetEnvironmentVariable("MalterlibFlakyErrors", "").f_Split<true>(";")
-							, "Description"_o= "String to look for in test output to determine if the test was flaky. These tests will be rerun up to 10 times to check for success.\n"
-							"Will only be respected when --launch-per-suite is true.\n"
-						}
+						, Option_FlakyErrors
 						, Option_Groups
 						, Option_Paths
 						, Option_SuiteOrder
@@ -552,6 +555,7 @@ private:
 #endif
 
 		bool bRunningCI = fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true";
+		constexpr static mint c_MaxFlakyTries = 10;
 
 		struct CFlakyState
 		{
@@ -749,6 +753,7 @@ private:
 
 					struct CExecutableResult
 					{
+						CProcessLaunchParams m_LaunchParams;
 						CStr m_Output;
 						CStr m_OutputWithErrors;
 						uint32 m_ExitResult = 255;
@@ -772,7 +777,13 @@ private:
 						TCVector<CStr> ExecutableParams = {"-l", "-g", CStr::fs_Join(_Settings.m_TestGroups, ",")};
 						ExecutableParams.f_Insert(_Settings.m_TestPaths);
 
-						auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
+						CExecutableResult *pExecutable;
+						{
+							DMibLock(pTestState->m_Lock);
+							pExecutable = &(pTestState->m_Executables[ExecutableName]);
+						}
+
+						pExecutable->m_LaunchParams = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 							(
 								ProgramDirectory / ExecutableName
 								, ExecutableParams
@@ -798,7 +809,7 @@ private:
 							)
 						;
 
-						Params.m_fOnOutput = [pTestState, ExecutableName](EProcessLaunchOutputType _OutputType, CStr const &_Output)
+						pExecutable->m_LaunchParams.m_fOnOutput = [pTestState, ExecutableName](EProcessLaunchOutputType _OutputType, CStr const &_Output)
 							{
 								DMibLock(pTestState->m_Lock);
 								auto &Executable = pTestState->m_Executables[ExecutableName];
@@ -811,7 +822,7 @@ private:
 
 						LaunchHandler.f_AddLaunch
 							(
-								Params
+								pExecutable->m_LaunchParams
 								, false
 								, [&](CProcessLaunchParams const &_Params, EProcessLaunchCloseFlag _DestructFlags) -> TCUniquePointer<CVirtualProcessLaunch>
 								{
@@ -827,11 +838,54 @@ private:
 					for (auto &Result : pTestState->m_Executables)
 					{
 						auto &ExecutableName = pTestState->m_Executables.fs_GetKey(Result);
-						if (Result.m_ExitResult != 0)
+						bool bFailedThisTest = false;
+						for (mint i = 0; i < c_MaxFlakyTries; ++i)
 						{
-							DMibConOut2
+							if (Result.m_ExitResult == 0)
+							{
+								bFailedThisTest = false;
+								break;
+							}
+
+							bool bFlaky = false;
+							for (auto &ErrorString : pState->m_Settings.m_FlakyErrors)
+							{
+								if (Result.m_OutputWithErrors.f_Find(ErrorString) >= 0)
+								{
+									bFlaky = true;
+									break;
+								}
+							}
+
+							bFailedThisTest = true;
+
+							if (!bFlaky)
+								break;
+
+							DMibConErrOut2
 								(
-									" {sz*,a-}  Failed to enumerate tests ({}, 0x{nfh,sj8,sf0}):{\n}{}{\n}n"
+									" {sz*,a-}  Test suite list is flaky, rescheduling {}/{}{\n}"
+									, ExecutableName
+									, MaxTestLen
+									, i
+									, c_MaxFlakyTries
+								)
+							;
+
+							Result.m_Output.f_Clear();
+							Result.m_OutputWithErrors.f_Clear();
+							Result.m_ExitResult = 255;
+							{
+								NMib::NProcess::CProcessLaunch ProcessLaunch(Result.m_LaunchParams, NMib::NProcess::EProcessLaunchCloseFlag_BlockOnExit);
+							}
+						}
+
+						if (bFailedThisTest)
+						{
+							bFailed = true;
+							DMibConErrOut2
+								(
+									" {sz*,a-}  Failed to enumerate tests ({}, 0x{nfh,sj8,sf0}):{\n}{}{\n}"
 									, ExecutableName
 									, MaxTestLen
 									, Result.m_ExitResult
@@ -839,7 +893,6 @@ private:
 									, Result.m_OutputWithErrors.f_Trim()
 								)
 							;
-							bFailed = true;
 						}
 
 						for (auto &Suite : Result.m_Output.f_SplitLine<true>())
@@ -948,8 +1001,6 @@ private:
 					TestParams.f_Insert(CStr::fs_Join(_Settings.m_TestGroups, ","));
 					if (!_Settings.m_bLaunchPerSuite)
 						TestParams.f_Insert(_Settings.m_TestPaths);
-
-					constexpr static mint c_MaxFlakyTries = 10;
 
 					auto iFlakyID = iNextFlakyID++;
 					auto &FlakyState = pState->m_FlakyStateStates[iFlakyID];
