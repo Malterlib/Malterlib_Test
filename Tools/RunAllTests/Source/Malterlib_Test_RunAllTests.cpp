@@ -768,6 +768,12 @@ private:
 
 					TCSharedPointer<CTestState> pTestState = fg_Construct();
 
+					auto Cleanup = g_OnScopeExit / [&]
+						{
+							pTestState->m_Executables.f_Clear();
+						}
+					;
+
 					for (mint i = 0; i < g_nAllTests; ++i)
 					{
 						CStr ExecutableName = g_AllTests[i];
