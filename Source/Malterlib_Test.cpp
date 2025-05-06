@@ -1326,31 +1326,31 @@ namespace NMib::NTest
 
 		auto Parameter_Paths = "Paths...?"_o=
 			{
-				"Type"_o= {""}
-				, "Default"_o= _[_]
+				"Type"_o= _o[""]
+				, "Default"_o= _o[]
 				, "Description"_o= "Specify the test paths to run tests for. Can be wildcards."
 			}
 		;
 		auto Option_ExcludePaths = "ExcludePaths?"_o=
 			{
-				"Names"_o= {"--exclude-paths"}
-				, "Type"_o= {""}
-				, "Default"_o= _[_]
+				"Names"_o= _o["--exclude-paths"]
+				, "Type"_o= _o[""]
+				, "Default"_o= _o[]
 				, "Description"_o= "Specify the test paths to exclude. Can be wildcards."
 			}
 		;
 		auto Option_ExtraData = "ExtraData?"_o=
 			{
-				"Names"_o= {"--extra-data", "-d"}
+				"Names"_o= _o["--extra-data", "-d"]
 				, "Default"_o= ""
 				, "Description"_o= "Supply extra general data to tests. Accessible with fg_TestGetExtraData from tests."
 			}
 		;
 		auto Option_FilterResults = "FilterResults?"_o=
 			{
-				"Names"_o= {"--filter-results", "-r"}
-				, "Default"_o= {"Default"}
-				, "Type"_o= {NCommandLine::COneOf{"All", "Default", "Success", "Ignore", "Warning", "Fail", "FailAndStop", "ExpectFail", "ExpectFailAndStop"}}
+				"Names"_o= _o["--filter-results", "-r"]
+				, "Default"_o= _o["Default"]
+				, "Type"_o= _o[NCommandLine::COneOf{"All", "Default", "Success", "Ignore", "Warning", "Fail", "FailAndStop", "ExpectFail", "ExpectFailAndStop"}]
 				, "Description"_o= "Filter test results.\n"
 				"@Indent=23\r"
 				"   All:                Report all test results.\r"
@@ -1368,9 +1368,9 @@ namespace NMib::NTest
 		auto GroupsList = NCommandLine::COneOf{"Default", "Performance", "Torture", "Memory", "Unfinished", "Expensive", "Manual", "SuperUser"};
 		auto Option_Groups = "Groups?"_o=
 			{
-				"Names"_o= {"--groups", "-g"}
-				, "Default"_o= {"Default"}
-				, "Type"_o= {GroupsList}
+				"Names"_o= _o["--groups", "-g"]
+				, "Default"_o= _o["Default"]
+				, "Type"_o= _o[GroupsList]
 				, "Description"_o= "Specify the groups to include in test.\n"
 				"@Indent=17\r"
 				"   Default:      Run tests without a group specified.\r"
@@ -1386,9 +1386,9 @@ namespace NMib::NTest
 		;
 		auto Option_ExcludeGroups = "ExcludeGroups?"_o=
 			{
-				"Names"_o= {"--exclude-groups", "-e"}
-				, "Default"_o= _[_]
-				, "Type"_o= {GroupsList}
+				"Names"_o= _o["--exclude-groups", "-e"]
+				, "Default"_o= _o[]
+				, "Type"_o= _o[GroupsList]
 				, "Description"_o= "Specify the groups to include in test.\n"
 				"@Indent=17\r"
 				"   Default:      Don't run tests without a group specified.\r"
@@ -1404,7 +1404,7 @@ namespace NMib::NTest
 		;
 		auto Option_Logger = "Logger?"_o=
 			{
-				"Names"_o= {"--logger"}
+				"Names"_o= _o["--logger"]
 				, "Default"_o= "Default"
 				, "Type"_o= NCommandLine::COneOf{"Default", "Brief", "Registry", "Null"}
 				, "Description"_o= "Test logger.\n"
@@ -1418,56 +1418,56 @@ namespace NMib::NTest
 		;
 		auto Option_ReportValues = "ReportValues?"_o=
 			{
-				"Names"_o= {"--values"}
+				"Names"_o= _o["--values"]
 				, "Default"_o= true
 				, "Description"_o= "Include values in results.\n"
 			}
 		;
 		auto Option_DetailedPerformance = "DetailedPerformance?"_o=
 			{
-				"Names"_o= {"--detailed-performance", "-p"}
+				"Names"_o= _o["--detailed-performance", "-p"]
 				, "Default"_o= false
 				, "Description"_o= "Display detailed performance results.\n"
 			}
 		;
 		auto Option_DetailedMemory = "DetailedMemory?"_o=
 			{
-				"Names"_o= {"--detailed-memory", "-m"}
+				"Names"_o= _o["--detailed-memory", "-m"]
 				, "Default"_o= false
 				, "Description"_o= "Display detailed memory results.\n"
 			}
 		;
 		auto Option_BreakOnFail = "BreakOnFail?"_o=
 			{
-				"Names"_o= {"--break-on-fail", "-b"}
+				"Names"_o= _o["--break-on-fail", "-b"]
 				, "Default"_o= false
 				, "Description"_o= "Break into debugger on failure.\n"
 			}
 		;
 		auto Option_ProcessRecursive = "ProcessRecursive?"_o=
 			{
-				"Names"_o= {"--process-recursive"}
+				"Names"_o= _o["--process-recursive"]
 				, "Default"_o= false
 				, "Description"_o= "Break into debugger on failure.\n"
 			}
 		;
 		auto Option_CompareToBaseline = "CompareToBaseline?"_o=
 			{
-				"Names"_o= {"--compare-to-baseline", "-c"}
+				"Names"_o= _o["--compare-to-baseline", "-c"]
 				, "Default"_o= false
 				, "Description"_o= "Compare performance results to baseline.\n"
 			}
 		;
 		auto Option_CrashOnException = "CrashOnException?"_o=
 			{
-				"Names"_o= {"--fault-on-exception", "-f"}
+				"Names"_o= _o["--fault-on-exception", "-f"]
 				, "Default"_o= false
 				, "Description"_o= "Crash instead of capturing exceptions.\n"
 			}
 		;
 		auto Option_EnableLogs = "EnableLogs?"_o=
 			{
-				"Names"_o= {"--logs"}
+				"Names"_o= _o["--logs"]
 				, "Default"_o= false
 				, "Description"_o= "Enable application logs to stderr.\n"
 			}
@@ -1476,7 +1476,7 @@ namespace NMib::NTest
 		auto TestCommand = Section.f_RegisterDirectCommand
 			(
 				{
-					"Names"_o= {"--test", "-t"}
+					"Names"_o= _o["--test", "-t"]
 					, "GreedyDefaultCommandParameters"_o= true
 					, "Description"_o= "Run tests contained in this binary.\n"
 					, "Options"_o=
@@ -1517,7 +1517,7 @@ namespace NMib::NTest
 		Section.f_RegisterDirectCommand
 			(
 				{
-					"Names"_o= {"--test-list", "-l"}
+					"Names"_o= _o["--test-list", "-l"]
 					, "Description"_o= "List test suites contained in this binary.\n"
 					, "Options"_o=
 					{

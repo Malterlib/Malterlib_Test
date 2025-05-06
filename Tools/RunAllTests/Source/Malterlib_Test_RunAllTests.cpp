@@ -55,7 +55,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 
 		auto Option_SuiteOrder = "SuiteOrder?"_o=
 			{
-				"Names"_o= {"--suite-order"}
+				"Names"_o= _o["--suite-order"]
 				, "Type"_o= COneOf{"natural", "slow_first", "fast_first", "random"}
 				, "Default"_o= "slow_first"
 				, "Description"_o= "The order to schedule the test suites in.\n"
@@ -64,9 +64,9 @@ struct CRunAllTestsApplication : public NMib::CApplication
 		;
 		auto Option_Groups = "Groups?"_o=
 			{
-				"Names"_o= {"--groups", "-g"}
-				, "Default"_o= {"Default"}
-				, "Type"_o= {GroupsList}
+				"Names"_o= _o["--groups", "-g"]
+				, "Default"_o= _o["Default"]
+				, "Type"_o= _o[GroupsList]
 				, "Description"_o= "Specify the groups to include in test.\n"
 				"@Indent=17\r"
 				"   Default:      Run tests without a group specified.\r"
@@ -82,16 +82,16 @@ struct CRunAllTestsApplication : public NMib::CApplication
 		;
 		auto Option_Paths = "Paths?"_o=
 			{
-				"Names"_o= {"--paths"}
-				, "Default"_o= _[_]
-				, "Type"_o= {""}
+				"Names"_o= _o["--paths"]
+				, "Default"_o= _o[]
+				, "Type"_o= _o[""]
 				, "Description"_o= "Specify the paths to include in test.\n"
 			}
 		;
 		auto Option_FlakyErrors = "FlakyErrors?"_o=
 			{
-				"Names"_o= {"--flaky-errors"}
-				, "Type"_o= {""}
+				"Names"_o= _o["--flaky-errors"]
+				, "Type"_o= _o[""]
 				, "Default"_o= fg_GetSys()->f_GetEnvironmentVariable("MalterlibFlakyErrors", "").f_Split<true>(";")
 				, "Description"_o= "String to look for in test output to determine if the test was flaky. These tests will be rerun up to 10 times to check for success.\n"
 				"Will only be respected when --launch-per-suite is true.\n"
@@ -102,7 +102,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 		Section.f_RegisterDirectCommand
 			(
 				{
-					"Names"_o= {"--list-all-tests"}
+					"Names"_o= _o["--list-all-tests"]
 					, "Description"_o= "List all test suites in all test binaries.\n"
 					, "Options"_o=
 					{
@@ -122,68 +122,68 @@ struct CRunAllTestsApplication : public NMib::CApplication
 		auto RunAllTestsCommand = Section.f_RegisterDirectCommand
 			(
 				{
-					"Names"_o= {"--run-all-tests"}
+					"Names"_o= _o["--run-all-tests"]
 					, "Description"_o= "Run all test suites in all test binaries.\n"
 					, "Options"_o=
 					{
 						"Parallel?"_o=
 						{
-							"Names"_o= {"--parallel", "-p"}
+							"Names"_o= _o["--parallel", "-p"]
 							, "Default"_o= true
 							, "Description"_o= "Run tests in parallel utilizing all cores.\n"
 						}
 						, "Quiet?"_o=
 						{
-							"Names"_o= {"--quiet"}
+							"Names"_o= _o["--quiet"]
 							, "Default"_o= true
 							, "Description"_o= "Don't output test results unless a failure occurs.\n"
 						}
 						, "QuietStats?"_o=
 						{
-							"Names"_o= {"--quiet-stats"}
+							"Names"_o= _o["--quiet-stats"]
 							, "Default"_o= false
 							, "Description"_o= "Don't output memory and concurrency statistics.\n"
 						}
 						, "Loop?"_o=
 						{
-							"Names"_o= {"--loop"}
+							"Names"_o= _o["--loop"]
 							, "Default"_o= false
 							, "Description"_o= "Loop tests until aborted.\n"
 						}
 						, "MemoryPerTest?"_o=
 						{
-							"Names"_o= {"--memory-per-test"}
+							"Names"_o= _o["--memory-per-test"]
 							, "Default"_o= mc_DefaultMemoryPerTest
 							, "Description"_o= "The amount of memory needed per test. Concurrency will be limited by amount of available memory.\n"
 						}
 						, "Timeout?"_o=
 						{
-							"Names"_o= {"--timeout"}
+							"Names"_o= _o["--timeout"]
 							, "Default"_o= fp64::fs_Inf()
 							, "Description"_o= "Stop tests after this timeout.\n"
 						}
 						, "LoopIterations?"_o=
 						{
-							"Names"_o= {"--iterations", "-i"}
+							"Names"_o= _o["--iterations", "-i"]
 							, "Default"_o= 0
 							, "Description"_o= "Abort loop after iterations.\n"
 						}
 						, "LoopAbortOnFailure?"_o=
 						{
-							"Names"_o= {"--abort-on-failure", "-a"}
+							"Names"_o= _o["--abort-on-failure", "-a"]
 							, "Default"_o= false
 							, "Description"_o= "Abort loop after first failure.\n"
 						}
 						, "LaunchPerSuite?"_o=
 						{
-							"Names"_o= {"--launch-per-suite"}
+							"Names"_o= _o["--launch-per-suite"]
 							, "Default"_o= true
 							, "Description"_o= "Launch the executable per suite.\n"
 						}
 						, "FlakySuites?"_o=
 						{
-							"Names"_o= {"--flaky-suites"}
-							, "Type"_o= {""}
+							"Names"_o= _o["--flaky-suites"]
+							, "Type"_o= _o[""]
 							, "Default"_o= fg_GetSys()->f_GetEnvironmentVariable("MalterlibFlakySuites", "").f_Split<true>(";")
 							, "Description"_o= "Wildcard for test paths that are expected flaky. These tests will be rerun up to 10 times to check for success.\n"
 							"Will only be respected when --launch-per-suite is true.\n"
@@ -195,26 +195,26 @@ struct CRunAllTestsApplication : public NMib::CApplication
 #if DMalterlibCodeCoverage
 						, "Coverage?"_o=
 						{
-							"Names"_o= {"--coverage"}
+							"Names"_o= _o["--coverage"]
 							, "Default"_o= true
 							, "Description"_o= "Record code coverage and report results.\n"
 						}
 						, "CoverageOnly?"_o=
 						{
-							"Names"_o= {"--coverage-only"}
+							"Names"_o= _o["--coverage-only")
 							, "Default"_o= false
 							, "Description"_o= "Only display coverage results from previous run, don't run tests.\n"
 						}
 						, "CoverageSources?"_o=
 						{
-							"Names"_o= {"--coverage-sources"}
-							, "Default"_o= _[_]
-							, "Type"_o= {""}
+							"Names"_o= _o["--coverage-sources"]
+							, "Default"_o= _o[]
+							, "Type"_o= _o[""]
 							, "Description"_o= "Only display coverage for these source files. Can use wildcarcds.\n"
 						}
 						, "CoverageExecutable?"_o=
 						{
-							"Names"_o= {"--coverage-executable"}
+							"Names"_o= _o["--coverage-executable"]
 							, "Default"_o= ""
 							, "Description"_o= "Specify the executable used to display code coverage results.\n"
 						}
@@ -224,8 +224,8 @@ struct CRunAllTestsApplication : public NMib::CApplication
 					{
 						"TestParams...?"_o=
 						{
-							"Type"_o= {""}
-							, "Default"_o= _[_]
+							"Type"_o= _o[""]
+							, "Default"_o= _o[]
 							, "Description"_o= "The parameters to forward to the individual tests."
 						}
 					}
