@@ -8,7 +8,7 @@
 #include <Mib/Concurrency/ThreadSafeQueue>
 #include <Mib/Cryptography/UUID>
 #include <Mib/CommandLine/CommandLineClient>
-#include <Mib/Encoding/JSONShortcuts>
+#include <Mib/Encoding/JsonShortcuts>
 
 using namespace NMib;
 using namespace NMib::NProcess;
@@ -112,7 +112,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						, Option_FlakyErrors
 					}
 				}
-				, [this](NEncoding::CEJSONSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
+				, [this](NEncoding::CEJsonSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
 				{
 					return fp_RunTests(_Parameters, _CommandLineClient.f_AnsiEncoding(), true);
 				}
@@ -233,7 +233,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 					, "ErrorOnOptionAsParameter"_o= false
 					, "GreedyDefaultCommandParameters"_o= true
 				}
-				, [this](NEncoding::CEJSONSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
+				, [this](NEncoding::CEJsonSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
 				{
 					return fp_RunTests(_Parameters, _CommandLineClient.f_AnsiEncoding(), false);
 				}
@@ -259,7 +259,7 @@ private:
 	struct CSettings
 	{
 		template <typename tf_CType>
-		static tf_CType fs_GetSetting(NEncoding::CEJSONSorted const &_Parameters, CStr const &_Name)
+		static tf_CType fs_GetSetting(NEncoding::CEJsonSorted const &_Parameters, CStr const &_Name)
 		{
 			auto *pValue = _Parameters.f_GetMember(_Name);
 			if (!pValue)
@@ -281,7 +281,7 @@ private:
 			return {};
 		}
 
-		CSettings(NEncoding::CEJSONSorted const &_Parameters, bool _bList)
+		CSettings(NEncoding::CEJsonSorted const &_Parameters, bool _bList)
 			: m_TestParams(fs_GetSetting<TCVector<CStr>>(_Parameters, "TestParams"))
 			, m_TestGroups(fs_GetSetting<TCVector<CStr>>(_Parameters, "Groups"))
 			, m_TestPaths(fs_GetSetting<TCVector<CStr>>(_Parameters, "Paths"))
@@ -655,8 +655,8 @@ private:
 
 		if (CFile::fs_FileExists(RuntimesPath))
 		{
-			CEJSONSorted OutputJSON = CEJSONSorted::fs_FromString(CFile::fs_ReadStringFromFile(RuntimesPath, true), RuntimesPath);
-			for (auto &Suites : fg_Const(OutputJSON).f_Object())
+			CEJsonSorted OutputJson = CEJsonSorted::fs_FromString(CFile::fs_ReadStringFromFile(RuntimesPath, true), RuntimesPath);
+			for (auto &Suites : fg_Const(OutputJson).f_Object())
 			{
 				auto Executable = Suites.f_Name();
 
@@ -1295,18 +1295,18 @@ private:
 		}
 
 		{
-			CEJSONSorted OutputJSON = EJSONType_Object;
+			CEJsonSorted OutputJson = EJsonType_Object;
 			for (auto &RuntimeEntry : pState->m_RunTimes.f_Entries())
-				OutputJSON[RuntimeEntry.f_Key().m_Executable][RuntimeEntry.f_Key().m_Suite] = RuntimeEntry.f_Value();
+				OutputJson[RuntimeEntry.f_Key().m_Executable][RuntimeEntry.f_Key().m_Suite] = RuntimeEntry.f_Value();
 
 			CFile::fs_CreateDirectoryForFile(RuntimesPath);
-			CFile::fs_WriteStringToFile(RuntimesPath, OutputJSON.f_ToString(), false);
+			CFile::fs_WriteStringToFile(RuntimesPath, OutputJson.f_ToString(), false);
 		}
 
 		return pState->m_CombinedExitCode;
 	}
 
-	aint fp_RunTests(NEncoding::CEJSONSorted const &_Parameters, CAnsiEncoding const &_AnsiEncoding, bool _bList)
+	aint fp_RunTests(NEncoding::CEJsonSorted const &_Parameters, CAnsiEncoding const &_AnsiEncoding, bool _bList)
 	{
 		CSettings Settings(_Parameters, _bList);
 

@@ -6,7 +6,7 @@
 #include <Mib/CommandLine/CommandLine>
 #include <Mib/CommandLine/CommandLineClient>
 #include <Mib/Core/RuntimeType>
-#include <Mib/Encoding/JSONShortcuts>
+#include <Mib/Encoding/JsonShortcuts>
 #include <Mib/Log/AnsiLogger>
 
 #include "Malterlib_Test_Reporter_Null.h"
@@ -1193,7 +1193,7 @@ namespace NMib::NTest
 
 		auto Section = pCommandLineSpec->f_AddSection("Test", "Commands for running tests.");
 
-		auto fRunTests = [](NEncoding::CEJSONSorted const &_Parameters, CRunTestOptions const &_RunOptions) -> uint32
+		auto fRunTests = [](NEncoding::CEJsonSorted const &_Parameters, CRunTestOptions const &_RunOptions) -> uint32
 			{
 				CRegistryTestResults RegistryResults;
 				NPrivate::CDefaultTestResults DefaultResults(_RunOptions.m_AnsiEncodingFlags);
@@ -1256,7 +1256,7 @@ namespace NMib::NTest
 				if (auto pValue = _Parameters.f_GetMember("EnableLogs"); pValue && pValue->f_Boolean())
 					RunOptions.m_ReportFlags |= ETestReportFlag_EnableLogs;
 
-				auto fGetGroups = [&](NEncoding::CEJSONSorted const &_Groups)
+				auto fGetGroups = [&](NEncoding::CEJsonSorted const &_Groups)
 					{
 						NContainer::TCVector<NStr::CStr> OutGroups;
 						for (auto &Group : _Groups.f_Array())
@@ -1501,7 +1501,7 @@ namespace NMib::NTest
 						Parameter_Paths
 					}
 				}
-				, [fRunTests](NEncoding::CEJSONSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
+				, [fRunTests](NEncoding::CEJsonSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
 				{
 					CRunTestOptions RunOptions;
 					RunOptions.m_ReportFlags = ETestReportFlag_None;
@@ -1533,7 +1533,7 @@ namespace NMib::NTest
 						Parameter_Paths
 					}
 				}
-				, [fRunTests](NEncoding::CEJSONSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
+				, [fRunTests](NEncoding::CEJsonSorted const &_Parameters, NCommandLine::CCommandLineClient &_CommandLineClient)
 				{
 					CRunTestOptions RunOptions;
 					RunOptions.m_ReportFlags = ETestReportFlag_ReportCategories;
