@@ -50,13 +50,15 @@
 			GenerateFile
 			{
 				Name `@(GeneratedDirectory)/Malterlib_Test_AllTests.cpp`
-				Contents	`ch8 const *g_AllTests[] = \n`\
+				Contents	`#include <Mib/Core/Core>\n`\
+							`\n`\
+							`ch8 const *g_AllTests[] = \n`\
 							`	{\n`\
 							`@(AllTests)`\
 							`	}\n`\
 							`;\n`\
 							`\n`\
-							`mint g_nAllTests = sizeof(g_AllTests) / sizeof(g_AllTests[0]);\n`\
+							`mint g_nAllTests = NMib::fg_ArraySize(g_AllTests);\n`\
 							`\n`
 				
 				Group `@(Platform) @(Architecture) @(FullConfiguration)`
