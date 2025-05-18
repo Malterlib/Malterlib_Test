@@ -145,13 +145,13 @@ namespace NMib::NTest::NPrivate
 
 		bool fp_Evaluate() const
 #ifndef DCompiler_MSVC_Workaround
-			requires NTraits::TCIsSame<t_CExpression, bool>::mc_Value || requires()
+			requires NTraits::cIsSame<t_CExpression, bool> || requires()
 			{
 				this->m_Expression.f_Eval(nullptr);
 			}
 #endif
 		{
-			if constexpr (NTraits::TCIsSame<t_CExpression, bool>::mc_Value)
+			if constexpr (NTraits::cIsSame<t_CExpression, bool>)
 			{
 				if (t_bFailureOnly && m_Expression)
 					return m_Expression;
@@ -376,7 +376,7 @@ namespace NMib::NTest::NPrivate
 		{
 			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
 			m_CustomMessage = _pMessage;
-			if constexpr (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
+			if constexpr (NTraits::cIsSame<t_CExpression, CDummyExpression>)
 				m_bOnlyCustom = true;
 			return *this;
 		}
@@ -385,7 +385,7 @@ namespace NMib::NTest::NPrivate
 		{
 			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
 			m_CustomMessage = _Message;
-			if constexpr (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
+			if constexpr (NTraits::cIsSame<t_CExpression, CDummyExpression>)
 				m_bOnlyCustom = true;
 			return *this;
 		}
@@ -394,7 +394,7 @@ namespace NMib::NTest::NPrivate
 		{
 			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
 			m_CustomMessage = fg_Move(_Message);
-			if constexpr (NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value)
+			if constexpr (NTraits::cIsSame<t_CExpression, CDummyExpression>)
 				m_bOnlyCustom = true;
 			return *this;
 		}
@@ -402,13 +402,13 @@ namespace NMib::NTest::NPrivate
 		template <typename tf_CExpression>
 		inline TCTestFunctionHelper<t_bFailureOnly, tf_CExpression> operator () (const tf_CExpression &_Expression)
 		{
-			static_assert(NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value, "You can only specify expressions once");
+			static_assert(NTraits::cIsSame<t_CExpression, CDummyExpression>, "You can only specify expressions once");
 			return TCTestFunctionHelper<t_bFailureOnly, tf_CExpression>(fg_Move(*this), _Expression);
 		}
 
 		inline TCTestFunctionHelper<t_bFailureOnly, bool> operator () (bool _bExpression)
 		{
-			static_assert(NTraits::TCIsSame<t_CExpression, CDummyExpression>::mc_Value, "You can only specify expressions once");
+			static_assert(NTraits::cIsSame<t_CExpression, CDummyExpression>, "You can only specify expressions once");
 			return TCTestFunctionHelper<t_bFailureOnly, bool>(fg_Move(*this), _bExpression);
 		}
 
@@ -454,7 +454,7 @@ namespace NMib::NTest::NPrivate
 					<
 						NTraits::TCCallableReturnTypeFor
 						<
-							typename NTraits::TCRemoveReferenceAndQualifiers<tf_CFunction>::CType
+							NTraits::TCRemoveReferenceAndQualifiers<tf_CFunction>
 							, void ()
 						>
 					>::mc_Value

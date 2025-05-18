@@ -76,13 +76,13 @@ namespace NMib::NTest::NExpression
 		}
 
 		template <typename t_CType>
-		typename TCEnableIf<NTraits::TCIsSame<typename NTraits::TCRemoveReference<t_CType>::CType, bool>::mc_Value, bool>::CType fg_IsVariableBoolean(t_CType &&_Value)
+		TCEnableIf<NTraits::cIsSame<NTraits::TCRemoveReference<t_CType>, bool>, bool> fg_IsVariableBoolean(t_CType &&_Value)
 		{
 			return _Value == 1 || _Value == 0;
 		}
 
 		template <typename t_CType>
-		typename TCDisableIf<NTraits::TCIsSame<typename NTraits::TCRemoveReference<t_CType>::CType, bool>::mc_Value, bool>::CType fg_IsVariableBoolean(t_CType &&_Value)
+		TCDisableIf<NTraits::cIsSame<NTraits::TCRemoveReference<t_CType>, bool>, bool> fg_IsVariableBoolean(t_CType &&_Value)
 		{
 			return false;
 		}
@@ -596,7 +596,7 @@ namespace NMib::NTest::NExpression
 			DMibFastCheck(o_pValueDesc); // Should only be called once
 
 			typedef decltype (m_Lambda()) CReturnType;
-			if constexpr (NTraits::TCIsVoid<CReturnType>::mc_Value)
+			if constexpr (NTraits::cIsVoid<CReturnType>)
 			{
 				*o_pValueDesc = "void";
 				return false;
@@ -635,7 +635,7 @@ namespace NMib::NTest::NExpression
 			DMibFastCheck(o_pValueDesc);
 
 			typedef decltype (m_Lambda()) CReturnType;
-			if constexpr (NTraits::TCIsVoid<CReturnType>::mc_Value)
+			if constexpr (NTraits::cIsVoid<CReturnType>)
 			{
 				*o_pValueDesc = "void";
 				return false;

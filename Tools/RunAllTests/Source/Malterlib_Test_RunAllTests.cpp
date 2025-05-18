@@ -265,18 +265,18 @@ private:
 			if (!pValue)
 				return {};
 
-			if constexpr (TCIsSame<tf_CType, TCVector<CStr>>::mc_Value)
+			if constexpr (cIsSame<tf_CType, TCVector<CStr>>)
 				return pValue->f_StringArray();
-			else if constexpr (TCIsSame<tf_CType, CStr>::mc_Value)
+			else if constexpr (cIsSame<tf_CType, CStr>)
 				return pValue->f_String();
-			else if constexpr (TCIsSame<tf_CType, bool>::mc_Value)
+			else if constexpr (cIsSame<tf_CType, bool>)
 				return pValue->f_Boolean();
-			else if constexpr (TCIsSame<tf_CType, fp64>::mc_Value)
+			else if constexpr (cIsSame<tf_CType, fp64>)
 				return pValue->f_Float();
-			else if constexpr (TCIsSame<tf_CType, int64>::mc_Value)
+			else if constexpr (cIsSame<tf_CType, int64>)
 				return pValue->f_Integer();
 			else
-				static_assert(TCIsSame<tf_CType, void>::mc_Value, "Unsupported type");
+				static_assert(cIsSame<tf_CType, void>, "Unsupported type");
 
 			return {};
 		}
