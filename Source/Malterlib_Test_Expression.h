@@ -595,7 +595,8 @@ namespace NMib::NTest::NExpression
 		{
 			DMibFastCheck(o_pValueDesc); // Should only be called once
 
-			typedef decltype (m_Lambda()) CReturnType;
+			using CReturnType = decltype (m_Lambda());
+
 			if constexpr (NTraits::cIsVoid<CReturnType>)
 			{
 				*o_pValueDesc = "void";
@@ -626,7 +627,8 @@ namespace NMib::NTest::NExpression
 
 		NStr::CStr f_GetValueDescRecursive() const
 		{
-			typedef decltype (m_Lambda()) CReturnType;
+			using CReturnType = decltype (m_Lambda());
+
 			return fs_ValueDesc<CReturnType>(m_Lambda);
 		}
 
@@ -634,7 +636,8 @@ namespace NMib::NTest::NExpression
 		{
 			DMibFastCheck(o_pValueDesc);
 
-			typedef decltype (m_Lambda()) CReturnType;
+			using CReturnType = decltype (m_Lambda());
+
 			if constexpr (NTraits::cIsVoid<CReturnType>)
 			{
 				*o_pValueDesc = "void";

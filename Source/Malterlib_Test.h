@@ -434,11 +434,10 @@ namespace NMib::NTest
 namespace NMib::NTest
 {
 #	if DMibConfig_Tests_Enable
-
-		typedef NPrivate::CTestCategoryScope CTestCategoryScope;
-		typedef NPrivate::CTestPathScope CTestPathScope;
-		typedef NPrivate::TCTestFunctionHelper<false> CTestFunctionHelper;
-		typedef NPrivate::TCTestFunctionHelper<true> CTestFunctionHelperOnlyFailure;
+		using CTestCategoryScope = NPrivate::CTestCategoryScope;
+		using CTestPathScope = NPrivate::CTestPathScope;
+		using CTestFunctionHelper = NPrivate::TCTestFunctionHelper<false>;
+		using CTestFunctionHelperOnlyFailure = NPrivate::TCTestFunctionHelper<true>;
 #	else
 		class CTestCategoryScope
 		{
