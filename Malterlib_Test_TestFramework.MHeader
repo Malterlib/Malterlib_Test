@@ -229,6 +229,9 @@ Property
 		}
 	}
 
+	Workspace.IDEPriority 200
+	Workspace.IDEDefaultBuildTarget "Com_RunAllTests"
+
 	Workspace.ExtraGroups =+ MalterlibTests->ForEach(&MalterlibTestWorkspaceExtraGroupsTemplate)
 
 	%Group "Tests"

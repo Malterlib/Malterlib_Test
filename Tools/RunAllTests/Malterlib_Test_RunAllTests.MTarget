@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 %Target "Exe_RunAllTests"
@@ -10,13 +10,13 @@
 		{
 			!!MalterlibPostCopyProject undefined
 		}
-		
+
 	}
 	Property
 	{
 		MalterlibTargetNameType "BaseName"
 	}
-	
+
 	Compile
 	{
 		PreprocessorDefines += ["DMalterlibCodeCoverage=1", `DMalterlibClangPath="@(PlatformToolsetCompiler->GetPath())"`]
@@ -29,6 +29,7 @@
 	{
 		BaseName "RunAllTests"
 		Group "TestFramework"
+		IDEDebugPriority 200
 	}
 	%Group "AllTests"
 	{
@@ -44,7 +45,7 @@
 						true GetProperty(&MalterlibMainTest, _Target)
 					}
 				}
-				
+
 				AllTests: string = Workspace.AllTargets->ForEach(&fg_AllTestsTemplate)
 
 				CoverageBinariesTemplate function(string _Target) string
@@ -95,7 +96,7 @@
 	{
 		%File "Source/*"
 	}
-	
+
 	%Dependency "Lib_Malterlib"
 
 	Property
