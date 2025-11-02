@@ -101,7 +101,7 @@ namespace NMib::NTest
 #	if DMibConfig_Tests_Enable
 #		define	DMibTestRegister(d_ClassName, d_TestSuitePath) DMibRuntimeClassNamedCasted(NMib::NTest::CTest, d_ClassName, NTest::d_TestSuitePath::d_ClassName, ::NMib::NTest::CTest)
 #	else
-#		define	DMibTestRegister(d_ClassName, d_TestSuitePath) uint8 g_RuntimeClassNamed_##d_ClassName
+#		define	DMibTestRegister(d_ClassName, d_TestSuitePath) [[maybe_unused]] uint8 g_RuntimeClassNamed_##d_ClassName
 #	endif
 	struct CTestStats
 	{
