@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Core/Core>
@@ -589,6 +589,13 @@ private:
 		};
 
 		TCSharedPointer<CState> pState = fg_Construct(CState{.m_Settings = _Settings, .m_AnsiEncoding = _AnsiEncoding});
+
+		auto CleanupState = g_OnScopeExit / [&]
+			{
+				pState->f_Clear();
+				pState->m_fAddLaunches.f_Clear();
+			}
+		;
 
 		bool bCancelled = false;
 		bool bSignalled = false;
