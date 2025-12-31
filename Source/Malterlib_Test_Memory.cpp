@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Test/Test>
@@ -368,16 +368,15 @@ namespace NMib::NTest
 		if (_AllocatorDepth != 1)
 			return;
 		DMibLock(mp_Lock);
-		bool bCreated = false;
 		CAllocatorStats &AllocatorStats = fp_GetActiveStats(_MemoryAllocator, _pAllocatorName);
 
 		CAllocationKey Key;
 		Key.m_MemoryAllocator = _MemoryAllocator;
 		Key.m_Address = _Address;
 
-		bCreated = false;
-		CAllocation &Alloc = mp_Allocations.f_Map(Key, bCreated);
-		DMibFastCheck(bCreated);
+		auto MapResult = mp_Allocations(Key);
+		CAllocation &Alloc = *MapResult;
+		DMibFastCheck(MapResult.f_WasCreated());
 		DMibFastCheck(_ReturnedSize >= _RequestedSize);
 
 		Alloc.m_Size = _RequestedSize;
@@ -425,9 +424,9 @@ namespace NMib::NTest
 		CAllocationKey Key;
 		Key.m_MemoryAllocator = _MemoryAllocator;
 		Key.m_Address = _Address;
-		bool bCreated = false;
-		CAllocation &Alloc = mp_Allocations.f_Map(Key, bCreated);
-		DMibFastCheck(bCreated);
+		auto MapResult = mp_Allocations(Key);
+		CAllocation &Alloc = *MapResult;
+		DMibFastCheck(MapResult.f_WasCreated());
 		DMibFastCheck(_ReturnedSize >= _RequestedSize);
 
 		Alloc.m_Size = _RequestedSize;
@@ -475,9 +474,9 @@ namespace NMib::NTest
 		CAllocationKey Key;
 		Key.m_MemoryAllocator = _MemoryAllocator;
 		Key.m_Address = _Address;
-		bool bCreated = false;
-		CAllocation &Alloc = mp_Allocations.f_Map(Key, bCreated);
-		DMibFastCheck(bCreated);
+		auto MapResult = mp_Allocations(Key);
+		CAllocation &Alloc = *MapResult;
+		DMibFastCheck(MapResult.f_WasCreated());
 		DMibFastCheck(_ReturnedSize >= _RequestedSize);
 
 		Alloc.m_Size = _RequestedSize;

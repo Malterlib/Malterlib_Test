@@ -122,10 +122,10 @@ namespace NMib::NTest
 								for (auto Iter = UniqueTests.f_GetIterator(); Iter; ++Iter)
 								{
 									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> const &Aggregated = *Iter;
-									bool bCreated = false;
-									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> &AggregatedNew = m_pInherit->m_UniqueTests.f_Map(Iter.f_GetKey(), bCreated);
+									auto MapResult = m_pInherit->m_UniqueTests(Iter.f_GetKey());
+									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> &AggregatedNew = *MapResult;
 									AggregatedNew += Aggregated;
-									if (!bCreated && Aggregated.f_IsEmpty())
+									if (!MapResult.f_WasCreated() && Aggregated.f_IsEmpty())
 									{
 										DMibTrace("Duplicate Test Path: {}" DMibNewLine, Iter.f_GetKey());
 										DMibPDebugBreak; // The same test run twice is not allowed for reporting reasons
@@ -589,21 +589,19 @@ namespace NMib::NTest
 				NStr::CStr FullPath = ThreadLocal.m_TestPath + "/" +_Description;
 				{
 					DMibLock(ThreadLocal.m_UniqueTestsLock);
-					bool bCreated = false;
-					NContainer::TCMap<CTestManager::CUniqueTest, TCAutoClearInt<bool>> &AggregatedTests = ThreadLocal.m_UniqueTests.f_Map(FullPath, bCreated);
+					auto AggregatedTestsMapResult = ThreadLocal.m_UniqueTests(FullPath);
+					auto &AggregatedTests = *AggregatedTestsMapResult;
 					bool bAllowNonUnique = false;
 					if (_Flags & ETestFlag_Aggregated)
 					{
-						bool bCreated = false;
 						CTestManager::CUniqueTest Key;
 						Key.m_pFile = _pFile;
 						Key.m_Line = _Line;
 
-						TCAutoClearInt<bool> &bValue = AggregatedTests.f_Map(Key, bCreated);
-						if (bCreated)
-						{
+						auto MapResult = AggregatedTests(Key);
+						TCAutoClearInt<bool> &bValue = *MapResult;
+						if (MapResult.f_WasCreated())
 							bValue = _Result != ETestResult_Fail;
-						}
 						else
 						{
 							if (_Result == ETestResult_Fail && bValue)
@@ -615,7 +613,7 @@ namespace NMib::NTest
 								return Ret;
 						}
 					}
-					if (!bCreated && !bAllowNonUnique)
+					if (!AggregatedTestsMapResult.f_WasCreated() && !bAllowNonUnique)
 					{
 						DMibTrace(DMibPFileLineFormat " Duplicate Test Path: {}" DMibNewLine, _pFile << _Line << FullPath);
 						DMibPDebugBreak; // The same test run twice is not allowed for reporting reasons
@@ -705,7 +703,7 @@ namespace NMib::NTest
 			return !Manager.m_ThreadLocal->m_bEnumerating
 				|| !(mp_Flags & ETestCategoryFlag_Tests);
 		}
-	
+
 		void CTestCategoryScope::f_ReportLeafCategory()
 		{
 			auto& Manager = CTestManager::fs_GetManager();
