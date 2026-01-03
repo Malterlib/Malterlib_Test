@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #pragma once
@@ -64,7 +64,7 @@ namespace NMib::NTest
 	{
 	public:
 		t_CTimer &m_Timer;
-		t_CIterations const &m_Iterations;
+		t_CIterations m_Iterations;
 
 		TCTestMeasureScope(t_CTimer &_Timer, t_CIterations const &_Iterations)
 			: m_Iterations(_Iterations)
@@ -84,7 +84,7 @@ namespace NMib::NTest
 	{
 	public:
 		t_CTimer &m_Timer;
-		t_CIterations const &m_Iterations;
+		t_CIterations m_Iterations;
 		mint m_nThreads;
 
 		TCTestMeasureScopeWithThread(t_CTimer &_Timer, t_CIterations const &_Iterations, mint _nThreads)
