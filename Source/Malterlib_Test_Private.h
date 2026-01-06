@@ -194,7 +194,7 @@ namespace NMib::NTest::NPrivate
 				else
 					Result = m_Expression.f_Eval(nullptr) ? ETestResult_Success : ETestResult_Fail;
 
-				if constexpr 
+				if constexpr
 					(
 						requires ()
 						{
@@ -211,7 +211,7 @@ namespace NMib::NTest::NPrivate
 
 				NStr::CStr Desc;
 
-				if constexpr 
+				if constexpr
 					(
 						requires ()
 						{
@@ -252,7 +252,7 @@ namespace NMib::NTest::NPrivate
 					;
 
 					NStr::CStr ExtraData;
-					if constexpr 
+					if constexpr
 						(
 							requires ()
 							{
@@ -281,7 +281,7 @@ namespace NMib::NTest::NPrivate
 						)
 					;
 
-					if constexpr 
+					if constexpr
 						(
 							requires ()
 							{

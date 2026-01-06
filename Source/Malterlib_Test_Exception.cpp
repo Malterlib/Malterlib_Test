@@ -137,7 +137,7 @@ namespace NMib::NTest::NPrivate
 			}
 		}
 	}
-	
+
 	NContainer::TCVector<NStr::CStr> fg_DumpTestException()
 	{
 		NContainer::TCVector<NStr::CStr> GeneratedLogs;

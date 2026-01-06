@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Core/Core>
@@ -10,7 +10,7 @@ class CTestApplication : public NMib::CApplication
 public:
 	CTestApplication()
 	{
-		
+
 	}
 
 	aint f_Main()
@@ -46,7 +46,7 @@ public:
 					return 0;
 			}
 		}
-		
+
 		auto MemoryManagerCheckout = NMib::fg_GetSys()->f_MemoryManager_Checkout();
 		auto Ret = NMib::NTest::fg_RunTests();
 
