@@ -109,4 +109,8 @@
 		}
 	}
 	%Dependency Workspace.AllTargets->ForEach(&fg_AllTestsDependenciesTemplate)
+	{
+		Dependency.Link false
+		Dependency.Stage "Runtime"
+	}
 }
