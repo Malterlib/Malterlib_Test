@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 %Target "Dll_TestXcodeIntegration"
@@ -17,7 +17,7 @@
 		MalterlibBundleDebugLogation MalterlibOriginalModulePath
 		MalterlibXcodePrincipalClass "MalterlibTestLoader"
 	}
-	
+
 	Target
 	{
 		Type "XcodeBundle"
@@ -26,7 +26,7 @@
 		FileExtension ".xctest"
 		ProductType "com.apple.product-type.bundle.unit-test"
 		GenerateScheme true
-		LinkWithLibraries += [["-framework", "XCTest"]]
+
 		Group "TestFramework"
 	}
 	Compile
@@ -44,7 +44,7 @@
 				{
 					!!true GetProperty(&MalterlibMainTest, _Target)
 				}
-				
+
 				AllTests: string = Workspace.AllTargets->ForEach(&fg_AllTestsTemplate)
 			}
 			GenerateFile
@@ -60,7 +60,7 @@
 							`\n`\
 							`mint g_nAllTests = NMib::fg_ArraySize(g_AllTests);\n`\
 							`\n`
-				
+
 				Group `@(Platform) @(Architecture) @(FullConfiguration)`
 			}
 		}
@@ -69,7 +69,7 @@
 	{
 		%File "Source/*"
 	}
-	
+
 	%Dependency "Lib_Malterlib"
 
 	Property
@@ -81,4 +81,9 @@
 		}
 	}
 	%Dependency Workspace.AllTargets->ForEach(&fg_AllTestsDependenciesTemplate)
+
+	%Dependency ["XCTest"]
+	{
+		Dependency.Type "Framework"
+	}
 }
