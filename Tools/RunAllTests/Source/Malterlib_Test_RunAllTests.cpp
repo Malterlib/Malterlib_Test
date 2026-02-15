@@ -417,7 +417,7 @@ private:
 						CStr Line = fg_GetStrLineSep(Report);
 						if (Line.f_StartsWith("---"))
 						{
-							DConOut2("{}{\n}", Line);
+							DConOut("{}{\n}", Line);
 							continue;
 						}
 						CStr File;
@@ -466,7 +466,7 @@ private:
 
 						if (File == "Filename")
 						{
-							DConOut2("{}{\n}", Line);
+							DConOut("{}{\n}", Line);
 							continue;
 						}
 
@@ -477,16 +477,16 @@ private:
 						{
 							if (fg_StrMatchWildcard(Line.f_GetStr(), Source.f_GetStr()) == EMatchWildcardResult_WholeStringMatchedAndPatternExhausted)
 							{
-								DConOut2("{}{\n}", Line);
+								DConOut("{}{\n}", Line);
 								TotalRegions += Regions;
 								TotalMissedRegions += MissedRegions;
-								//DConOut2("{} {} {} {\n}", Total, Uncovered, Line);
+								//DConOut("{} {} {} {\n}", Total, Uncovered, Line);
 								break;
 							}
 						}
 					}
 
-					DConOut2
+					DConOut
 						(
 							"TOTAL{a+,sj*}{a+,sj*}{fe2,sj*}%{\n}"
 							, TotalRegions, RegionsLocation - 5
@@ -672,7 +672,7 @@ private:
 			}
 		}
 		else if (_Settings.m_SuiteOrder == "fast_first" || _Settings.m_SuiteOrder == "slow_first")
-			DMibConOut2("Warning: No previous runtimes exists for suites{\n}");
+			DMibConOut("Warning: No previous runtimes exists for suites{\n}");
 
 		while (!bCancelled && (!_Settings.m_nLoops || (nLoops < _Settings.m_nLoops)) && (!_Settings.m_bAbortOnFailure || !pState->m_nFailed))
 		{
@@ -705,8 +705,8 @@ private:
 
 			if (!_Settings.m_bList && !_Settings.m_bQuietStats && nLoops == 1)
 			{
-				DMibConOut2("Concurrency         {sj8,ns,}{\n}", nMaxRunning);
-				DMibConOut2("Memory per test     {sj8,ns,} MiB{\n}", _Settings.m_MemoryPerTest);
+				DMibConOut("Concurrency         {sj8,ns,}{\n}", nMaxRunning);
+				DMibConOut("Memory per test     {sj8,ns,} MiB{\n}", _Settings.m_MemoryPerTest);
 			}
 
 			{
@@ -875,7 +875,7 @@ private:
 							if (!bFlaky)
 								break;
 
-							DMibConErrOut2
+							DMibConErrOut
 								(
 									" {sz*,a-}  Test suite list is flaky, rescheduling {}/{}{\n}"
 									, ExecutableName
@@ -896,7 +896,7 @@ private:
 						if (bFailedThisTest)
 						{
 							bFailed = true;
-							DMibConErrOut2
+							DMibConErrOut
 								(
 									" {sz*,a-}  Failed to enumerate tests ({}, 0x{nfh,sj8,sf0}):{\n}{}{\n}"
 									, ExecutableName
@@ -922,7 +922,7 @@ private:
 				}
 
 				if (!_Settings.m_bList && !_Settings.m_bQuietStats && nLoops == 1)
-					DMibConOut2("Test suite launches {sj8,ns,}{\n}", TestSuites.f_GetLen());
+					DMibConOut("Test suite launches {sj8,ns,}{\n}", TestSuites.f_GetLen());
 
 				{
 					mint iSuite = 0;
@@ -974,7 +974,7 @@ private:
 					{
 						auto &Suite = *SortedSuite.m_pTestSuite;
 						CStr Executable = Suite.m_Executable;
-						DMibConOut2("{sz*,a-} {}{\n}", Executable, MaxTestLen, Suite.m_Suite);
+						DMibConOut("{sz*,a-} {}{\n}", Executable, MaxTestLen, Suite.m_Suite);
 					}
 					return 0;
 				}
@@ -995,12 +995,12 @@ private:
 								return;
 
 							if (_Settings.m_bLaunchPerSuite)
-								DMibConOut2(" {sz*,a-}  {} ({}){\n}", Executable, MaxTestLen, _Description, Suite.m_Suite);
+								DMibConOut(" {sz*,a-}  {} ({}){\n}", Executable, MaxTestLen, _Description, Suite.m_Suite);
 							else
-								DMibConOut2(" {sz*,a-}  {}{\n}", Executable, MaxTestLen, _Description);
+								DMibConOut(" {sz*,a-}  {}{\n}", Executable, MaxTestLen, _Description);
 
 							for (auto &Line : pOutput->f_Trim().f_SplitLine<>())
-								DMibConOut2(" {sz*,a-}  {}\n", "", MaxTestLen, Line);
+								DMibConOut(" {sz*,a-}  {}\n", "", MaxTestLen, Line);
 							pOutput->f_Clear();
 						}
 					;
@@ -1035,9 +1035,9 @@ private:
 									if (!pState->m_Settings.m_bQuiet)
 									{
 										if (pState->m_Settings.m_bLaunchPerSuite)
-											DMibConOut2(" {sz*,a-}  Launched ({}){\n}", Executable, MaxTestLen, Suite.m_Suite);
+											DMibConOut(" {sz*,a-}  Launched ({}){\n}", Executable, MaxTestLen, Suite.m_Suite);
 										else
-											DMibConOut2(" {sz*,a-}  Launched{\n}", Executable, MaxTestLen);
+											DMibConOut(" {sz*,a-}  Launched{\n}", Executable, MaxTestLen);
 									}
 								}
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
@@ -1205,7 +1205,7 @@ private:
 						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutClock.f_GetTime() > _Settings.m_Timeout)
 						{
 							pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
-							DMibConOut2("Timed out - aborting remaining tests{\n}");
+							DMibConOut("Timed out - aborting remaining tests{\n}");
 							bCancelled = true;
 							break;
 						}
@@ -1274,17 +1274,17 @@ private:
 						break;
 				}
 
-				DMibConOut2("Max memory          {sj8,ns,} MiB{\n}", AllUsages.f_GetFirst().m_Memory.f_ToInt());
-				DMibConOut2("Worst case usage    {sj8,ns,} MiB{\n}", WorstCaseUsage.f_ToInt());
-				DMibConOut2("Worst case usage 2c {sj8,ns,} MiB{\n}", WorstCaseUsage2Core.f_ToInt());
-				DMibConOut2("Suggested memory    {sj8,ns,} MiB{\n}", ((WorstCaseUsage * 1.5) / fp64 (fg_Min(nThreads, AllUsages.f_GetLen()))).f_ToInt());
-				DMibConOut2("Suggested memory 2c {sj8,ns,} MiB{\n}", ((WorstCaseUsage2Core * 1.5) / fg_Min(2u, AllUsages.f_GetLen())).f_ToInt());
-				DMibConOut2("Top ten{\n}");
+				DMibConOut("Max memory          {sj8,ns,} MiB{\n}", AllUsages.f_GetFirst().m_Memory.f_ToInt());
+				DMibConOut("Worst case usage    {sj8,ns,} MiB{\n}", WorstCaseUsage.f_ToInt());
+				DMibConOut("Worst case usage 2c {sj8,ns,} MiB{\n}", WorstCaseUsage2Core.f_ToInt());
+				DMibConOut("Suggested memory    {sj8,ns,} MiB{\n}", ((WorstCaseUsage * 1.5) / fp64 (fg_Min(nThreads, AllUsages.f_GetLen()))).f_ToInt());
+				DMibConOut("Suggested memory 2c {sj8,ns,} MiB{\n}", ((WorstCaseUsage2Core * 1.5) / fg_Min(2u, AllUsages.f_GetLen())).f_ToInt());
+				DMibConOut("Top ten{\n}");
 
 				mint nLogged = 0;
 				for (auto &Usage : AllUsages)
 				{
-					DMibConOut2("{sj8,ns,} MiB   {}{\n}", Usage.m_Memory.f_ToInt(), Usage.m_Name);
+					DMibConOut("{sj8,ns,} MiB   {}{\n}", Usage.m_Memory.f_ToInt(), Usage.m_Name);
 					if (++nLogged >= 10)
 						break;
 				}
@@ -1296,9 +1296,9 @@ private:
 			CStr Color = _AnsiEncoding.f_StatusError();
 			CStr Default = _AnsiEncoding.f_Default();
 			if (_Settings.m_bLaunchPerSuite)
-				DMibConErrOut2("{}{} ouf of {} suites failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
+				DMibConErrOut("{}{} ouf of {} suites failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
 			else
-				DMibConErrOut2("{}{} ouf of {} executables failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
+				DMibConErrOut("{}{} ouf of {} executables failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
 		}
 
 		{

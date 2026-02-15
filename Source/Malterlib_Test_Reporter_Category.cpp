@@ -45,7 +45,7 @@ namespace NMib::NTest::NPrivate
 		if (Groups.f_IsEmpty())
 			DMibConOut("{}" DMibNewLine, _TestPath);
 		else
-			DMibConOut("{} : {}" DMibNewLine, _TestPath << Groups);
+			DMibConOut("{} : {}" DMibNewLine, _TestPath, Groups);
 	}
 
 	ETestNeedReportFlag CCategoryLister::f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags)

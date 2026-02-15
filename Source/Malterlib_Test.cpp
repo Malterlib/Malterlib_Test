@@ -615,7 +615,7 @@ namespace NMib::NTest
 					}
 					if (!AggregatedTestsMapResult.f_WasCreated() && !bAllowNonUnique)
 					{
-						DMibTrace(DMibPFileLineFormat " Duplicate Test Path: {}" DMibNewLine, _pFile << _Line << FullPath);
+						DMibTrace(DMibPFileLineFormat " Duplicate Test Path: {}" DMibNewLine, _pFile, _Line, FullPath);
 						DMibPDebugBreak; // The same test run twice is not allowed for reporting reasons
 					}
 				}

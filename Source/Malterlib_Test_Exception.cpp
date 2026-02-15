@@ -129,7 +129,7 @@ namespace NMib::NTest::NPrivate
 					&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "include\\xx") < 0
 					)
 				{
-					//DMibTrace(DMibPFileLineFormat " {}" DMibNewLine, pInfo->m_pSourceFileName << pInfo->m_SourceLine << pInfo->m_pFunctionName);
+					//DMibTrace(DMibPFileLineFormat " {}" DMibNewLine, pInfo->m_pSourceFileName, pInfo->m_SourceLine, pInfo->m_pFunctionName);
 					m_pStackTraceInfo = pInfo;
 					break;
 				}

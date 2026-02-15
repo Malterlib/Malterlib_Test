@@ -467,7 +467,7 @@ namespace NMib::NSys
 	}
 
 	fp64 Runtime = Clock.f_GetTime();
-	DConErrOut2("Enumerated {} tests in {fe1} s\n", nTests, Runtime);
+	DConErrOut("Enumerated {} tests in {fe1} s\n", nTests, Runtime);
 
 	for (auto &Executable : *g_TestExecutables)
 	{
@@ -488,8 +488,8 @@ namespace NMib::NSys
 			if (!AllPaths(Test.m_TestPath, &Test).f_WasCreated())
 			{
 				auto &OtherTest = *AllPaths[Test.m_TestPath];
-				DConErrOut2(DMibPFileLineFormat " Duplicate test suite{\n}", Test.m_Location.m_File, Test.m_Location.m_Line);
-				DConErrOut2(DMibPFileLineFormat "	Other test suite{\n}", OtherTest.m_Location.m_File, OtherTest.m_Location.m_Line);
+				DConErrOut(DMibPFileLineFormat " Duplicate test suite{\n}", Test.m_Location.m_File, Test.m_Location.m_Line);
+				DConErrOut(DMibPFileLineFormat "	Other test suite{\n}", OtherTest.m_Location.m_File, OtherTest.m_Location.m_Line);
 				continue;
 			}
 			uint32 Distinguisher = 1;
