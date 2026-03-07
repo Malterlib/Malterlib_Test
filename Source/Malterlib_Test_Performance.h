@@ -65,7 +65,7 @@ namespace NMib::NTest
 	{
 	public:
 		t_CTimer &m_Timer;
-		t_CIterations m_Iterations;
+		t_CIterations const &m_Iterations;
 
 		TCTestMeasureScope(t_CTimer &_Timer, t_CIterations const &_Iterations)
 			: m_Iterations(_Iterations)
@@ -85,7 +85,7 @@ namespace NMib::NTest
 	{
 	public:
 		t_CTimer &m_Timer;
-		t_CIterations m_Iterations;
+		t_CIterations const &m_Iterations;
 		mint m_nThreads;
 
 		TCTestMeasureScopeWithThread(t_CTimer &_Timer, t_CIterations const &_Iterations, mint _nThreads)
