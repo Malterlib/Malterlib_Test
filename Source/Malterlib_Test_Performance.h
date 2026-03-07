@@ -4,13 +4,14 @@
 #pragma once
 
 #include <Mib/Test/Test>
+#include <Mib/Time/TimeMeasure>
 
 namespace NMib::NTest
 {
 	class CTestPerformanceMeasure
 	{
-		NTime::TCCycles<false> m_Cycles;
-		NTime::CTimer m_Timer;
+		NTime::TCCyclesTimeMeasure<false> m_Cycles;
+		NTime::CTimeMeasure m_Timer;
 		uint64 m_nIterations;
 
 		NContainer::TCVector<fp64> m_CyclesHistory;
@@ -29,8 +30,8 @@ namespace NMib::NTest
 
 		uint32 m_nContributingThreads;
 
-		static NTime::TCCycles<false> ms_CyclesCorrection;
-		static NTime::CTimer ms_TimerCorrection;
+		static NTime::TCCyclesTimeMeasure<false> ms_CyclesCorrection;
+		static NTime::CTimeMeasure ms_TimerCorrection;
 		static bool ms_CalculateCorrection;
 
 		void fp_CalcRepetition();

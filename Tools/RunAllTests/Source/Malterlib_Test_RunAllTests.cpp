@@ -600,11 +600,11 @@ private:
 		bool bCancelled = false;
 		bool bSignalled = false;
 		bool bShouldOutput = false;
-		CClock SignalClock;
-		CClock TimeoutClock;
+		CStopwatch SignalStopwatch;
+		CStopwatch TimeoutStopwatch;
 		fp64 LastSignal = 0.0;
-		SignalClock.f_Start();
-		TimeoutClock.f_Start();
+		SignalStopwatch.f_Start();
+		TimeoutStopwatch.f_Start();
 		NThread::CEventAutoReset DispatchEvent;
 
 		auto Cleaunup = NProcess::NPlatform::fg_Process_WaitForTermination
@@ -753,7 +753,6 @@ private:
 
 				TestSuites.f_Clear();
 
-				CClock PerfClock{true};
 				if (_Settings.m_bLaunchPerSuite)
 				{
 					CProcessLaunchHandler LaunchHandler;
@@ -984,7 +983,7 @@ private:
 					auto &Suite = *SortedSuite.m_pTestSuite;
 					CStr Executable = Suite.m_Executable;
 
-					NStorage::TCSharedPointer<NTime::CClock> pClock = fg_Construct();
+					NStorage::TCSharedPointer<NTime::CStopwatch> pStopwatch = fg_Construct();
 					CStr LaunchPath = NFile::CFile::fs_GetProgramDirectory() / Executable;
 
 					TCSharedPointer<CStr> pOutput = fg_Construct();
@@ -1023,7 +1022,7 @@ private:
 							LaunchPath
 							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
-							, [pState, iFlakyID, pExited, Executable, pClock, pOutput, fOutputThisTest, Suite, MaxTestLen]
+							, [pState, iFlakyID, pExited, Executable, pStopwatch, pOutput, fOutputThisTest, Suite, MaxTestLen]
 							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch) mutable
 							{
 								if (*pExited)
@@ -1031,7 +1030,7 @@ private:
 
 								if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
 								{
-									pClock->f_Start();
+									pStopwatch->f_Start();
 									if (!pState->m_Settings.m_bQuiet)
 									{
 										if (pState->m_Settings.m_bLaunchPerSuite)
@@ -1044,7 +1043,7 @@ private:
 								{
 									--pState->m_nRunning;
 
-									auto RunTime = pClock->f_GetTime();
+									auto RunTime = pStopwatch->f_GetTime();
 
 									pState->m_RunTimes[Suite] = RunTime;
 
@@ -1155,7 +1154,7 @@ private:
 
 					OutputDeferredOutput.f_Insert() = fOutputThisTest;
 
-					Params.m_fOnOutput = [&, pOutput, pClock](EProcessLaunchOutputType _OutputType, CStr const &_Output)
+					Params.m_fOnOutput = [&, pOutput, pStopwatch](EProcessLaunchOutputType _OutputType, CStr const &_Output)
 						{
 							*pOutput += _Output;
 						}
@@ -1179,7 +1178,7 @@ private:
 						if (!pState->m_NotLaunched.f_IsEmpty() || pState->m_nRunning > 0)
 							DispatchEvent.f_WaitTimeout(bShouldOutput ? 0.05 : 1.0);
 
-						if (bShouldOutput && (SignalClock.f_GetTime() - LastSignal > 0.25))
+						if (bShouldOutput && (SignalStopwatch.f_GetTime() - LastSignal > 0.25))
 						{
 							bShouldOutput = false;
 							for (auto &fOutput : OutputDeferredOutput)
@@ -1190,7 +1189,7 @@ private:
 						{
 							bSignalled = false;
 
-							if ((LastSignal && (SignalClock.f_GetTime() - LastSignal < 0.25)) || bRunningCI)
+							if ((LastSignal && (SignalStopwatch.f_GetTime() - LastSignal < 0.25)) || bRunningCI)
 							{
 								pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
 								bCancelled = true;
@@ -1199,10 +1198,10 @@ private:
 							else
 								bShouldOutput = true;
 
-							LastSignal = SignalClock.f_GetTime();
+							LastSignal = SignalStopwatch.f_GetTime();
 						}
 
-						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutClock.f_GetTime() > _Settings.m_Timeout)
+						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutStopwatch.f_GetTime() > _Settings.m_Timeout)
 						{
 							pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
 							DMibConOut("Timed out - aborting remaining tests{\n}");

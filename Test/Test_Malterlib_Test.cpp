@@ -1,9 +1,10 @@
 // Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
-#include <Mib/Test/Test>
-#include <Mib/Test/Recursive>
 #include <Mib/Test/Exception>
+#include <Mib/Test/Recursive>
+#include <Mib/Test/Test>
+#include <Mib/Time/PerfTimeMeasure>
 
 namespace
 {
@@ -119,7 +120,7 @@ namespace
 						const static mint nTests = 10;
 #					endif
 
-					NMib::NTime::CCyclesMin TestTimer;
+					NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
 					for (mint i = 0; i < nTests; ++i)
 					{
 						TestTimer.f_Start();
@@ -149,7 +150,7 @@ namespace
 						const static mint nTests = 10;
 #					endif
 
-					NMib::NTime::CCyclesMin TestTimer;
+					NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
 					for (mint i = 0; i < nTests; ++i)
 					{
 						TestTimer.f_Start();

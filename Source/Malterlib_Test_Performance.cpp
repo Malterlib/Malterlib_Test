@@ -14,8 +14,8 @@ namespace NMib::NTest
 	\***************************************************************************************************/
 
 
-	NTime::TCCycles<false> CTestPerformanceMeasure::ms_CyclesCorrection;
-	NTime::CTimer CTestPerformanceMeasure::ms_TimerCorrection;
+	NTime::TCCyclesTimeMeasure<false> CTestPerformanceMeasure::ms_CyclesCorrection(0);
+	NTime::CTimeMeasure CTestPerformanceMeasure::ms_TimerCorrection(0);
 	bool CTestPerformanceMeasure::ms_CalculateCorrection = true;
 
 	CTestPerformanceMeasure::CTestPerformanceMeasure(NStr::CStr const &_Name)
@@ -28,6 +28,8 @@ namespace NMib::NTest
 		, m_nRepetitions(0)
 		, m_nIterationsSum(0)
 		, m_Name(_Name)
+		, m_Cycles(0)
+		, m_Timer(0)
 		, m_nIterations(0)
 		, m_nContributingThreads(0)
 	{
@@ -40,6 +42,8 @@ namespace NMib::NTest
 				DMibTestScopeMeasure(Timer, nIter);
 			ms_CyclesCorrection = Timer.m_MinCycles.f_ToInt();
 			ms_TimerCorrection = Timer.m_MinTimer.f_ToInt();
+			DMibFastCheck(ms_CyclesCorrection.f_GetCycles() >= 0);
+			DMibFastCheck(ms_TimerCorrection.f_GetTime() >= 0.0);
 		}
 	}
 
@@ -71,8 +75,8 @@ namespace NMib::NTest
 	{
 		fp_CalcRepetition();
 		m_nIterations = 0;
-		m_Cycles.f_Reset();
-		m_Timer = NTime::CTimer();
+		m_Cycles.f_Reset(0);
+		m_Timer.f_Reset(0);
 	}
 
 
@@ -102,6 +106,12 @@ namespace NMib::NTest
 
 		m_Cycles -= ms_CyclesCorrection;
 		m_Timer -= ms_TimerCorrection;
+
+		if (m_Cycles.f_GetCycles() < 0)
+			m_Cycles.f_Reset(0);
+
+		if (m_Timer.f_GetTicks() < 0)
+			m_Timer.f_Reset(0);
 
 		m_Cycles *= _nContributingThreads;
 		m_Timer *= _nContributingThreads;

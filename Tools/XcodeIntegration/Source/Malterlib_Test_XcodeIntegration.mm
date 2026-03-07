@@ -406,7 +406,7 @@ namespace NMib::NSys
 	TestParams.f_Insert("Registry");
 	//TestParams.f_Insert(*g_FilteredCommandLine);
 
-	NTime::CClock Clock{true};
+	NTime::CStopwatch Stopwatch{true};
 
 	TCFutureVector<CTestExecutable> ConcurrentTests;
 
@@ -466,7 +466,7 @@ namespace NMib::NSys
 		g_TestExecutables->f_Insert(*Results);
 	}
 
-	fp64 Runtime = Clock.f_GetTime();
+	fp64 Runtime = Stopwatch.f_GetTime();
 	DConErrOut("Enumerated {} tests in {fe1} s\n", nTests, Runtime);
 
 	for (auto &Executable : *g_TestExecutables)
