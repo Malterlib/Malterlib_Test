@@ -141,8 +141,14 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						, "QuietStats?"_o=
 						{
 							"Names"_o= _o["--quiet-stats"]
-							, "Default"_o= false
+							, "Default"_o= true
 							, "Description"_o= "Don't output memory and concurrency statistics.\n"
+						}
+						, "ReportSuccess?"_o=
+						{
+							"Names"_o= _o["--report-success"]
+							, "Default"_o= true
+							, "Description"_o= "Report a success message when all tests pass.\n"
 						}
 						, "Loop?"_o=
 						{
@@ -201,7 +207,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						}
 						, "CoverageOnly?"_o=
 						{
-							"Names"_o= _o["--coverage-only")
+							"Names"_o= _o["--coverage-only"]
 							, "Default"_o= false
 							, "Description"_o= "Only display coverage results from previous run, don't run tests.\n"
 						}
@@ -289,6 +295,7 @@ private:
 			, m_bLoopTests(fs_GetSetting<bool>(_Parameters, "Loop"))
 			, m_bQuiet(fs_GetSetting<bool>(_Parameters, "Quiet"))
 			, m_bQuietStats(fs_GetSetting<bool>(_Parameters, "QuietStats"))
+			, m_bReportSuccess(fs_GetSetting<bool>(_Parameters, "ReportSuccess"))
 			, m_bLaunchPerSuite(_bList || fs_GetSetting<bool>(_Parameters, "LaunchPerSuite"))
 			, m_bAbortOnFailure(fs_GetSetting<bool>(_Parameters, "LoopAbortOnFailure"))
 			, m_nLoops(fs_GetSetting<int64>(_Parameters, "LoopIterations"))
@@ -332,6 +339,7 @@ private:
 		bool m_bLoopTests = false;
 		bool m_bQuiet = true;
 		bool m_bQuietStats = false;
+		bool m_bReportSuccess = true;
 		bool m_bLaunchPerSuite = false;
 		bool m_bAbortOnFailure = false;
 		bool m_bList = false;
@@ -1295,9 +1303,19 @@ private:
 			CStr Color = _AnsiEncoding.f_StatusError();
 			CStr Default = _AnsiEncoding.f_Default();
 			if (_Settings.m_bLaunchPerSuite)
-				DMibConErrOut("{}{} ouf of {} suites failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
+				DMibConErrOut("{}{} out of {} suites failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
 			else
-				DMibConErrOut("{}{} ouf of {} executables failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
+				DMibConErrOut("{}{} out of {} executables failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
+		}
+		else if (_Settings.m_bReportSuccess)
+		{
+			CStr Color = _AnsiEncoding.f_StatusNormal();
+			CStr Default = _AnsiEncoding.f_Default();
+
+			if (_Settings.m_bLaunchPerSuite)
+				DMibConErrOut("{}All {} suites were successful{}\n", Color, pState->m_nTotalLaunches, Default);
+			else
+				DMibConErrOut("{}All {} launches were successful{}\n", Color, pState->m_nTotalLaunches, Default);
 		}
 
 		{
