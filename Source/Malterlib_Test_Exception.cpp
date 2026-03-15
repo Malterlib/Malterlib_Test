@@ -28,6 +28,26 @@ namespace NMib::NTest
 	}
 #endif
 
+#if defined DMibContractConfigure_CheckEnabled
+	TCThrowsException<NContract::CContractException_Check> fg_ViolatesCheck()
+	{
+		return TCThrowsException<NContract::CContractException_Check>();
+	}
+	TCThrowsExceptionExact<NContract::CContractException_Check> fg_ViolatesCheck(const ch8 *_pError)
+	{
+		return NContract::CContractException_Check("CContractException_Check", DMibPFile, DMibPLine, DMibPFunction, _pError, true);
+	}
+#else
+	TCThrowsException<> fg_ViolatesCheck()
+	{
+		return TCThrowsException<>();
+	}
+	TCThrowsException<> fg_ViolatesCheck(const ch8 *_pError)
+	{
+		return TCThrowsException<>();
+	}
+#endif
+
 #if DMibEnableSafeCheck > 0
 	TCThrowsException<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck()
 	{

@@ -4,9 +4,10 @@
 #pragma once
 
 #include "Malterlib_Test_Expression.h"
-#include <Mib/Core/RuntimeType>
-#include <Mib/Container/Registry>
+
 #include <Mib/CommandLine/AnsiEncoding>
+#include <Mib/Container/Registry>
+#include <Mib/Core/RuntimeType>
 
 namespace NMib::NConcurrency
 {
@@ -497,6 +498,7 @@ namespace NMib::NTest
 #	define DMibExpectExceptionType(d_Expression, d_ExceptionType) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::TCThrowsException<d_ExceptionType>()))
 #	define DMibExpectNoException(d_Expression) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::TCThrowsException<>()))
 #	define DMibExpectViolatesRequire(d_Expression, ...) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::fg_ViolatesRequire(__VA_ARGS__)))
+#	define DMibExpectViolatesCheck(d_Expression, ...) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::fg_ViolatesCheck(__VA_ARGS__)))
 #	define DMibExpectViolatesSafeCheck(d_Expression, ...) DMibTest(DMibLExpr(d_Expression) == DMibExpr(::NMib::NTest::fg_ViolatesSafeCheck(__VA_ARGS__)))
 #	define DMibExpectTrue(d_Right) DMibTest(DMibExpr(d_Right))
 #	define DMibExpectFalse(d_Right) DMibTest(!DMibExpr(d_Right))
@@ -506,6 +508,7 @@ namespace NMib::NTest
 #	define DMibAssertExceptionType(d_Expression, d_ExceptionType) DMibExpectExceptionType(d_Expression, d_ExceptionType)(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertNoException(d_Expression) DMibExpectNoException(d_Expression)(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertViolatesRequire(d_Expression, ...) DMibExpectViolatesRequire(d_Expression, __VA_ARGS__)(::NMib::NTest::ETest_FailAndStop)
+#	define DMibAssertViolatesCheck(d_Expression, ...) DMibExpectViolatesCheck(d_Expression, __VA_ARGS__)(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertViolatesSafeCheck(d_Expression, ...) DMibExpectViolatesSafeCheck(d_Expression, __VA_ARGS__)(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertTrue(d_Right) DMibExpectTrue(d_Right)(::NMib::NTest::ETest_FailAndStop)
 #	define DMibAssertFalse(d_Right) DMibExpectFalse(d_Right)(::NMib::NTest::ETest_FailAndStop)
@@ -516,6 +519,7 @@ namespace NMib::NTest
 #		define DAssert DMibAssert
 #		define DAssertException DMibAssertException
 #		define DAssertViolatesRequire DMibAssertViolatesRequire
+#		define DAssertViolatesCheck DMibAssertViolatesCheck
 #		define DAssertViolatesSafeCheck DMibAssertViolatesSafeCheck
 #		define DAssertExceptionType DMibAssertExceptionType
 #		define DAssertNoException DMibAssertNoException
@@ -524,6 +528,7 @@ namespace NMib::NTest
 #		define DExpect DMibExpect
 #		define DExpectException DMibExpectException
 #		define DExpectViolatesRequire DMibExpectViolatesRequire
+#		define DExpectViolatesCheck DMibExpectViolatesCheck
 #		define DExpectViolatesSafeCheck DMibExpectViolatesSafeCheck
 #		define DExpectExceptionType DMibExpectExceptionType
 #		define DExpectNoException DMibExpectException

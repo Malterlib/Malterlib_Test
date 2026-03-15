@@ -406,6 +406,14 @@ namespace NMib::NTest
 	TCThrowsException<> fg_ViolatesRequire(const ch8 *_pError);
 #endif
 
+#if defined DMibContractConfigure_CheckEnabled
+	TCThrowsException<NContract::CContractException_Check> fg_ViolatesCheck();
+	TCThrowsExceptionExact<NContract::CContractException_Check> fg_ViolatesCheck(const ch8 *_pError);
+#else
+	TCThrowsException<> fg_ViolatesCheck();
+	TCThrowsException<> fg_ViolatesCheck(const ch8 *_pError);
+#endif
+
 #if DMibEnableSafeCheck > 0
 	TCThrowsException<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck();
 	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck(const ch8 *_pError);
