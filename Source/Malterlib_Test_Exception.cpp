@@ -252,24 +252,6 @@ namespace NMib::NTest::NPrivate
 					)
 				;
 			}
-			catch (NContract::CContractException_Invariant const &_Exception)
-			{
-				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
-				fg_ReportTestResult
-					(
-						ETestResult_Fail
-						, "Invariant contract violation"
-						, ""
-						, ETest_FailAndStop
-						, ECheckType_Message
-						, _pFile
-						, _Line
-						, ReportData
-						, ETestFlag_None
-						, ETestResultReportFlag_AskReport | ETestResultReportFlag_FromException
-					)
-				;
-			}
 			catch (NContract::CContractException_NeverGetHere const &_Exception)
 			{
 				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
