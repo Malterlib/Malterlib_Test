@@ -522,7 +522,7 @@ private:
 
 	struct CTestSuite
 	{
-		auto operator <=> (CTestSuite const &) const = default;
+		auto operator <=> (CTestSuite const &) const noexcept = default;
 
 		template <typename tf_CStr>
 		void f_Format(tf_CStr &o_Str) const
@@ -1231,7 +1231,7 @@ private:
 		{
 			struct CSuiteMemory
 			{
-				auto operator <=> (CSuiteMemory const &_Right) const
+				auto operator <=> (CSuiteMemory const &_Right) const noexcept
 				{
 					return _Right.m_Memory <=> m_Memory;
 				}

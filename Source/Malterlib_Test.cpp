@@ -66,7 +66,7 @@ namespace NMib::NTest
 			public:
 				const ch8 *m_pFile;
 				int32 m_Line;
-				COrdering_Strong operator <=> (CUniqueTest const &_Other) const
+				COrdering_Strong operator <=> (CUniqueTest const &_Other) const noexcept
 				{
 					if (auto Ret = NStr::fg_StrCmp(m_pFile, _Other.m_pFile); Ret != 0)
 						return Ret <=> 0;

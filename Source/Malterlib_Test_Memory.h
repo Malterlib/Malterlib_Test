@@ -151,7 +151,7 @@ namespace NMib::NTest
 		{
 			mint m_MemoryAllocator;
 			mint m_Address;
-			auto operator <=> (CAllocationKey const &_Right) const = default;
+			auto operator <=> (CAllocationKey const &_Right) const noexcept = default;
 		};
 
 		struct CAllocation
