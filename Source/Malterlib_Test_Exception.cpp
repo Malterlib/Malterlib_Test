@@ -76,9 +76,9 @@ namespace NMib::NTest::NPrivate
 #if DMibConfig_Tests_Enable
 	void CTestExceptionFilter::f_SetDumpFiles(const NContainer::TCVector<NStr::CStr> &_Files)
 	{
-		mint nDumpFiles = m_DumpFiles.f_GetLen();
+		umint nDumpFiles = m_DumpFiles.f_GetLen();
 
-		for (mint i = 0; i < nDumpFiles; ++i)
+		for (umint i = 0; i < nDumpFiles; ++i)
 		{
 			try
 			{
@@ -133,8 +133,8 @@ namespace NMib::NTest::NPrivate
 		}
 
 		CMibCodeAddress Stack[64];
-		mint nStack = NSys::fg_System_GetStackTrace(Stack, 64);
-		for (mint i = 0; i < nStack; ++i)
+		umint nStack = NSys::fg_System_GetStackTrace(Stack, 64);
+		for (umint i = 0; i < nStack; ++i)
 		{
 			CStackTraceInfo *pInfo = NSys::fg_Debug_AquireStackTraceInfo(Stack[i]);
 			if (pInfo)
@@ -178,11 +178,11 @@ namespace NMib::NTest::NPrivate
 		if (pFile)
 			ExtraReportData += DMibPFileLineFormat " Last know test location{\n}"_f << pFile << Line;
 
-		mint nLogs = _DumpFiles.f_GetLen();
+		umint nLogs = _DumpFiles.f_GetLen();
 		if (nLogs != 0)
 		{
 			ExtraReportData += "The following crash dump files were generated:" DMibNewLine;
-			for (mint i = 0; i < nLogs; ++i)
+			for (umint i = 0; i < nLogs; ++i)
 			{
 				ExtraReportData += "{}{\n}"_f << _DumpFiles[i];
 			}

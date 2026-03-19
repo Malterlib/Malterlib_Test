@@ -27,7 +27,7 @@ namespace NMib::NTest
 			return mp_ReportFlags;
 		}
 		void f_ReportHeader(ETestReportFlag _ReportFlags) override;
-		void f_ReportFooter(mint _nTestsTotal, mint _nSuccessful, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored) override;
+		void f_ReportFooter(umint _nTestsTotal, umint _nSuccessful, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored) override;
 		ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) override;
 		void f_ReportResult
 			(

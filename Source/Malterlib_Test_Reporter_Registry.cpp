@@ -338,7 +338,7 @@ namespace NMib::NTest
 		DMibConOut("{}", Registry.f_GenerateStr());
 	}
 
-	void CRegistryTestResults::f_ReportFooter(mint _nTestsTotal, mint _nSuccessful, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored)
+	void CRegistryTestResults::f_ReportFooter(umint _nTestsTotal, umint _nSuccessful, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored)
 	{
 		NContainer::CRegistry Registry;
 		NContainer::CRegistry *pReg = Registry.f_CreateChild("Footer");
@@ -510,8 +510,8 @@ namespace NMib::NTest
 		pReg->f_SetThisValue(NStr::CStr::fs_ToStr(CurrentID));
 		pReg->f_SetValue("Tolerance", NStr::CStr::fs_ToStr(_Results.m_Tolerance));
 
-		mint nResults = _Results.m_Results.f_GetLen();
-		for (mint i = 0; i < nResults; ++i)
+		umint nResults = _Results.m_Results.f_GetLen();
+		for (umint i = 0; i < nResults; ++i)
 		{
 			CTestPerformanceResult const &Result = _Results.m_Results[i];
 			NContainer::CRegistry *pResultReg = pReg->f_CreateChild("Result", true);
@@ -566,8 +566,8 @@ namespace NMib::NTest
 		pReg->f_SetThisValue(NStr::CStr::fs_ToStr(CurrentID));
 		pReg->f_SetValue("Tolerance", NStr::CStr::fs_ToStr(_Results.m_Tolerance));
 
-		mint nResults = _Results.m_Results.f_GetLen();
-		for (mint i = 0; i < nResults; ++i)
+		umint nResults = _Results.m_Results.f_GetLen();
+		for (umint i = 0; i < nResults; ++i)
 		{
 			CTestMemoryResult const &Result = _Results.m_Results[i];
 			NContainer::CRegistry *pResultReg = pReg->f_CreateChild("Result", true);

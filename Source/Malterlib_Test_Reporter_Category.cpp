@@ -11,7 +11,7 @@ namespace NMib::NTest::NPrivate
 	{
 	}
 
-	void CCategoryLister::f_ReportFooter(mint _nTestsTotal, mint _nSuccess, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored)
+	void CCategoryLister::f_ReportFooter(umint _nTestsTotal, umint _nSuccess, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored)
 	{
 	}
 

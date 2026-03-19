@@ -38,7 +38,7 @@ namespace NMib::NTest
 			ms_CalculateCorrection = false;
 			CTestPerformanceMeasure Timer("");
 			uint64 nIter = 1;
-			for (mint i = 0; i < 100; ++i)
+			for (umint i = 0; i < 100; ++i)
 				DMibTestScopeMeasure(Timer, nIter);
 			ms_CyclesCorrection = Timer.m_MinCycles.f_ToInt();
 			ms_TimerCorrection = Timer.m_MinTimer.f_ToInt();
@@ -160,11 +160,11 @@ namespace NMib::NTest
 	fp64 CTestPerformanceMeasure::f_CyclesStdDev()
 	{
 		fp64 Average = m_CyclesSum / fp64(m_nRepetitions);
-		mint nHistory = m_CyclesHistory.f_GetLen();
+		umint nHistory = m_CyclesHistory.f_GetLen();
 		if (nHistory < 2)
 			return 0.0;
 		fp64 SqrSum = 0.0;
-		for (mint i = 0; i < nHistory; ++i)
+		for (umint i = 0; i < nHistory; ++i)
 		{
 			fp64 Delta = m_CyclesHistory[i] - Average;
 			SqrSum += Delta*Delta;
@@ -175,7 +175,7 @@ namespace NMib::NTest
 
 	fp64 CTestPerformanceMeasure::f_CyclesMedian()
 	{
-		mint nHistory = m_CyclesHistory.f_GetLen();
+		umint nHistory = m_CyclesHistory.f_GetLen();
 		if (nHistory < 1)
 			return 0.0;
 		NContainer::TCVector<fp64> MedianList = m_CyclesHistory;
@@ -201,11 +201,11 @@ namespace NMib::NTest
 	fp64 CTestPerformanceMeasure::f_TimeStdDev()
 	{
 		fp64 Average = m_TimerSum / fp64(m_nRepetitions);
-		mint nHistory = m_TimerHistory.f_GetLen();
+		umint nHistory = m_TimerHistory.f_GetLen();
 		if (nHistory < 2)
 			return 0.0;
 		fp64 SqrSum = 0.0;
-		for (mint i = 0; i < nHistory; ++i)
+		for (umint i = 0; i < nHistory; ++i)
 		{
 			fp64 Delta = m_TimerHistory[i] - Average;
 			SqrSum += Delta*Delta;
@@ -216,7 +216,7 @@ namespace NMib::NTest
 
 	fp64 CTestPerformanceMeasure::f_TimeMedian()
 	{
-		mint nHistory = m_TimerHistory.f_GetLen();
+		umint nHistory = m_TimerHistory.f_GetLen();
 		if (nHistory < 1)
 			return 0.0;
 		NContainer::TCVector<fp64> MedianList = m_TimerHistory;
@@ -306,9 +306,9 @@ namespace NMib::NTest
 		if (m_References.f_IsEmpty())
 			return true;
 		fp64 Reference = m_References.fs_GetKey(m_References.f_FindSmallest());
-		mint nResults = m_Results.m_Results.f_GetLen();
+		umint nResults = m_Results.m_Results.f_GetLen();
 		fp64 BestValue = 0;
-		for (mint i = 0; i < nResults; ++i)
+		for (umint i = 0; i < nResults; ++i)
 		{
 			CTestPerformanceResult const &Result = m_Results.m_Results[i];
 			if (Result.m_MeasureType == ETestMeasureType_Normal)
@@ -328,7 +328,7 @@ namespace NMib::NTest
 	{
 		if (m_bModifyDescription)
 		{
-			mint nResults = m_Results.m_Results.f_GetLen();
+			umint nResults = m_Results.m_Results.f_GetLen();
 			if (nResults > 0)
 				return NStr::CStr::CFormat("{}({})") << _Description << m_Results.m_Results[0].m_nIterations;
 		}
@@ -345,9 +345,9 @@ namespace NMib::NTest
 			else
 			{
 				fp64 Throughput;
-				mint nResults = m_Results.m_Results.f_GetLen();
+				umint nResults = m_Results.m_Results.f_GetLen();
 				bool bFound = false;
-				for (mint i = 0; i < nResults; ++i)
+				for (umint i = 0; i < nResults; ++i)
 				{
 					CTestPerformanceResult const &Result = m_Results.m_Results[i];
 					if (Result.m_MeasureType == ETestMeasureType_Normal)
@@ -367,12 +367,12 @@ namespace NMib::NTest
 		else
 		{
 			fp64 BestValue = 0;
-			mint const *pBestRefIndex = m_References.f_FindSmallest();
+			umint const *pBestRefIndex = m_References.f_FindSmallest();
 			CTestPerformanceResult const *pBestRef = &m_Results.m_Results[*pBestRefIndex];
 			CTestPerformanceResult const *pBest = nullptr;
 			fp64 Reference = pBestRef->m_Cycles.m_Average;
-			mint nResults = m_Results.m_Results.f_GetLen();
-			for (mint i = 0; i < nResults; ++i)
+			umint nResults = m_Results.m_Results.f_GetLen();
+			for (umint i = 0; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = m_Results.m_Results[i];
 				if (Result.m_MeasureType == ETestMeasureType_Normal)

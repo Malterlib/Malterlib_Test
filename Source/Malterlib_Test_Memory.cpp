@@ -333,7 +333,7 @@ namespace NMib::NTest
 		m_BytesDecommit += _Size;
 	}
 
-	CTestMemoryMeasure::CAllocatorStats *CTestMemoryMeasure::fp_GetActiveStats(mint _Heap)
+	CTestMemoryMeasure::CAllocatorStats *CTestMemoryMeasure::fp_GetActiveStats(umint _Heap)
 	{
 		CAllocatorStats **pStats = mp_ActiveAllocators.f_FindEqual(_Heap);
 		if (pStats)
@@ -341,7 +341,7 @@ namespace NMib::NTest
 		return nullptr;
 	}
 
-	CTestMemoryMeasure::CAllocatorStats &CTestMemoryMeasure::fp_GetActiveStats(mint _Heap, const ch8 *_pHeapName)
+	CTestMemoryMeasure::CAllocatorStats &CTestMemoryMeasure::fp_GetActiveStats(umint _Heap, const ch8 *_pHeapName)
 	{
 		CAllocatorStats **pStats = mp_ActiveAllocators.f_FindEqual(_Heap);
 		if (pStats)
@@ -354,13 +354,13 @@ namespace NMib::NTest
 
 	void CTestMemoryMeasure::f_Alloc
 		(
-			mint _MemoryAllocator
-			, mint _AllocatorDepth
+			umint _MemoryAllocator
+			, umint _AllocatorDepth
 			, ch8 const *_pAllocatorName
-			, mint _Address
-			, mint _RequestedAlignment
-			, mint _RequestedSize
-			, mint _ReturnedSize
+			, umint _Address
+			, umint _RequestedAlignment
+			, umint _RequestedSize
+			, umint _ReturnedSize
 			, fp32 _nBytesOverhead
 			, void *_pAllocationInfo
 		)
@@ -389,16 +389,16 @@ namespace NMib::NTest
 
 	void CTestMemoryMeasure::f_Resize
 		(
-			mint _MemoryAllocator
-			, mint _AllocatorDepth
+			umint _MemoryAllocator
+			, umint _AllocatorDepth
 			, ch8 const *_pAllocatorName
-			, mint _OldAddress
-			, mint _OldSize
+			, umint _OldAddress
+			, umint _OldSize
 			, void const *_pOldAllocationInfo
-			, mint _Address
-			, mint _RequestedAlignment
-			, mint _RequestedSize
-			, mint _ReturnedSize
+			, umint _Address
+			, umint _RequestedAlignment
+			, umint _RequestedSize
+			, umint _ReturnedSize
 			, fp32 _nBytesOverhead
 			, void *_pAllocationInfo
 		)
@@ -439,16 +439,16 @@ namespace NMib::NTest
 
 	void CTestMemoryMeasure::f_Realloc
 		(
-			mint _MemoryAllocator
-			, mint _AllocatorDepth
+			umint _MemoryAllocator
+			, umint _AllocatorDepth
 			, ch8 const *_pAllocatorName
-			, mint _OldAddress
-			, mint _OldSize
+			, umint _OldAddress
+			, umint _OldSize
 			, void const *_pOldAllocationInfo
-			, mint _Address
-			, mint _RequestedAlignment
-			, mint _RequestedSize
-			, mint _ReturnedSize
+			, umint _Address
+			, umint _RequestedAlignment
+			, umint _RequestedSize
+			, umint _ReturnedSize
 			, fp32 _nBytesOverhead
 			, void *_pAllocationInfo
 		)
@@ -487,7 +487,7 @@ namespace NMib::NTest
 		mp_AllAllocations.f_Realloc(_RequestedSize, Alloc.m_Overhead, Alloc.m_PotentialWaste);
 	}
 
-	void CTestMemoryMeasure::f_Free(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size, void const *_pAllocationInfo)
+	void CTestMemoryMeasure::f_Free(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size, void const *_pAllocationInfo)
 	{
 		DMibLock(mp_Lock);
 		CAllocatorStats &AllocatorStats = fp_GetActiveStats(_MemoryAllocator, _pAllocatorName);
@@ -504,7 +504,7 @@ namespace NMib::NTest
 
 	}
 
-	void CTestMemoryMeasure::f_GetSize(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size, void const *_pAllocationInfo)
+	void CTestMemoryMeasure::f_GetSize(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size, void const *_pAllocationInfo)
 	{
 		if (_AllocatorDepth != 1)
 			return;
@@ -514,7 +514,7 @@ namespace NMib::NTest
 		mp_AllAllocations.f_GetSize();
 	}
 
-	void CTestMemoryMeasure::f_Protect(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size, uaint _Protect)
+	void CTestMemoryMeasure::f_Protect(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size, uaint _Protect)
 	{
 		if (_AllocatorDepth != 1)
 			return;
@@ -524,7 +524,7 @@ namespace NMib::NTest
 		mp_AllAllocations.f_Protect(_Size);
 	}
 
-	void CTestMemoryMeasure::f_Commit(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size)
+	void CTestMemoryMeasure::f_Commit(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size)
 	{
 		if (_AllocatorDepth != 1)
 			return;
@@ -534,7 +534,7 @@ namespace NMib::NTest
 		mp_AllAllocations.f_Commit(_Size);
 	}
 
-	void CTestMemoryMeasure::f_Decommit(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size)
+	void CTestMemoryMeasure::f_Decommit(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size)
 	{
 		if (_AllocatorDepth != 1)
 			return;
@@ -544,7 +544,7 @@ namespace NMib::NTest
 		mp_AllAllocations.f_Decommit(_Size);
 	}
 
-	void CTestMemoryMeasure::f_AllocatorDelete(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth)
+	void CTestMemoryMeasure::f_AllocatorDelete(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth)
 	{
 		DMibLock(mp_Lock);
 		mp_ActiveAllocators.f_Remove(_MemoryAllocator);
@@ -734,7 +734,7 @@ namespace NMib::NTest
 				AtBytesMaxAllocBytesOverhead.f_Sort();
 				AtBytesMaxAllocBytesPotentialWaste.f_Sort();
 				AtBytesMaxAllocnAllocations.f_Sort();
-				mint iIndex = History.f_GetLen() / 2;
+				umint iIndex = History.f_GetLen() / 2;
 
 				pStats->m_nAllocations.m_Median = nAllocations[iIndex];
 				pStats->m_nFree.m_Median = nFree[iIndex];
@@ -858,7 +858,7 @@ namespace NMib::NTest
 
 	NStr::CStr CTestMemory::f_ModifyDescription(NStr::CStr const &_Description)
 	{
-		mint nResults = mp_Results.m_Results.f_GetLen();
+		umint nResults = mp_Results.m_Results.f_GetLen();
 		if (nResults > 0)
 		{
 			return NStr::CStr::CFormat("{}({})") << _Description << mp_Results.m_Results[0].m_nIterations;
@@ -872,8 +872,8 @@ namespace NMib::NTest
 		CTestMemoryResult const *pBest = nullptr;
 		fp64 BestRef = fp64::fs_LimitMax();
 		fp64 Best = fp64::fs_LimitMax();
-		mint nResults = mp_Results.m_Results.f_GetLen();
-		for (mint i = 0; i < nResults; ++i)
+		umint nResults = mp_Results.m_Results.f_GetLen();
+		for (umint i = 0; i < nResults; ++i)
 		{
 			CTestMemoryResult const &Result = mp_Results.m_Results[i];
 			fp64 ThisValue;

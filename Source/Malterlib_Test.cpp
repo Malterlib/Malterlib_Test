@@ -906,16 +906,16 @@ namespace NMib::NTest
 			pManager->m_IncludePatterns = _Options.m_IncludePatterns;
 			pManager->m_ExcludePatterns = _Options.m_ExcludePatterns;
 			{
-				mint nGroups = _Options.m_IncludeGroups.f_GetLen();
-				for (mint i = 0; i < nGroups; ++i)
+				umint nGroups = _Options.m_IncludeGroups.f_GetLen();
+				for (umint i = 0; i < nGroups; ++i)
 				{
 					NStr::CStr Group = _Options.m_IncludeGroups[i];
 					pManager->m_IncludeGroups[Group];
 				}
 			}
 			{
-				mint nGroups = _Options.m_ExcludeGroups.f_GetLen();
-				for (mint i = 0; i < nGroups; ++i)
+				umint nGroups = _Options.m_ExcludeGroups.f_GetLen();
+				for (umint i = 0; i < nGroups; ++i)
 				{
 					NStr::CStr Group = _Options.m_ExcludeGroups[i];
 					pManager->m_ExcludeGroups[Group];

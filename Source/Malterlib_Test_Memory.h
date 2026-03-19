@@ -149,19 +149,19 @@ namespace NMib::NTest
 
 		struct CAllocationKey
 		{
-			mint m_MemoryAllocator;
-			mint m_Address;
+			umint m_MemoryAllocator;
+			umint m_Address;
 			auto operator <=> (CAllocationKey const &_Right) const noexcept = default;
 		};
 
 		struct CAllocation
 		{
-			mint m_Size;
-			mint m_Overhead;
-			mint m_PotentialWaste;
+			umint m_Size;
+			umint m_Overhead;
+			umint m_PotentialWaste;
 		};
 
-		NContainer::TCMap<mint, CAllocatorStats *, NMib::CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_ActiveAllocators;
+		NContainer::TCMap<umint, CAllocatorStats *, NMib::CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_ActiveAllocators;
 		NContainer::TCMap<CAllocationKey, CAllocation, CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_Allocations;
 		NContainer::TCMap<NStr::CStrNonTracked, CAllocatorStats, CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_Allocators;
 		CAllocatorStats mp_AllAllocations;
@@ -175,18 +175,18 @@ namespace NMib::NTest
 			> mp_AllocatorHistory
 		;
 
-		CAllocatorStats *fp_GetActiveStats(mint _Heap);
-		CAllocatorStats &fp_GetActiveStats(mint _Heap, const ch8 *_pHeapName);
+		CAllocatorStats *fp_GetActiveStats(umint _Heap);
+		CAllocatorStats &fp_GetActiveStats(umint _Heap, const ch8 *_pHeapName);
 
 		void f_Alloc
 			(
-				mint _MemoryAllocator
-				, mint _AllocatorDepth
+				umint _MemoryAllocator
+				, umint _AllocatorDepth
 				, ch8 const *_pAllocatorName
-				, mint _Address
-				, mint _RequestedAlignment
-				, mint _RequestedSize
-				, mint _ReturnedSize
+				, umint _Address
+				, umint _RequestedAlignment
+				, umint _RequestedSize
+				, umint _ReturnedSize
 				, fp32 _nBytesOverhead
 				, void *_pAllocationInfo
 			)
@@ -194,16 +194,16 @@ namespace NMib::NTest
 		;
 		void f_Resize
 			(
-				mint _MemoryAllocator
-				, mint _AllocatorDepth
+				umint _MemoryAllocator
+				, umint _AllocatorDepth
 				, ch8 const *_pAllocatorName
-				, mint _OldAddress
-				, mint _OldSize
+				, umint _OldAddress
+				, umint _OldSize
 				, void const *_pOldAllocationInfo
-				, mint _Address
-				, mint _RequestedAlignment
-				, mint _RequestedSize
-				, mint _ReturnedSize
+				, umint _Address
+				, umint _RequestedAlignment
+				, umint _RequestedSize
+				, umint _ReturnedSize
 				, fp32 _nBytesOverhead
 				, void *_pAllocationInfo
 			)
@@ -211,27 +211,27 @@ namespace NMib::NTest
 		;
 		void f_Realloc
 			(
-				mint _MemoryAllocator
-				, mint _AllocatorDepth
+				umint _MemoryAllocator
+				, umint _AllocatorDepth
 				, ch8 const *_pAllocatorName
-				, mint _OldAddress
-				, mint _OldSize
+				, umint _OldAddress
+				, umint _OldSize
 				, void const *_pOldAllocationInfo
-				, mint _Address
-				, mint _RequestedAlignment
-				, mint _RequestedSize
-				, mint _ReturnedSize
+				, umint _Address
+				, umint _RequestedAlignment
+				, umint _RequestedSize
+				, umint _ReturnedSize
 				, fp32 _nBytesOverhead
 				, void *_pAllocationInfo
 			)
 			override
 		;
-		void f_Free(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size, void const *_pAllocationInfo) override;
-		void f_GetSize(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size, void const *_pAllocationInfo) override;
-		void f_Protect(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size, uaint _Protect) override;
-		void f_Commit(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size) override;
-		void f_Decommit(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth, mint _Address, mint _Size) override;
-		void f_AllocatorDelete(mint _MemoryAllocator, ch8 const *_pAllocatorName, mint _AllocatorDepth) override;
+		void f_Free(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size, void const *_pAllocationInfo) override;
+		void f_GetSize(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size, void const *_pAllocationInfo) override;
+		void f_Protect(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size, uaint _Protect) override;
+		void f_Commit(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size) override;
+		void f_Decommit(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size) override;
+		void f_AllocatorDelete(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth) override;
 
 	public:
 		CTestMemoryMeasure(NStr::CStr const &_Name);

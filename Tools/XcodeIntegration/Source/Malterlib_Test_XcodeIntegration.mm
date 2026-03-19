@@ -26,14 +26,14 @@ using namespace NMib::NTest;
 using namespace NMib::NConcurrency;
 
 extern ch8 const *g_AllTests[];
-extern mint g_nAllTests;
+extern umint g_nAllTests;
 
 struct CTestSuiteRecord
 {
 	CStr m_Executable;
 	CStr m_TestPath;
 	CTestLocation m_Location;
-	mint m_Thread;
+	umint m_Thread;
 	TCSet<CStr> m_Groups;
 };
 
@@ -90,7 +90,7 @@ static void fg_RunTests
 	(
 		CStr const &_TestApp
 		, TCVector<CStr> const &_Params
-		, TCFunction<void (CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)> const &_fOnCategory
+		, TCFunction<void (CStr const &_TestPath, CTestLocation const &_Location, umint _Thread, TCSet<CStr> const &_Groups)> const &_fOnCategory
 		, TCFunction<void (CTestResult const &_TestResult)> const &_fOnTestResult
 	)
 {
@@ -99,7 +99,7 @@ static void fg_RunTests
 	{
 		CLocalParser
 			(
-				TCFunction<void (CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)> const &_fOnCategory
+				TCFunction<void (CStr const &_TestPath, CTestLocation const &_Location, umint _Thread, TCSet<CStr> const &_Groups)> const &_fOnCategory
 				, TCFunction<void (CTestResult const &_TestResult)> const &_fOnTestResult
 			)
 			: mp_fOnCategory(_fOnCategory)
@@ -118,7 +118,7 @@ static void fg_RunTests
 			CTestLocation Location;
 			Location.m_File = _Reg.f_GetValue("File", "");
 			Location.m_Line = _Reg.f_GetValue("Line", "-1").f_ToInt(int32(-1));
-			mint Thread = _Reg.f_GetValue("Line", "0").f_ToInt(mint(0));
+			umint Thread = _Reg.f_GetValue("Line", "0").f_ToInt(umint(0));
 			TCSet<CStr> Groups;
 			if (auto *pGroups = _Reg.f_GetChild("Groups"))
 			{
@@ -140,7 +140,7 @@ static void fg_RunTests
 		{
 		}
 	private:
-		TCFunction<void (CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)> mp_fOnCategory;
+		TCFunction<void (CStr const &_TestPath, CTestLocation const &_Location, umint _Thread, TCSet<CStr> const &_Groups)> mp_fOnCategory;
 		TCFunction<void (CTestResult const &_TestResult)> mp_fOnTestResult;
 	};
 
@@ -245,7 +245,7 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 		(
 			TestExecutable.m_Executable
 			, TestParams
-			, [&](CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)
+			, [&](CStr const &_TestPath, CTestLocation const &_Location, umint _Thread, TCSet<CStr> const &_Groups)
 			{
 			}
 			, [&](CTestResult const &_TestResult)
@@ -416,7 +416,7 @@ namespace NMib::NSys
 
 	CStr ConfigSuffix = DConfigSuffix;
 
-	for (mint i = 0; i < g_nAllTests; ++i)
+	for (umint i = 0; i < g_nAllTests; ++i)
 	{
 		CTestExecutable TestExecutable;
 		TestExecutable.m_Executable = CFile::fs_AppendPath(CStr(DMalterlibTestDeployPath), g_AllTests[i]);
@@ -435,7 +435,7 @@ namespace NMib::NSys
 					(
 						TestExecutable.m_Executable
 						, TestParams
-						, [&](CStr const &_TestPath, CTestLocation const &_Location, mint _Thread, TCSet<CStr> const &_Groups)
+						, [&](CStr const &_TestPath, CTestLocation const &_Location, umint _Thread, TCSet<CStr> const &_Groups)
 						{
 							auto &Test = TestExecutable.m_Tests.f_Insert();
 							Test.m_TestPath = _TestPath;
@@ -459,7 +459,7 @@ namespace NMib::NSys
 			fg_Dispatch(SeparateActor, fg_Move(fRunTest)) > ConcurrentTests;
 	}
 
-	mint nTests = 0;
+	umint nTests = 0;
 	for (auto &Results : fg_AllDoneWrapped(ConcurrentTests).f_CallSync())
 	{
 		nTests += Results->m_Tests.f_GetLen();

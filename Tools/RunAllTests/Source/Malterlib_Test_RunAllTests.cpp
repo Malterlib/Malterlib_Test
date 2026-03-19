@@ -16,11 +16,11 @@ using namespace NMib::NFunction;
 using namespace NMib::NStr;
 
 extern ch8 const *g_AllTests[];
-extern mint g_nAllTests;
+extern umint g_nAllTests;
 
 #if DMalterlibCodeCoverage
 	extern ch8 const *g_AllCoverageBinaries[];
-	extern mint g_nAllCoverageBinaries;
+	extern umint g_nAllCoverageBinaries;
 
 	CUniversallyUniqueIdentifier g_UUIDNamespace{"6B2A543F-CB3F-4B6D-A617-7D286BBC931E", EUniversallyUniqueIdentifierFormat_Bare};
 #endif
@@ -388,7 +388,7 @@ private:
 					Params.f_Insert(_Settings.m_CoverageExecutable);
 				else
 				{
-					for (mint i = 0; i < g_nAllCoverageBinaries; ++i)
+					for (umint i = 0; i < g_nAllCoverageBinaries; ++i)
 					{
 						CStr Binary = NFile::CFile::fs_GetProgramDirectory() / g_AllCoverageBinaries[i];
 
@@ -417,9 +417,9 @@ private:
 				{
 					uint64 TotalRegions = 0;
 					uint64 TotalMissedRegions = 0;
-					mint RegionsLocation = 0;
-					mint MissedRegionsLocation = 0;
-					mint PercentageLocation = 0;
+					umint RegionsLocation = 0;
+					umint MissedRegionsLocation = 0;
+					umint PercentageLocation = 0;
 					while (!Report.f_IsEmpty())
 					{
 						CStr Line = fg_GetStrLineSep(Report);
@@ -563,11 +563,11 @@ private:
 #endif
 
 		bool bRunningCI = fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true";
-		constexpr static mint c_MaxFlakyTries = 10;
+		constexpr static umint c_MaxFlakyTries = 10;
 
 		struct CFlakyState
 		{
-			mint m_nTries = 1;
+			umint m_nTries = 1;
 			NProcess::CProcessLaunchParams m_Params;
 		};
 
@@ -585,14 +585,14 @@ private:
 
 			CSettings const m_Settings;
 			CAnsiEncoding const m_AnsiEncoding;
-			TCMap<mint, CFlakyState> m_FlakyStateStates;
+			TCMap<umint, CFlakyState> m_FlakyStateStates;
 			TCMap<CTestSuite, fp64> m_RunTimes;
 			TCLinkedList<CProcessLaunchParams> m_NotLaunched;
 			TCFunction<void ()> m_fAddLaunches;
-			mint m_nRunning = 0;
-			mint m_nDone = 0;
-			mint m_nFailed = 0;
-			mint m_nTotalLaunches = 0;
+			umint m_nRunning = 0;
+			umint m_nDone = 0;
+			umint m_nFailed = 0;
+			umint m_nTotalLaunches = 0;
 			uint32 m_CombinedExitCode = 0;
 		};
 
@@ -626,7 +626,7 @@ private:
 		;
 
 		int64 nLoops = 0;
-		mint nThreads = NSys::fg_Thread_GetVirtualCores();
+		umint nThreads = NSys::fg_Thread_GetVirtualCores();
 
 		CStr ProgramDirectory = NFile::CFile::fs_GetProgramDirectory();
 
@@ -661,7 +661,7 @@ private:
 		{
 			CTestSuite const *m_pTestSuite = nullptr;
 			fp64 m_PreviousRunTime = 0.0;
-			mint m_Index = 0;
+			umint m_Index = 0;
 		};
 
 		TCVector<CSortedTestSuite> SortedTestSuites;
@@ -703,11 +703,11 @@ private:
 				}
 			;
 
-			mint iNextFlakyID = 0;
+			umint iNextFlakyID = 0;
 
 			pState->f_Clear();
 
-			mint nMaxRunning = 1;
+			umint nMaxRunning = 1;
 			if (_Settings.m_bParallel)
 				nMaxRunning = fg_Clamp(NProcess::NPlatform::fg_Process_GetPhysicalMemory() / (_Settings.m_MemoryPerTest * 1024 * 1024), 1, nThreads);
 
@@ -752,11 +752,11 @@ private:
 					}
 				;
 				TCVector<TCFunction<void (CStr const &_Description, bool _bForceOutput)>> OutputDeferredOutput;
-				mint MaxTestLen = 0;
-				for (mint i = 0; i < g_nAllTests; ++i)
+				umint MaxTestLen = 0;
+				for (umint i = 0; i < g_nAllTests; ++i)
 				{
 					CStr Test = g_AllTests[i];
-					MaxTestLen = fg_Max(MaxTestLen, (mint)Test.f_GetLen());
+					MaxTestLen = fg_Max(MaxTestLen, (umint)Test.f_GetLen());
 				}
 
 				TestSuites.f_Clear();
@@ -788,7 +788,7 @@ private:
 						}
 					;
 
-					for (mint i = 0; i < g_nAllTests; ++i)
+					for (umint i = 0; i < g_nAllTests; ++i)
 					{
 						CStr ExecutableName = g_AllTests[i];
 
@@ -859,7 +859,7 @@ private:
 					{
 						auto &ExecutableName = pTestState->m_Executables.fs_GetKey(Result);
 						bool bFailedThisTest = false;
-						for (mint i = 0; i < c_MaxFlakyTries; ++i)
+						for (umint i = 0; i < c_MaxFlakyTries; ++i)
 						{
 							if (Result.m_ExitResult == 0)
 							{
@@ -924,7 +924,7 @@ private:
 				}
 				else
 				{
-					for (mint i = 0; i < g_nAllTests; ++i)
+					for (umint i = 0; i < g_nAllTests; ++i)
 						TestSuites.f_Insert({g_AllTests[i], ""});
 				}
 
@@ -932,7 +932,7 @@ private:
 					DMibConOut("Test suite launches {sj8,ns,}{\n}", TestSuites.f_GetLen());
 
 				{
-					mint iSuite = 0;
+					umint iSuite = 0;
 					for (auto &Suite : TestSuites)
 					{
 						auto pPrevious = PreviousRunTimes.f_FindEqual(Suite);
@@ -1241,7 +1241,7 @@ private:
 			};
 			TCVector<CSuiteMemory> AllUsages;
 
-			mint iStat = 0;
+			umint iStat = 0;
 			for (auto &Statistics : MemoryStats)
 			{
 				fp64 TotalMemoryUsage = 0.0;
@@ -1267,7 +1267,7 @@ private:
 			AllUsages.f_Sort();
 			if (!AllUsages.f_IsEmpty())
 			{
-				mint nUsages = 0;
+				umint nUsages = 0;
 				fp64 WorstCaseUsage = 0;
 				fp64 WorstCaseUsage2Core = 0;
 				for (auto &Usage : AllUsages)
@@ -1288,7 +1288,7 @@ private:
 				DMibConOut("Suggested memory 2c {sj8,ns,} MiB{\n}", ((WorstCaseUsage2Core * 1.5) / fg_Min(2u, AllUsages.f_GetLen())).f_ToInt());
 				DMibConOut("Top ten{\n}");
 
-				mint nLogged = 0;
+				umint nLogged = 0;
 				for (auto &Usage : AllUsages)
 				{
 					DMibConOut("{sj8,ns,} MiB   {}{\n}", Usage.m_Memory.f_ToInt(), Usage.m_Name);

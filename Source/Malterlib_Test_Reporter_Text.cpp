@@ -196,7 +196,7 @@ namespace NMib::NTest
 		fp_AddReport("", "Result", "Test Path", "Expression", "Values", ETestSeverity_None, true);
 	}
 
-	void CTextTestResults::f_ReportFooter(mint _nTestsTotal, mint _nSuccessful, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored)
+	void CTextTestResults::f_ReportFooter(umint _nTestsTotal, umint _nSuccessful, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored)
 	{
 		using namespace NStr;
 		fp_ReportText
@@ -454,7 +454,7 @@ namespace NMib::NTest
 				, "StdDev(%)"
 			);
 			CTestPerformanceResult const *pBaseLine = nullptr;
-			mint nResults = Results.m_Results.f_GetLen();
+			umint nResults = Results.m_Results.f_GetLen();
 			NContainer::TCSet<NStr::CStr> Counters;
 
 			Results.m_Results.f_Sort
@@ -472,7 +472,7 @@ namespace NMib::NTest
 				)
 			;
 
-			for (mint i = 0 ; i < nResults; ++i)
+			for (umint i = 0 ; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = Results.m_Results[i];
 				if (Result.m_MeasureType == ETestMeasureType_Baseline)
@@ -481,7 +481,7 @@ namespace NMib::NTest
 					break;
 				}
 			}
-			for (mint i = 0 ; i < nResults; ++i)
+			for (umint i = 0 ; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = Results.m_Results[i];
 				NStr::CStr Name = Result.m_Name;
@@ -539,7 +539,7 @@ namespace NMib::NTest
 			}
 
 			fp64 SmallestAverage = fp64::fs_Inf();
-			for (mint i = 0 ; i < nResults; ++i)
+			for (umint i = 0 ; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = Results.m_Results[i];
 				if (Result.m_MeasureType == ETestMeasureType_Baseline && nResults != 1)
@@ -592,7 +592,7 @@ namespace NMib::NTest
 				, NStr::CStr::CFormat("Max({})") << TimeUnit
 				, "StdDev(%)"
 			);
-			for (mint i = 0 ; i < nResults; ++i)
+			for (umint i = 0 ; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = Results.m_Results[i];
 				NStr::CStr Name = Result.m_Name;
@@ -803,8 +803,8 @@ namespace NMib::NTest
 
 			NContainer::TCSet<NStr::CStr> Allocators;
 			Allocators["All"];
-			mint nResults = _Results.m_Results.f_GetLen();
-			for (mint i = 0 ; i < nResults; ++i)
+			umint nResults = _Results.m_Results.f_GetLen();
+			for (umint i = 0 ; i < nResults; ++i)
 			{
 				CTestMemoryResult const &Result = _Results.m_Results[i];
 
@@ -828,8 +828,8 @@ namespace NMib::NTest
 					, [&](NStr::CStr const &_Allocator)
 					{
 						fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << _Allocator, ETestSeverity_None);
-						mint nResults = _Results.m_Results.f_GetLen();
-						for (mint i = 0 ; i < nResults; ++i)
+						umint nResults = _Results.m_Results.f_GetLen();
+						for (umint i = 0 ; i < nResults; ++i)
 						{
 							CTestMemoryResult const &Result = _Results.m_Results[i];
 							NStr::CStr Name = Result.m_Name;

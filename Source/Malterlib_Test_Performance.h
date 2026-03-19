@@ -86,9 +86,9 @@ namespace NMib::NTest
 	public:
 		t_CTimer &m_Timer;
 		t_CIterations const &m_Iterations;
-		mint m_nThreads;
+		umint m_nThreads;
 
-		TCTestMeasureScopeWithThread(t_CTimer &_Timer, t_CIterations const &_Iterations, mint _nThreads)
+		TCTestMeasureScopeWithThread(t_CTimer &_Timer, t_CIterations const &_Iterations, umint _nThreads)
 			: m_Iterations(_Iterations)
 			, m_Timer(_Timer)
 			, m_nThreads(_nThreads)
@@ -113,7 +113,7 @@ namespace NMib::NTest
 	class CTestPerformance
 	{
 		CTestPerformanceResults m_Results;
-		NContainer::TCMap<fp64, mint> m_References;
+		NContainer::TCMap<fp64, umint> m_References;
 		bool m_bModifyDescription;
 		CTestPerformanceResult &fp_Add(CTestPerformanceMeasure &_Timer);
 		NStr::CStr fp_GetOutput() const;

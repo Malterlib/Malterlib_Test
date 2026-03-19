@@ -17,7 +17,7 @@ namespace NMib::NTest::NPrivate
 		mp_ReportFlags = _ReportFlags;
 	}
 
-	void CNullTestResults::f_ReportFooter(mint _nTestsTotal, mint _nSuccessful, mint _nSuccessUnexpected, mint _nFailed, mint _nExpectFailed, mint _nWarnings, mint _nIgnored)
+	void CNullTestResults::f_ReportFooter(umint _nTestsTotal, umint _nSuccessful, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored)
 	{
 	}
 
