@@ -1299,6 +1299,12 @@ namespace NMib::NTest
 						RunOptions.m_IncludePatterns.f_Insert(Path.f_String());
 				}
 
+				if (auto pValue = _Parameters.f_GetMember("NamedPaths"))
+				{
+					for (auto &Path : pValue->f_Array())
+						RunOptions.m_IncludePatterns.f_Insert(Path.f_String());
+				}
+
 				if (auto pValue = _Parameters.f_GetMember("ExcludePaths"))
 				{
 					for (auto &Path : pValue->f_Array())
@@ -1325,6 +1331,14 @@ namespace NMib::NTest
 		auto Parameter_Paths = "Paths...?"_o=
 			{
 				"Type"_o= _o[""]
+				, "Default"_o= _o[]
+				, "Description"_o= "Specify the test paths to run tests for. Can be wildcards."
+			}
+		;
+		auto Option_Paths = "NamedPaths?"_o=
+			{
+				"Names"_o= _o["--paths"]
+				, "Type"_o= _o[""]
 				, "Default"_o= _o[]
 				, "Description"_o= "Specify the test paths to run tests for. Can be wildcards."
 			}
@@ -1479,7 +1493,8 @@ namespace NMib::NTest
 					, "Description"_o= "Run tests contained in this binary.\n"
 					, "Options"_o=
 					{
-						Option_ExcludePaths
+						Option_Paths
+						, Option_ExcludePaths
 						, Option_FilterResults
 						, Option_Groups
 						, Option_ExcludeGroups
@@ -1519,7 +1534,8 @@ namespace NMib::NTest
 					, "Description"_o= "List test suites contained in this binary.\n"
 					, "Options"_o=
 					{
-						Option_ExcludePaths
+						Option_Paths
+						, Option_ExcludePaths
 						, Option_Groups
 						, Option_ExcludeGroups
 						, Option_Logger
