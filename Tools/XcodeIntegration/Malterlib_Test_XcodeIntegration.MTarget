@@ -40,7 +40,7 @@
 			Property
 			{
 				fg_AllTestsTemplate function(string _Target) string = ""
-				fg_AllTestsTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target))@(GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
+				fg_AllTestsTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target) / GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
 				{
 					!!true GetProperty(&MalterlibMainTest, _Target)
 				}

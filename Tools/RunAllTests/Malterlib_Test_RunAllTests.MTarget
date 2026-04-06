@@ -38,7 +38,7 @@
 			Property
 			{
 				fg_AllTestsTemplate function(string _Target) string = ""
-				fg_AllTestsTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target))@(GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
+				fg_AllTestsTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target) / GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
 				{
 					&
 					{
@@ -49,7 +49,7 @@
 				AllTests: string = Workspace.AllTargets->ForEach(&fg_AllTestsTemplate)
 
 				CoverageBinariesTemplate function(string _Target) string
-				CoverageBinariesTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target))@(GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
+				CoverageBinariesTemplate =+ `		"@(GetProperty(&MalterlibPostCopyDestination, _Target) / GetProperty(&Target.FileName, _Target))@(GetProperty(&Target.FileExtension, _Target))",\n`
 				{
 					|
 					{
