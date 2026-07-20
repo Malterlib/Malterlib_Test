@@ -143,6 +143,8 @@ namespace NMib::NTest
 			fg_AddStrSep(Ret, "CrashOnException", ',');
 		if (_Flags & ETestReportFlag_EnableLogs)
 			fg_AddStrSep(Ret, "EnableLogs", ',');
+		if (_Flags & ETestReportFlag_EnableShutdownLogs)
+			fg_AddStrSep(Ret, "EnableShutdownLogs", ',');
 
 		return Ret;
 	}
@@ -183,6 +185,8 @@ namespace NMib::NTest
 				Ret |= ETestReportFlag_BreakOnFail;
 			else if (Flag == "EnableLogs")
 				Ret |= ETestReportFlag_EnableLogs;
+			else if (Flag == "EnableShutdownLogs")
+				Ret |= ETestReportFlag_EnableShutdownLogs;
 		}
 		return Ret;
 	}

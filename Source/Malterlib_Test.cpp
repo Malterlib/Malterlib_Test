@@ -844,6 +844,10 @@ namespace NMib::NTest
 			if ((_Options.m_ReportFlags & ETestReportFlag_EnableLogs) && !(_Options.m_ReportFlags & ETestReportFlag_ProcessRecursive))
 			{
 				LogActor = NMib::NConcurrency::fg_ConstructActor<NMib::NConcurrency::CSeparateThreadActor>(fg_Construct("Log Dispatcher"));
+
+				if (_Options.m_ReportFlags & ETestReportFlag_EnableShutdownLogs)
+					LogActor->f_ConcurrencyManager().f_EnableShutdownLogging(true);
+
 				fg_GetSys()->f_GetLogger().f_SetDispatcher
 					(
 						[LogActor](NFunction::TCFunctionMovable<void ()> &&_fToDispatch)
@@ -1254,6 +1258,9 @@ namespace NMib::NTest
 				if (auto pValue = _Parameters.f_GetMember("EnableLogs"); pValue && pValue->f_Boolean())
 					RunOptions.m_ReportFlags |= ETestReportFlag_EnableLogs;
 
+				if (auto pValue = _Parameters.f_GetMember("ShutdownLogging"); pValue && pValue->f_Boolean())
+					RunOptions.m_ReportFlags |= ETestReportFlag_EnableShutdownLogs;
+
 				auto fGetGroups = [&](NEncoding::CEJsonSorted const &_Groups)
 					{
 						NContainer::TCVector<NStr::CStr> OutGroups;
@@ -1484,6 +1491,13 @@ namespace NMib::NTest
 				, "Description"_o= "Enable application logs to stderr.\n"
 			}
 		;
+		auto Option_ShutdownLogging = "ShutdownLogging?"_o=
+			{
+				"Names"_o= _o["--log-concurrency-shutdown"]
+				, "Default"_o= false
+				, "Description"_o= "Log concurrency shutdown sequence."
+			}
+		;
 
 		auto TestCommand = Section.f_RegisterDirectCommand
 			(
@@ -1508,6 +1522,7 @@ namespace NMib::NTest
 						, Option_CrashOnException
 						, Option_ExtraData
 						, Option_EnableLogs
+						, Option_ShutdownLogging
 					}
 					, "Parameters"_o=
 					{
@@ -1541,6 +1556,7 @@ namespace NMib::NTest
 						, Option_Logger
 						, Option_ExtraData
 						, Option_EnableLogs
+						, Option_ShutdownLogging
 					}
 					, "Parameters"_o=
 					{
