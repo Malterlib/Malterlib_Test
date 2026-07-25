@@ -236,6 +236,7 @@ namespace NMib::NTest::NPrivate
 				}
 
 				ETestResultReportFlag ReportFlags = fg_NeedReport(Desc, Result, m_FailureAction, ECheckType_Predicate, m_pFile, m_Line, m_Flags);
+				auto &ResultReporter = fg_GetResultReporter();
 
 				if (ReportFlags)
 				{
@@ -285,11 +286,24 @@ namespace NMib::NTest::NPrivate
 						(
 							requires ()
 							{
-								m_Expression.f_GetVariable(nullptr, false).f_TestReport(fg_GetResultReporter());
+								m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
 							}
 						)
 					{
-						m_Expression.f_GetVariable(nullptr, false).f_TestReport(fg_GetResultReporter());
+						m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
+					}
+				}
+				else if (ResultReporter.f_GetReportFlags() & (ETestReportFlag_DetailedPerformance | ETestReportFlag_DetailedMemory))
+				{
+					if constexpr
+						(
+							requires ()
+							{
+								m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
+							}
+						)
+					{
+						m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
 					}
 				}
 
