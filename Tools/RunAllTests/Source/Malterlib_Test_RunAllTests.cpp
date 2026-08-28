@@ -563,6 +563,13 @@ private:
 #endif
 
 		bool bRunningCI = fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true";
+
+		// Without an interactive terminal, cancellation must work on the first signal.
+		NStr::CStr InterruptMode = fg_GetSys()->f_GetEnvironmentVariable("MalterlibTestInterrupt", "");
+		bool bInterruptCancels =
+			InterruptMode == "cancel"
+			|| (InterruptMode.f_IsEmpty() && (bRunningCI || !NSys::fg_ConsoleInputIsTerminal()))
+		;
 		constexpr static umint c_MaxFlakyTries = 10;
 
 		struct CFlakyState
@@ -1197,7 +1204,7 @@ private:
 						{
 							bSignalled = false;
 
-							if ((LastSignal && (SignalStopwatch.f_GetTime() - LastSignal < 0.25)) || bRunningCI)
+							if ((LastSignal && (SignalStopwatch.f_GetTime() - LastSignal < 0.25)) || bInterruptCancels)
 							{
 								pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
 								bCancelled = true;
