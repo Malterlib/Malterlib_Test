@@ -563,6 +563,19 @@ private:
 #endif
 
 		bool bRunningCI = fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true";
+
+		// How an interrupt (Ctrl+C, SIGTERM) is treated. At an interactive terminal the
+		// first signal prints intermediate output and only a rapid second one cancels; a run
+		// with no terminal on stdin — a script, a wrapping timeout, non-interactive ssh —
+		// and a run under CI cancel on the first signal, because there is no one at a
+		// keyboard to send the second and a single SIGTERM must not leave the run waiting
+		// forever on a wedged test. MalterlibTestInterrupt overrides either way: "output"
+		// keeps the interactive behavior, "cancel" makes the first signal cancel
+		NStr::CStr InterruptMode = fg_GetSys()->f_GetEnvironmentVariable("MalterlibTestInterrupt", "");
+		bool bInterruptCancels =
+			InterruptMode == "cancel"
+			|| (InterruptMode.f_IsEmpty() && (bRunningCI || !NSys::fg_ConsoleInputIsTerminal()))
+		;
 		constexpr static umint c_MaxFlakyTries = 10;
 
 		struct CFlakyState
@@ -1197,7 +1210,7 @@ private:
 						{
 							bSignalled = false;
 
-							if ((LastSignal && (SignalStopwatch.f_GetTime() - LastSignal < 0.25)) || bRunningCI)
+							if ((LastSignal && (SignalStopwatch.f_GetTime() - LastSignal < 0.25)) || bInterruptCancels)
 							{
 								pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
 								bCancelled = true;
