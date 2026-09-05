@@ -354,7 +354,7 @@ namespace NMib::NTest
 						auto CleanupRunLoop = g_OnScopeExit / [&]
 							{
 								while (pRunLoop->m_RefCount.f_Get() > 0)
-									pRunLoop->f_WaitOnceTimeout(0.1);
+									pRunLoop->f_WaitOnce();
 							}
 						;
 
