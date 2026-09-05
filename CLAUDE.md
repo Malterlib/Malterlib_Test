@@ -13,9 +13,8 @@ Typical structure:
 ```cpp
 namespace
 {
-	class CMyTests : public NMib::NTest::CTest
+	struct CMy_Tests : NMib::NTest::CTest
 	{
-	public:
 		void f_DoTests()
 		{
 			DMibTestSuite("General")
@@ -26,7 +25,7 @@ namespace
 	};
 }
 
-DMibTestRegister(CMyTests, Malterlib::MyModule);
+DMibTestRegister(CMy_Tests, Malterlib::MyModule);
 ```
 
 ## Test Organization Rules
@@ -63,16 +62,47 @@ DMibTestSuite("FindOwner")
 ### Use `DMibTestSuite` for normal grouping
 
 - `DMibTestSuite("...")` is the normal building block for test cases.
+- `RunAllTests` launches a separate process for each `DMibTestSuite`, so additional suites add process-launch overhead in that runner.
 - Prefer a small number of meaningful suites over one suite per trivial assertion.
-- Group closely related success cases together and closely related failure cases together.
+- Group closely related cases in one suite, using `DMibTestCategory` inside it to organize them without additional process launches.
+- Use separate suites for meaningful logical groups that should be selectable independently.
 
-### Use `DMibTestCategory` for higher-level grouping
+Suites do not guarantee process isolation. Tests must also work when their test
+executable is run directly without `RunAllTests`, where multiple suites can
+share a process. Set up and clean up test-owned state explicitly; do not depend
+on a fresh process to reset globals or environment changes, or on process exit
+to release resources between suites.
 
-- `DMibTestCategory("...")` is for broader buckets above suites.
-- Use it when a whole section of suites belongs to a named group such as `Performance` or `Conditional`.
-- Match the style in `Malterlib/Test/Test/Test_Malterlib_Test.cpp`, where categories contain one or more suites.
+Suites must also support parallel execution: `RunAllTests` launches several
+suites concurrently. Use unique temporary paths and resource names, avoid fixed
+ports and conflicting shared external state, and clean up only resources owned
+by the current test. Do not depend on another suite's execution order or results.
 
-Example:
+### Use `DMibTestCategory` inside or above suites
+
+- `DMibTestCategory("...")` can group cases inside a suite or group several suites under a common category.
+- Categories inside a suite organize its cases without adding suites or extra `RunAllTests` process launches.
+- Prefer nested categories for related success/failure cases or variations of the same behavior.
+
+For example, these categories add no extra process launches under `RunAllTests`:
+
+```cpp
+DMibTestSuite("Width")
+{
+	DMibTestCategory("UnknownWidth")
+	{
+		// Setup and assertions for the fallback width.
+	};
+
+	DMibTestCategory("ExplicitWidths")
+	{
+		// Setup and assertions for explicitly provided widths.
+	};
+};
+```
+
+Categories can also group independently runnable suites, as in
+`Malterlib/Test/Test/Test_Malterlib_Test.cpp`:
 
 ```cpp
 DMibTestCategory("Performance")
@@ -243,7 +273,7 @@ For heavier or opt-in tests, use the appropriate built-in group instead:
 
 ## Naming and Style
 
-- Test classes follow normal class naming, e.g. `CGeneral_Tests`.
+- Test types use the framework's `_Tests` suffix, e.g. `CGeneral_Tests`. The framework recognizes and strips this suffix when deriving the test category name; do not rename it to `CGeneralTests`.
 - Local lambdas/function objects should follow the normal function-object naming convention, e.g. `fCheckOwner`.
 - Keep test code small and direct; avoid building unnecessary helpers.
 - Use realistic repository paths, filenames, and data when practical, especially for path- and build-system-related tests.
@@ -269,9 +299,10 @@ DMibTestSuite("FindContainingPath_FindsOwner")
 };
 ```
 
-### Split success and failure behavior into separate suites
+### Group related success and failure behavior with categories
 
-This usually reads better than mixing both in the same suite.
+Use named `DMibTestCategory` blocks inside one suite to keep these cases distinct
+without paying for a separate process launch for each case under `RunAllTests`.
 
 ## Running Tests
 
