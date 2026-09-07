@@ -594,12 +594,17 @@ private:
 				m_nRunning = 0;
 				m_nDone = 0;
 				m_NotLaunched.f_Clear();
+				m_RunningSuites.f_Clear();
 			}
 
 			CSettings const m_Settings;
 			CAnsiEncoding const m_AnsiEncoding;
 			TCMap<umint, CFlakyState> m_FlakyStateStates;
 			TCMap<CTestSuite, fp64> m_RunTimes;
+
+			// The suites launched and not yet exited, with their stopwatches: what a timeout
+			// names, since a hung suite otherwise leaves no trace of which one it was
+			TCMap<CTestSuite, TCSharedPointer<NTime::CStopwatch>> m_RunningSuites;
 			TCLinkedList<CProcessLaunchParams> m_NotLaunched;
 			TCFunction<void ()> m_fAddLaunches;
 			umint m_nRunning = 0;
@@ -1052,6 +1057,7 @@ private:
 								if (_StateChange.f_GetTypeID() == EProcessLaunchState_Launched)
 								{
 									pStopwatch->f_Start();
+									pState->m_RunningSuites[Suite] = pStopwatch;
 									if (!pState->m_Settings.m_bQuiet)
 									{
 										if (pState->m_Settings.m_bLaunchPerSuite)
@@ -1063,6 +1069,7 @@ private:
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_Exited)
 								{
 									--pState->m_nRunning;
+									pState->m_RunningSuites.f_Remove(Suite);
 
 									auto RunTime = pStopwatch->f_GetTime();
 
@@ -1150,6 +1157,7 @@ private:
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_LaunchFailed)
 								{
 									--pState->m_nRunning;
+									pState->m_RunningSuites.f_Remove(Suite);
 									++pState->m_nDone;
 									++pState->m_nFailed;
 									pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(254));
@@ -1225,7 +1233,19 @@ private:
 						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutStopwatch.f_GetTime() > _Settings.m_Timeout)
 						{
 							pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
-							DMibConOut("Timed out - aborting remaining tests{\n}");
+
+							// The suites still running are the ones that hung, or that the ones before
+							// them left too little time for; either way they are the lead
+							DMibConOut("Timed out after {} s - aborting remaining tests, {} still running:{\n}", TimeoutStopwatch.f_GetTime().f_ToInt(), pState->m_RunningSuites.f_GetLen());
+							for (auto &pRunningStopwatch : pState->m_RunningSuites)
+								DMibConOut("    {} (running for {} s){\n}", pState->m_RunningSuites.fs_GetKey(pRunningStopwatch), pRunningStopwatch->f_GetTime().f_ToInt());
+
+							// What they printed so far is the only evidence of where they stopped; a
+							// suite that exited has already printed and cleared its output, so this
+							// reaches the running ones alone
+							for (auto &fOutput : OutputDeferredOutput)
+								fOutput("Output at the timeout", false);
+
 							bCancelled = true;
 							break;
 						}
