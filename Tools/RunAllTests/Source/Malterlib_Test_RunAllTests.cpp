@@ -704,6 +704,10 @@ private:
 		{
 			++nLoops;
 			MemoryStats.f_Clear();
+
+			// Filled in again below on every iteration; the sorted list points into the other
+			TestSuites.f_Clear();
+			SortedTestSuites.f_Clear();
 			CProcessLaunchHandler LaunchHandler;
 
 			TCSharedPointer<bool> pExited = fg_Construct(false);
