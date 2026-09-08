@@ -695,6 +695,10 @@ private:
 		{
 			++nLoops;
 			MemoryStats.f_Clear();
+
+			// Clear the sorted pointers before rebuilding their backing list.
+			TestSuites.f_Clear();
+			SortedTestSuites.f_Clear();
 			CProcessLaunchHandler LaunchHandler;
 
 			TCSharedPointer<bool> pExited = fg_Construct(false);
