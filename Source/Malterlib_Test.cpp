@@ -167,6 +167,9 @@ namespace NMib::NTest
 			{
 				if (fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true" || fg_GetSys()->f_GetEnvironmentVariable("MalterlibCleanupTestFiles", "") == "true")
 					m_bDoFileCleanup = true;
+
+				if (fg_GetSys()->f_GetEnvironmentVariable("MalterlibInitialConnectionTimeout", "").f_IsEmpty())
+					fg_GetSys()->f_SetEnvironmentVariable("MalterlibInitialConnectionTimeout", NStr::CStr::CFormat("{}") << 30.0 * gc_TimeoutMultiplier);
 			}
 
 			~CTestManager()
