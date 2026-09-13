@@ -764,7 +764,13 @@ private:
 						pState->m_fAddLaunches.f_Clear();
 					}
 				;
-				TCVector<TCFunction<void (CStr const &_Description, bool _bForceOutput)>> OutputDeferredOutput;
+				struct CDeferredOutput
+				{
+					CTestSuite m_Suite;
+					TCFunction<void (CStr const &_Description, bool _bForceOutput)> m_fOutput;
+				};
+
+				TCVector<CDeferredOutput> OutputDeferredOutput;
 				umint MaxTestLen = 0;
 				for (umint i = 0; i < g_nAllTests; ++i)
 				{
@@ -1176,7 +1182,7 @@ private:
 
 					Params.m_bCreateNewProcessGroup = true;
 
-					OutputDeferredOutput.f_Insert() = fOutputThisTest;
+					OutputDeferredOutput.f_Insert() = {Suite, fOutputThisTest};
 
 					Params.m_fOnOutput = [&, pOutput, pStopwatch](EProcessLaunchOutputType _OutputType, CStr const &_Output)
 						{
@@ -1205,8 +1211,8 @@ private:
 						if (bShouldOutput && (SignalStopwatch.f_GetTime() - LastSignal > 0.25))
 						{
 							bShouldOutput = false;
-							for (auto &fOutput : OutputDeferredOutput)
-								fOutput("Intermediate output", false);
+							for (auto &Output : OutputDeferredOutput)
+								Output.m_fOutput("Intermediate output", false);
 						}
 
 						if (bSignalled)
@@ -1233,8 +1239,12 @@ private:
 							for (auto &pRunningStopwatch : pState->m_RunningSuites)
 								DMibConOut("    {} (running for {} s){\n}", pState->m_RunningSuites.fs_GetKey(pRunningStopwatch), pRunningStopwatch->f_GetTime().f_ToInt());
 
-							for (auto &fOutput : OutputDeferredOutput)
-								fOutput("Output at the timeout", false);
+							// A finished suite keeps its captured output in quiet mode, so pick the suites by the running set
+							for (auto &Output : OutputDeferredOutput)
+							{
+								if (pState->m_RunningSuites.f_Exists(Output.m_Suite))
+									Output.m_fOutput("Output at the timeout", false);
+							}
 
 							bCancelled = true;
 							break;
