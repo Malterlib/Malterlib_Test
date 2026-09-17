@@ -488,10 +488,13 @@ namespace NMib::NTest
 
 		void fg_PopCategory(NStr::CStr const &PreviousPath)
 		{
+			// Exception state can initialize TLS, whose context lock also protects inheritance of test paths.
+			bool bUnwinding = NException::fg_UncaughtExceptions() > 0;
+
 			CTestManager *pTestManager = g_Tests;
 			CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
 			DMibLock(ThreadLocal.m_TestPathLock);
-			if (!ThreadLocal.m_ExceptionTestPath && NException::fg_UncaughtExceptions() > 0)
+			if (!ThreadLocal.m_ExceptionTestPath && bUnwinding)
 				ThreadLocal.m_ExceptionTestPath = ThreadLocal.m_TestPath;
 			ThreadLocal.m_TestPath = PreviousPath;
 		}
