@@ -154,7 +154,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						{
 							"Names"_o= _o["--loop"]
 							, "Default"_o= false
-							, "Description"_o= "Loop tests until aborted.\n"
+							, "Description"_o= "Continuously refill free process slots until aborted. Each suite runs at most once concurrently.\n"
 						}
 						, "MemoryPerTest?"_o=
 						{
@@ -172,7 +172,7 @@ struct CRunAllTestsApplication : public NMib::CApplication
 						{
 							"Names"_o= _o["--iterations", "-i"]
 							, "Default"_o= 0
-							, "Description"_o= "Abort loop after iterations.\n"
+							, "Description"_o= "Run each selected suite this many times; 0 repeats until aborted.\n"
 						}
 						, "LoopAbortOnFailure?"_o=
 						{
@@ -575,7 +575,15 @@ private:
 		struct CFlakyState
 		{
 			umint m_nTries = 1;
+			uint64 m_nIterations = 0;
+			CProcessLaunchHandler::CLaunchInfo *m_pLaunch = nullptr;
 			NProcess::CProcessLaunchParams m_Params;
+		};
+
+		struct CQueuedLaunch
+		{
+			umint m_ID;
+			CProcessLaunchParams m_Params;
 		};
 
 		struct CState
@@ -585,6 +593,7 @@ private:
 				m_nFailed = 0;
 				m_nTotalLaunches = 0;
 				m_FlakyStateStates.f_Clear();
+				m_MemoryStats.f_Clear();
 				m_nRunning = 0;
 				m_nDone = 0;
 				m_NotLaunched.f_Clear();
@@ -595,8 +604,9 @@ private:
 			CAnsiEncoding const m_AnsiEncoding;
 			TCMap<umint, CFlakyState> m_FlakyStateStates;
 			TCMap<CTestSuite, fp64> m_RunTimes;
+			TCMap<CTestSuite, CProcessStatistics> m_MemoryStats;
 			TCMap<CTestSuite, TCSharedPointer<NTime::CStopwatch>> m_RunningSuites;
-			TCLinkedList<CProcessLaunchParams> m_NotLaunched;
+			TCLinkedList<CQueuedLaunch> m_NotLaunched;
 			TCFunction<void ()> m_fAddLaunches;
 			umint m_nRunning = 0;
 			umint m_nDone = 0;
@@ -634,7 +644,6 @@ private:
 			)
 		;
 
-		int64 nLoops = 0;
 		umint nThreads = NSys::fg_Thread_GetVirtualCores();
 
 		CStr ProgramDirectory = NFile::CFile::fs_GetProgramDirectory();
@@ -663,7 +672,6 @@ private:
 
 		CStr RuntimesPath = CFile::fs_GetUserHomeDirectory() / (".Malterlib/TestRuntimes/{}/TestRuntimes.json"_f << RuntimesHash.f_GetDigest().f_GetString().f_Left(8));
 
-		TCVector<CProcessStatistics> MemoryStats;
 		TCVector<CTestSuite> TestSuites;
 
 		struct CSortedTestSuite
@@ -691,11 +699,7 @@ private:
 		else if (_Settings.m_SuiteOrder == "fast_first" || _Settings.m_SuiteOrder == "slow_first")
 			DMibConOut("Warning: No previous runtimes exists for suites{\n}");
 
-		while (!bCancelled && (!_Settings.m_nLoops || (nLoops < _Settings.m_nLoops)) && (!_Settings.m_bAbortOnFailure || !pState->m_nFailed))
 		{
-			++nLoops;
-			MemoryStats.f_Clear();
-
 			// Clear the sorted pointers before rebuilding their backing list.
 			TestSuites.f_Clear();
 			SortedTestSuites.f_Clear();
@@ -724,7 +728,7 @@ private:
 			if (_Settings.m_bParallel)
 				nMaxRunning = fg_Clamp(NProcess::NPlatform::fg_Process_GetPhysicalMemory() / (_Settings.m_MemoryPerTest * 1024 * 1024), 1, nThreads);
 
-			if (!_Settings.m_bList && !_Settings.m_bQuietStats && nLoops == 1)
+			if (!_Settings.m_bList && !_Settings.m_bQuietStats)
 			{
 				DMibConOut("Concurrency         {sj8,ns,}{\n}", nMaxRunning);
 				DMibConOut("Memory per test     {sj8,ns,} MiB{\n}", _Settings.m_MemoryPerTest);
@@ -742,12 +746,12 @@ private:
 							return false;
 						}
 
-						auto Params = pState->m_NotLaunched.f_Pop();
+						auto Launch = pState->m_NotLaunched.f_Pop();
 
 						++pState->m_nRunning;
-						LaunchHandler.f_AddLaunch
+						pState->m_FlakyStateStates[Launch.m_ID].m_pLaunch = LaunchHandler.f_AddLaunch
 							(
-								Params
+								Launch.m_Params
 								, false
 								, [&](CProcessLaunchParams const &_Params, EProcessLaunchCloseFlag _DestructFlags) -> TCUniquePointer<CVirtualProcessLaunch>
 								{
@@ -947,7 +951,7 @@ private:
 						TestSuites.f_Insert({g_AllTests[i], ""});
 				}
 
-				if (!_Settings.m_bList && !_Settings.m_bQuietStats && nLoops == 1)
+				if (!_Settings.m_bList && !_Settings.m_bQuietStats)
 					DMibConOut("Test suite launches {sj8,ns,}{\n}", TestSuites.f_GetLen());
 
 				{
@@ -1049,7 +1053,7 @@ private:
 							LaunchPath
 							, TestParams
 							, CFile::fs_GetPath(LaunchPath)
-							, [pState, iFlakyID, pExited, Executable, pStopwatch, pOutput, fOutputThisTest, Suite, MaxTestLen]
+							, [pState, iFlakyID, pExited, Executable, pStopwatch, pOutput, fOutputThisTest, Suite, MaxTestLen, &bCancelled]
 							(CProcessLaunchStateChangeVariant const &_StateChange, fp64 _TimeSinceLaunch) mutable
 							{
 								if (*pExited)
@@ -1107,23 +1111,31 @@ private:
 									}
 
 									auto pFlakyState = pState->m_FlakyStateStates.f_FindEqual(iFlakyID);
+									DMibFastCheck(pFlakyState && pFlakyState->m_pLaunch);
+
+									auto *pProcess = pFlakyState->m_pLaunch->f_GetProcessLaunch();
+									// Cancellation can close the process before its queued exit callback runs.
+									if (pProcess->f_IsOpen())
+										pState->m_MemoryStats[Suite] = pProcess->f_GetOverallMemoryStatistics();
+
+									pFlakyState->m_pLaunch = nullptr;
 
 									if
 										(
-											pState->m_Settings.m_bLaunchPerSuite
+											!bCancelled
+											&& pState->m_Settings.m_bLaunchPerSuite
 											&& ExitCode != 0
 											&&
 											(
 												fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, pState->m_Settings.m_FlakySuites)
 												|| bHasFlakyError
 											)
-											&& pFlakyState
 											&& pFlakyState->m_nTries < c_MaxFlakyTries
 										)
 									{
 										fOutputThisTest("Test suite is flaky, rescheduling {}/{}"_f << pFlakyState->m_nTries << c_MaxFlakyTries, true);
 										++pFlakyState->m_nTries;
-										pState->m_NotLaunched.f_Insert(pFlakyState->m_Params);
+										pState->m_NotLaunched.f_Insert({iFlakyID, pFlakyState->m_Params});
 									}
 									else
 									{
@@ -1144,10 +1156,27 @@ private:
 											}
 										}
 
-										pState->m_FlakyStateStates.f_Remove(iFlakyID);
-
 										++pState->m_nDone;
 										pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, ExitCode);
+										++pFlakyState->m_nIterations;
+
+										if
+										(
+											!bCancelled
+											&& pState->m_Settings.m_bLoopTests
+											&& (!pState->m_Settings.m_nLoops || pFlakyState->m_nIterations < uint64(pState->m_Settings.m_nLoops))
+											&& (!pState->m_Settings.m_bAbortOnFailure || !pState->m_nFailed)
+										)
+										{
+											pFlakyState->m_nTries = 1;
+											pOutput->f_Clear();
+											pState->m_NotLaunched.f_Insert({iFlakyID, pFlakyState->m_Params});
+
+											if (!pState->m_Settings.m_nLoops)
+												++pState->m_nTotalLaunches;
+										}
+										else
+											pState->m_FlakyStateStates.f_Remove(iFlakyID);
 									}
 
 									if (pState->m_fAddLaunches)
@@ -1157,6 +1186,13 @@ private:
 								}
 								else if (_StateChange.f_GetTypeID() == EProcessLaunchState_LaunchFailed)
 								{
+									auto *pFlakyState = pState->m_FlakyStateStates.f_FindEqual(iFlakyID);
+									DMibFastCheck(pFlakyState);
+
+									if (pState->m_Settings.m_nLoops > 1)
+										pState->m_nTotalLaunches -= umint(uint64(pState->m_Settings.m_nLoops) - pFlakyState->m_nIterations - 1);
+
+									pState->m_FlakyStateStates.f_Remove(iFlakyID);
 									--pState->m_nRunning;
 									pState->m_RunningSuites.f_Remove(Suite);
 									++pState->m_nDone;
@@ -1193,9 +1229,18 @@ private:
 					fModifyEnvironment(Params, Executable);
 
 					FlakyState.m_Params = Params;
-					pState->m_NotLaunched.f_Insert(fg_Move(Params));
+					pState->m_NotLaunched.f_Insert({iFlakyID, fg_Move(Params)});
 				}
+
 				pState->m_nTotalLaunches = pState->m_NotLaunched.f_GetLen();
+				if (_Settings.m_nLoops > 1)
+				{
+					if (uint64(_Settings.m_nLoops) > TCLimitsInt<umint>::mc_Max / fg_Max(umint(1), pState->m_nTotalLaunches))
+						DMibError("Too many test iterations");
+
+					pState->m_nTotalLaunches *= umint(_Settings.m_nLoops);
+				}
+
 				while (fAddLaunches())
 					;
 
@@ -1204,6 +1249,8 @@ private:
 					{
 						while (auto Entry = ToDispatch.f_Pop())
 							(*Entry)();
+
+						LaunchHandler.f_ReapCompleted();
 
 						if (!pState->m_NotLaunched.f_IsEmpty() || pState->m_nRunning > 0)
 							DispatchEvent.f_WaitTimeout(bShouldOutput ? 0.05 : 1.0);
@@ -1221,7 +1268,6 @@ private:
 
 							if ((LastSignal && (SignalStopwatch.f_GetTime() - LastSignal < 0.25)) || bInterruptCancels)
 							{
-								pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
 								bCancelled = true;
 								break;
 							}
@@ -1233,8 +1279,6 @@ private:
 
 						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutStopwatch.f_GetTime() > _Settings.m_Timeout)
 						{
-							pState->m_CombinedExitCode = fg_Max(pState->m_CombinedExitCode, uint32(255));
-
 							DMibConOut("Timed out after {} s - aborting remaining tests, {} still running:{\n}", TimeoutStopwatch.f_GetTime().f_ToInt(), pState->m_RunningSuites.f_GetLen());
 							for (auto &pRunningStopwatch : pState->m_RunningSuites)
 								DMibConOut("    {} (running for {} s){\n}", pState->m_RunningSuites.fs_GetKey(pRunningStopwatch), pRunningStopwatch->f_GetTime().f_ToInt());
@@ -1255,8 +1299,18 @@ private:
 					(*Entry)();
 
 				LaunchHandler.f_StopAll();
-				LaunchHandler.f_BlockOnExit(1.0, 0, &MemoryStats);
-				LaunchHandler.f_TerminateAll(true, &MemoryStats);
+				CStopwatch GracePeriod(true);
+				while (pState->m_nRunning && GracePeriod.f_GetTime() < 1.0)
+				{
+					while (auto Entry = ToDispatch.f_Pop())
+						(*Entry)();
+
+					if (pState->m_nRunning)
+						DispatchEvent.f_WaitTimeout(0.05);
+				}
+
+				LaunchHandler.f_ReapCompleted();
+				LaunchHandler.f_TerminateAll(true);
 			}
 		}
 
@@ -1274,15 +1328,19 @@ private:
 			};
 			TCVector<CSuiteMemory> AllUsages;
 
-			umint iStat = 0;
-			for (auto &Statistics : MemoryStats)
+			for (auto const &SortedSuite : SortedTestSuites)
 			{
+				auto *pStatistics = pState->m_MemoryStats.f_FindEqual(*SortedSuite.m_pTestSuite);
+				if (!pStatistics || pStatistics->m_Statistics.f_IsEmpty())
+					continue;
+
 				fp64 TotalMemoryUsage = 0.0;
 				auto fGetValue = [&](ch8 const *_pName) -> fp64
 					{
-						auto *pValue = Statistics.m_Statistics.f_FindEqual(_pName);
+						auto *pValue = pStatistics->m_Statistics.f_FindEqual(_pName);
 						if (pValue)
 							return pValue->m_Value / (1024.0 * 1024.0);
+
 						return 0.0;
 					}
 				;
@@ -1292,11 +1350,9 @@ private:
 				auto &Usage = AllUsages.f_Insert();
 
 				Usage.m_Memory = TotalMemoryUsage;
-				if (SortedTestSuites.f_IsPosValid(iStat))
-					Usage.m_Name = SortedTestSuites[iStat].m_pTestSuite->m_Suite;
-
-				++iStat;
+				Usage.m_Name = SortedSuite.m_pTestSuite->m_Suite;
 			}
+
 			AllUsages.f_Sort();
 			if (!AllUsages.f_IsEmpty())
 			{
@@ -1340,7 +1396,7 @@ private:
 			else
 				DMibConErrOut("{}{} out of {} executables failed{}\n", Color, pState->m_nFailed, pState->m_nTotalLaunches, Default);
 		}
-		else if (_Settings.m_bReportSuccess)
+		else if (_Settings.m_bReportSuccess && !bCancelled)
 		{
 			CStr Color = _AnsiEncoding.f_StatusNormal();
 			CStr Default = _AnsiEncoding.f_Default();
@@ -1360,12 +1416,14 @@ private:
 			CFile::fs_WriteStringToFile(RuntimesPath, OutputJson.f_ToString(), false);
 		}
 
-		return pState->m_CombinedExitCode;
+		return bCancelled ? 255 : pState->m_CombinedExitCode;
 	}
 
 	aint fp_RunTests(NEncoding::CEJsonSorted const &_Parameters, CAnsiEncoding const &_AnsiEncoding, bool _bList)
 	{
 		CSettings Settings(_Parameters, _bList);
+		if (Settings.m_nLoops < 0)
+			DMibError("Loop iterations must not be negative");
 
 		uint32 Result = 0;
 #if DMalterlibCodeCoverage
