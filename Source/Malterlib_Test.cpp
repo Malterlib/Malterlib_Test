@@ -6,6 +6,8 @@
 #include <Mib/CommandLine/CommandLine>
 #include <Mib/CommandLine/CommandLineClient>
 #include <Mib/Core/RuntimeType>
+#include <Mib/Cryptography/UUID>
+#include <Mib/File/File>
 #include <Mib/Encoding/JsonShortcuts>
 #include <Mib/Log/AnsiLogger>
 
@@ -51,6 +53,9 @@ namespace NMib::NTest
 			NAtomic::TCAtomic<uint32> m_ReturnValue;
 
 			NThread::CMutual m_ThreadLocalLock;
+
+			NThread::CMutual m_SuiteLocksLock;
+			NContainer::TCMap<NStr::CStr, NStorage::TCUniquePointer<NFile::CLockFile>> m_SuiteLocks; // Retain exclusion through test-file cleanup during shutdown.
 
 			NThread::CMutual m_CleanupPathsLock;
 			NContainer::TCSet<NStr::CStr> m_CleanupPaths;
@@ -708,6 +713,46 @@ namespace NMib::NTest
 			auto& Manager = CTestManager::fs_GetManager();
 			return !Manager.m_ThreadLocal->m_bEnumerating
 				|| !(mp_Flags & ETestCategoryFlag_Tests);
+		}
+
+		NStr::CStr fg_GetSuiteLockPath(NStr::CStr const &_Suite)
+		{
+			using namespace NCryptography;
+
+			CUniversallyUniqueIdentifier Namespace("{fa78c738-b4c8-4d72-9666-957be731be8b}");
+			auto SuiteID = fg_GetHashedUuidString(_Suite, Namespace, EUniversallyUniqueIdentifierFormat_AlphaNum);
+
+			return NFile::CFile::fs_GetProgramDirectory() / ".TestSuiteLocks" / (SuiteID + ".lock");
+		}
+
+		void CTestCategoryScope::fp_LockSuite()
+		{
+			// Recursive helper processes participate in the suite run owned by their parent.
+			if (fg_TestReportFlags() & ETestReportFlag_ProcessRecursive)
+				return;
+
+			using namespace NStr;
+
+			auto &Manager = CTestManager::fs_GetManager();
+			DMibLock(Manager.m_SuiteLocksLock);
+
+			auto const &Suite = Manager.m_ThreadLocal->m_TestPath;
+			if (Manager.m_SuiteLocks.f_Exists(Suite))
+				return;
+
+			auto LockPath = fg_GetSuiteLockPath(Suite);
+			NFile::CFile::fs_CreateDirectoryForFile(LockPath);
+
+			// Keep the inode stable: unlinking a lock file can let another process lock a replacement while the original is still held.
+			NStorage::TCUniquePointer<NFile::CLockFile> pLock = fg_Construct(LockPath);
+			CStr Error;
+			auto Result = pLock->f_Lock(0.0, &Error);
+			if (Result == NFile::CLockFile::ELockResult_TimedOut)
+				DMibError("Test suite is already running: {}"_f << Suite);
+			if (Result != NFile::CLockFile::ELockResult_Locked)
+				DMibError("Could not lock test suite '{}': {}"_f << Suite << Error);
+
+			Manager.m_SuiteLocks[Suite] = fg_Move(pLock);
 		}
 
 		void CTestCategoryScope::f_ReportLeafCategory()
@@ -1473,7 +1518,7 @@ namespace NMib::NTest
 			{
 				"Names"_o= _o["--process-recursive"]
 				, "Default"_o= false
-				, "Description"_o= "Break into debugger on failure.\n"
+				, "Description"_o= "Run as a helper child of a test process; the parent owns suite exclusion.\n"
 			}
 		;
 		auto Option_CompareToBaseline = "CompareToBaseline?"_o=

@@ -685,19 +685,26 @@ private:
 
 		TCMap<CTestSuite, fp64> PreviousRunTimes;
 
-		if (CFile::fs_FileExists(RuntimesPath))
-		{
-			CEJsonSorted OutputJson = CEJsonSorted::fs_FromString(CFile::fs_ReadStringFromFile(RuntimesPath, true), RuntimesPath);
-			for (auto &Suites : fg_Const(OutputJson).f_Object())
-			{
-				auto Executable = Suites.f_Name();
+		CFile::fs_CreateDirectoryForFile(RuntimesPath);
 
-				for (auto &RunTimes : Suites.f_Value().f_Object())
-					PreviousRunTimes[CTestSuite{.m_Executable = Executable, .m_Suite = RunTimes.f_Name()}] = RunTimes.f_Value().f_Float();
+		{
+			NFile::CLockFile RuntimesLock(RuntimesPath + ".lock");
+			RuntimesLock.f_LockWithException(10.0);
+
+			if (CFile::fs_FileExists(RuntimesPath))
+			{
+				CEJsonSorted OutputJson = CEJsonSorted::fs_FromString(CFile::fs_ReadStringFromFile(RuntimesPath, true), RuntimesPath);
+				for (auto &Suites : fg_Const(OutputJson).f_Object())
+				{
+					auto Executable = Suites.f_Name();
+
+					for (auto &RunTimes : Suites.f_Value().f_Object())
+						PreviousRunTimes[CTestSuite{.m_Executable = Executable, .m_Suite = RunTimes.f_Name()}] = RunTimes.f_Value().f_Float();
+				}
 			}
+			else if (_Settings.m_SuiteOrder == "fast_first" || _Settings.m_SuiteOrder == "slow_first")
+				DMibConOut("Warning: No previous runtimes exists for suites{\n}");
 		}
-		else if (_Settings.m_SuiteOrder == "fast_first" || _Settings.m_SuiteOrder == "slow_first")
-			DMibConOut("Warning: No previous runtimes exists for suites{\n}");
 
 		{
 			// Clear the sorted pointers before rebuilding their backing list.
@@ -1408,11 +1415,16 @@ private:
 		}
 
 		{
+			NFile::CLockFile RuntimesLock(RuntimesPath + ".lock");
+			RuntimesLock.f_LockWithException(10.0);
+
 			CEJsonSorted OutputJson = EJsonType_Object;
+			if (CFile::fs_FileExists(RuntimesPath))
+				OutputJson = CEJsonSorted::fs_FromString(CFile::fs_ReadStringFromFile(RuntimesPath, true), RuntimesPath);
+
 			for (auto &RuntimeEntry : pState->m_RunTimes.f_Entries())
 				OutputJson[RuntimeEntry.f_Key().m_Executable][RuntimeEntry.f_Key().m_Suite] = RuntimeEntry.f_Value();
 
-			CFile::fs_CreateDirectoryForFile(RuntimesPath);
 			CFile::fs_WriteStringToFile(RuntimesPath, OutputJson.f_ToString(), false);
 		}
 

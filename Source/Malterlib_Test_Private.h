@@ -451,10 +451,13 @@ namespace NMib::NTest::NPrivate
 		uint32 m_Line;
 	};
 
+	NStr::CStr fg_GetSuiteLockPath(NStr::CStr const &_Suite);
+
 	class CTestCategoryScope
 	{
 		bool f_ContinueEnumerating() const;
 		void f_ReportLeafCategory();
+		void fp_LockSuite();
 	public:
 		CTestCategoryScope(const CTestCategory &_Category, const ch8 *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None);
 		~CTestCategoryScope();
