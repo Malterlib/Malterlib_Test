@@ -38,6 +38,22 @@ namespace NMib::NTest::NPrivate
 		if (!Groups.f_IsEmpty())
 			OldGroups = NMib::NTest::NPrivate::fg_SetGroups(mp_Category.f_GetGroups());
 
+		auto fProcess = [&]
+			{
+				if (!fg_ShouldRunSubTest(bLeaf))
+					return;
+
+				if (f_ContinueEnumerating())
+				{
+					if (bLeaf)
+						fp_LockSuite();
+					_Function();
+				}
+				if (bLeaf)
+					f_ReportLeafCategory();
+			}
+		;
+
 		{
 			if (NMib::NTest::NPrivate::fg_GetEnableExceptionFilter())
 			{
@@ -47,13 +63,7 @@ namespace NMib::NTest::NPrivate
 				{
 					try
 					{
-						if (NMib::NTest::NPrivate::fg_ShouldRunSubTest(bLeaf))
-						{
-							if (f_ContinueEnumerating())
-								_Function();
-							if (bLeaf)
-								f_ReportLeafCategory();
-						}
+						fProcess();
 					}
 					catch (NMib::NTest::NPrivate::CReportTestAbortException const &)
 					{
@@ -63,13 +73,7 @@ namespace NMib::NTest::NPrivate
 				{
 					try
 					{
-						if (NMib::NTest::NPrivate::fg_ShouldRunSubTest(bLeaf))
-						{
-							if (f_ContinueEnumerating())
-								_Function();
-							if (bLeaf)
-								f_ReportLeafCategory();
-						}
+						fProcess();
 					}
 					catch (NMib::NTest::NPrivate::CReportTestAbortException const &)
 					{
@@ -95,13 +99,7 @@ namespace NMib::NTest::NPrivate
 				{
 					try
 					{
-						if (NMib::NTest::NPrivate::fg_ShouldRunSubTest(bLeaf))
-						{
-							if (f_ContinueEnumerating())
-								_Function();
-							if (bLeaf)
-								f_ReportLeafCategory();
-						}
+						fProcess();
 					}
 					catch (NMib::NTest::NPrivate::CReportTestAbortException const &)
 					{
@@ -111,13 +109,7 @@ namespace NMib::NTest::NPrivate
 				{
 					try
 					{
-						if (NMib::NTest::NPrivate::fg_ShouldRunSubTest(bLeaf))
-						{
-							if (f_ContinueEnumerating())
-								_Function();
-							if (bLeaf)
-								f_ReportLeafCategory();
-						}
+						fProcess();
 					}
 					catch (NMib::NTest::NPrivate::CReportTestAbortException const &)
 					{

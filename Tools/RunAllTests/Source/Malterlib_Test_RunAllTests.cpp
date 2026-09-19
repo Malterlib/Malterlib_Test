@@ -686,6 +686,9 @@ private:
 
 		TCMap<CTestSuite, fp64> PreviousRunTimes;
 
+		CFile::fs_CreateDirectoryForFile(RuntimesPath);
+		NFile::CLockFile RuntimesLock(RuntimesPath + ".lock");
+		RuntimesLock.f_LockWithException(10.0);
 		if (CFile::fs_FileExists(RuntimesPath))
 		{
 			CEJsonSorted OutputJson = CEJsonSorted::fs_FromString(CFile::fs_ReadStringFromFile(RuntimesPath, true), RuntimesPath);
@@ -699,6 +702,7 @@ private:
 		}
 		else if (_Settings.m_SuiteOrder == "fast_first" || _Settings.m_SuiteOrder == "slow_first")
 			DMibConOut("Warning: No previous runtimes exists for suites{\n}");
+		RuntimesLock.f_Unlock();
 
 		{
 			MemoryStats.f_Clear();
@@ -1393,11 +1397,13 @@ private:
 		}
 
 		{
+			RuntimesLock.f_LockWithException(10.0);
 			CEJsonSorted OutputJson = EJsonType_Object;
+			if (CFile::fs_FileExists(RuntimesPath))
+				OutputJson = CEJsonSorted::fs_FromString(CFile::fs_ReadStringFromFile(RuntimesPath, true), RuntimesPath);
 			for (auto &RuntimeEntry : pState->m_RunTimes.f_Entries())
 				OutputJson[RuntimeEntry.f_Key().m_Executable][RuntimeEntry.f_Key().m_Suite] = RuntimeEntry.f_Value();
 
-			CFile::fs_CreateDirectoryForFile(RuntimesPath);
 			CFile::fs_WriteStringToFile(RuntimesPath, OutputJson.f_ToString(), false);
 		}
 
@@ -1409,17 +1415,6 @@ private:
 		CSettings Settings(_Parameters, _bList);
 		if (Settings.m_nLoops < 0)
 			DMibError("Loop iterations must not be negative");
-
-		NFile::CLockFile RunLock(NFile::CFile::fs_GetProgramDirectory() / ".RunAllTests.lock");
-		if (!_bList)
-		{
-			CStr Error;
-			auto LockResult = RunLock.f_Lock(0.0, &Error);
-			if (LockResult == NFile::CLockFile::ELockResult_TimedOut)
-				DMibError("Another RunAllTests process is using this deployment: {}"_f << RunLock.f_GetLockFile());
-			if (LockResult != NFile::CLockFile::ELockResult_Locked)
-				DMibError("Could not lock test deployment '{}': {}"_f << RunLock.f_GetLockFile() << Error);
-		}
 
 		uint32 Result = 0;
 #if DMalterlibCodeCoverage

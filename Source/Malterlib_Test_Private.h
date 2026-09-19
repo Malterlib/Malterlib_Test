@@ -455,6 +455,7 @@ namespace NMib::NTest::NPrivate
 	{
 		bool f_ContinueEnumerating() const;
 		void f_ReportLeafCategory();
+		void fp_LockSuite();
 	public:
 		CTestCategoryScope(const CTestCategory &_Category, const ch8 *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None);
 		~CTestCategoryScope();

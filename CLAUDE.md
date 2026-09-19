@@ -78,6 +78,13 @@ suites concurrently. Use unique temporary paths and resource names, avoid fixed
 ports and conflicting shared external state, and clean up only resources owned
 by the current test. Do not depend on another suite's execution order or results.
 
+Test executables acquire a file lock for each selected suite in the deployment's
+`.TestSuiteLocks` directory. Locks remain held through shutdown cleanup. Concurrent
+runs with disjoint suites are supported; an overlapping suite fails before its body
+runs. Listing suites does not acquire locks. Separate deployment directories are
+independent. Helper children launched with `--process-recursive` belong to the
+parent's test run and do not acquire another suite lock.
+
 ### Use `DMibTestCategory` inside or above suites
 
 - `DMibTestCategory("...")` can group cases inside a suite or group several suites under a common category.
