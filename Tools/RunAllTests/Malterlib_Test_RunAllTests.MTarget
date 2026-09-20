@@ -99,18 +99,6 @@
 
 	%Dependency "Lib_Malterlib"
 
-	Property
-	{
-		fg_AllTestsDependenciesTemplate function(string _Test) [type(CEntity)] = []
-		fg_AllTestsDependenciesTemplate =+ GetProperty(&Target.Name, _Test)
-		{
-			!!true GetProperty(&MalterlibMainTest, _Test)
-//			#Debug "TraceEval"
-		}
-	}
-	%Dependency Workspace.AllTargets->ForEach(&fg_AllTestsDependenciesTemplate)
-	{
-		Dependency.Link false
-		Dependency.Stage "Runtime"
-	}
+	// The test executables are listed in the generated test list, not depended on, so that the runner
+	// can be built on its own. Building the workspace still builds the tests.
 }
