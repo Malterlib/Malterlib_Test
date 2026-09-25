@@ -534,6 +534,270 @@ private:
 		CStr m_Suite;
 	};
 
+	struct CStackDebugger
+	{
+		CStr m_Executable;
+		TCVector<CStr> m_Params;
+	};
+
+	static TCVector<CStackDebugger> fsp_GetStackDebuggers(umint _ProcessID)
+	{
+		CStr ProcessID = CStr::fs_ToStr(_ProcessID);
+		TCVector<CStackDebugger> Debuggers;
+
+#if defined(DPlatformFamily_Linux)
+		Debuggers.f_Insert
+			(
+				{
+					"gdb"
+					, {"--batch", "--nx", "-iex", "set print thread-events off", "-p", ProcessID, "-ex", "set pagination off", "-ex", "thread apply all bt"}
+				}
+			)
+		;
+		Debuggers.f_Insert({"eu-stack", {"--pid", ProcessID}});
+#elif defined(DPlatformFamily_macOS)
+		Debuggers.f_Insert({"lldb", {"--batch", "--no-lldbinit", "--attach-pid", ProcessID, "--one-line", "thread backtrace all"}});
+#elif defined(DPlatformFamily_Windows)
+	#if defined(DArchitecture_arm64)
+		CStr DebuggerArchitecture = "arm64";
+	#elif defined(DArchitecture_x64)
+		CStr DebuggerArchitecture = "x64";
+	#else
+		CStr DebuggerArchitecture = "x86";
+	#endif
+		// A non-invasive attach leaves the process running when the debugger quits
+		Debuggers.f_Insert
+			(
+				{
+					"C:/Program Files (x86)/Windows Kits/10/Debuggers/{}/cdb.exe"_f << DebuggerArchitecture
+					, {"-pv", "-p", ProcessID, "-c", "~*kn;q"}
+				}
+			)
+		;
+#endif
+
+		return Debuggers;
+	}
+
+	// Returns the stacks of all threads of a hung process from the first debugger that runs, or why none did.
+	// A debugger that is still running when _fCancelled returns true is terminated.
+	static CStr fsp_CaptureStacks(umint _ProcessID, TCFunction<bool ()> const &_fCancelled)
+	{
+		constexpr static fp64 c_Timeout = 120.0;
+#ifndef DPlatformFamily_Windows
+		// The shell reports a debugger it cannot run with this exit code
+		constexpr static uint32 c_CommandNotFound = 127;
+#endif
+		CStr Failures;
+
+		for (auto &Debugger : fsp_GetStackDebuggers(_ProcessID))
+		{
+			struct CCapture
+			{
+				NThread::CMutual m_Lock;
+				CStr m_Output;
+				CStr m_LaunchError;
+				uint32 m_ExitCode = 0;
+				bool m_bLaunched = false;
+				bool m_bDone = false;
+				bool m_bLaunchFailed = false;
+			};
+
+			TCSharedPointer<CCapture> pCapture = fg_Construct();
+
+			CProcessLaunchParams Params;
+			Params.m_fOnStateChange = [pCapture](CProcessLaunchStateChangeVariant const &_State, fp64)
+				{
+					DMibLock(pCapture->m_Lock);
+					if (_State.f_GetTypeID() == EProcessLaunchState_Launched)
+						pCapture->m_bLaunched = true;
+					else if (_State.f_GetTypeID() == EProcessLaunchState_Exited)
+					{
+						pCapture->m_ExitCode = _State.f_Get<EProcessLaunchState_Exited>();
+						pCapture->m_bDone = true;
+					}
+					else if (_State.f_GetTypeID() == EProcessLaunchState_LaunchFailed)
+					{
+						pCapture->m_LaunchError = _State.f_Get<EProcessLaunchState_LaunchFailed>();
+						pCapture->m_bLaunchFailed = true;
+						pCapture->m_bDone = true;
+					}
+				}
+			;
+
+#ifdef DPlatformFamily_Windows
+			Params.m_Target = Debugger.m_Executable;
+			Params.m_Parameters = CProcessLaunchParams::fs_GetParams(Debugger.m_Params);
+			Params.m_bSeparateStdErr = false;
+			Params.m_fOnOutput = [pCapture](EProcessLaunchOutputType, CStr const &_Output)
+				{
+					DMibLock(pCapture->m_Lock);
+					pCapture->m_Output += _Output;
+				}
+			;
+#else
+			// A helper the debugger starts, such as LLDB's debugserver, can outlive it. With an output pipe the
+			// launch would wait for such a helper to close it, so the output goes to a file instead.
+			CStr OutputFile = NFile::CFile::fs_GetTemporaryDirectory() / ("RunAllTests-Stacks-{}-{}.txt"_f << _ProcessID << fg_GetRandomUnsigned());
+			try
+			{
+				NFile::CFile::fs_CreateDirectoryForFile(OutputFile);
+			}
+			catch (NException::CException const &_Exception)
+			{
+				Failures += "Failed to create the output directory for {}: {}\n"_f << Debugger.m_Executable << _Exception;
+				continue;
+			}
+			auto CleanupOutputFile = g_OnScopeExit / [&]
+				{
+					try
+					{
+						if (NFile::CFile::fs_FileExists(OutputFile))
+							NFile::CFile::fs_DeleteFile(OutputFile);
+					}
+					catch (NException::CException const &)
+					{
+					}
+				}
+			;
+
+			TCVector<CStr> ShellParams{"-c", "Output=\"$1\"; shift; exec \"$@\" < /dev/null > \"$Output\" 2>&1", "sh", OutputFile, Debugger.m_Executable};
+			ShellParams.f_Insert(Debugger.m_Params);
+
+			Params.m_Target = "/bin/sh";
+			Params.m_Parameters = CProcessLaunchParams::fs_GetParams(ShellParams);
+			Params.m_bEnableStdRedirection = false;
+			Params.m_bCreateNewProcessGroup = true;
+#endif
+
+			bool bTimedOut = false;
+			bool bCancelled = false;
+			try
+			{
+#ifdef DPlatformFamily_Windows
+				CProcessLaunch Launch(Params, EProcessLaunchCloseFlag_TerminateProcess | EProcessLaunchCloseFlag_BlockOnExit);
+#else
+				// Without an output pipe nothing needs the launch to finish, and a launch that stalls must not block
+				CProcessLaunch Launch(Params, EProcessLaunchCloseFlag_TerminateProcess | EProcessLaunchCloseFlag_LingerUntilDone);
+#endif
+
+				CStopwatch Stopwatch(true);
+				while (true)
+				{
+					{
+						DMibLock(pCapture->m_Lock);
+						if (pCapture->m_bDone)
+							break;
+					}
+
+					if (Stopwatch.f_GetTime() > c_Timeout)
+					{
+						bTimedOut = true;
+						break;
+					}
+
+					if (_fCancelled())
+					{
+						bCancelled = true;
+						break;
+					}
+
+					NSys::fg_Thread_Sleep(0.1f);
+				}
+
+#ifndef DPlatformFamily_Windows
+				// Stops the helpers left in the debugger's process group. The group is gone when none are left.
+				// Before the launch notification the ID is not valid, and signalling the group of -1 would signal PID 1.
+				// A launch still in flight when the capture ends is waited for, so the helpers it starts are stopped.
+				constexpr static fp64 c_LaunchTimeout = 10.0;
+				bool bLaunched = false;
+				CStopwatch LaunchStopwatch(true);
+				while (true)
+				{
+					{
+						DMibLock(pCapture->m_Lock);
+						bLaunched = pCapture->m_bLaunched;
+						if (bLaunched || pCapture->m_bLaunchFailed)
+							break;
+					}
+
+					if (LaunchStopwatch.f_GetTime() > c_LaunchTimeout)
+						break;
+
+					NSys::fg_Thread_Sleep(0.05f);
+				}
+
+				if (bLaunched)
+				{
+					umint DebuggerID = Launch.f_GetProcessID();
+					if (DebuggerID > 1 && DebuggerID <= umint(TCLimitsInt<int32>::mc_Max))
+					{
+						try
+						{
+							Launch.f_StopProcessGroup();
+						}
+						catch (NException::CException const &)
+						{
+						}
+					}
+				}
+#endif
+			}
+			catch (NException::CException const &_Exception)
+			{
+				Failures += "{} could not be launched: {}\n"_f << Debugger.m_Executable << _Exception;
+				continue;
+			}
+
+			DMibLock(pCapture->m_Lock);
+
+#ifndef DPlatformFamily_Windows
+			try
+			{
+				if (NFile::CFile::fs_FileExists(OutputFile))
+					pCapture->m_Output = NFile::CFile::fs_ReadStringFromFile(OutputFile, true);
+			}
+			catch (NException::CException const &_Exception)
+			{
+				pCapture->m_Output = "Failed to read the output of {}: {}\n"_f << Debugger.m_Executable << _Exception;
+			}
+
+			if (!bTimedOut && !bCancelled && pCapture->m_ExitCode == c_CommandNotFound)
+			{
+				Failures += "{} could not be launched: {}\n"_f << Debugger.m_Executable << pCapture->m_Output.f_Trim();
+				continue;
+			}
+#endif
+
+			// A shell that cannot create the output file exits before the redirection that would report why
+			if (!pCapture->m_bLaunchFailed && !bTimedOut && !bCancelled && pCapture->m_Output.f_Trim().f_IsEmpty())
+			{
+				Failures += "{} exited with {} without output\n"_f << Debugger.m_Executable << pCapture->m_ExitCode;
+				continue;
+			}
+
+			if (pCapture->m_bLaunchFailed)
+			{
+				Failures += "{} could not be launched: {}\n"_f << Debugger.m_Executable << pCapture->m_LaunchError;
+				continue;
+			}
+
+			if (bTimedOut)
+				pCapture->m_Output += "\n{} timed out after {} s\n"_f << Debugger.m_Executable << c_Timeout;
+			else if (bCancelled)
+				pCapture->m_Output += "\n{} was cancelled\n"_f << Debugger.m_Executable;
+			else if (pCapture->m_ExitCode)
+				pCapture->m_Output += "\n{} exited with {}\n"_f << Debugger.m_Executable << pCapture->m_ExitCode;
+
+			return Failures + pCapture->m_Output;
+		}
+
+		if (Failures.f_IsEmpty())
+			return "No debugger to capture stacks with on this platform";
+
+		return Failures;
+	}
+
 	uint32 fp_ExecuteTests(CSettings const &_Settings, CAnsiEncoding const &_AnsiEncoding)
 	{
 #if DMalterlibCodeCoverage
@@ -574,6 +838,7 @@ private:
 
 		struct CFlakyState
 		{
+			CTestSuite m_Suite;
 			umint m_nTries = 1;
 			uint64 m_nIterations = 0;
 			CProcessLaunchHandler::CLaunchInfo *m_pLaunch = nullptr;
@@ -625,7 +890,7 @@ private:
 		;
 
 		bool bCancelled = false;
-		bool bSignalled = false;
+		NAtomic::TCAtomic<bool> bSignalled = false; // Set by the termination handler on another thread
 		bool bShouldOutput = false;
 		CStopwatch SignalStopwatch;
 		CStopwatch TimeoutStopwatch;
@@ -638,7 +903,7 @@ private:
 			(
 				[&]
 				{
-					bSignalled = true;
+					bSignalled.f_Store(true);
 					DispatchEvent.f_Signal();
 				}
 			)
@@ -1054,6 +1319,7 @@ private:
 
 					auto iFlakyID = iNextFlakyID++;
 					auto &FlakyState = pState->m_FlakyStateStates[iFlakyID];
+					FlakyState.m_Suite = Suite;
 
 					auto Params = NProcess::CProcessLaunchParams::fs_LaunchExecutable
 						(
@@ -1269,9 +1535,9 @@ private:
 								Output.m_fOutput("Intermediate output", false);
 						}
 
-						if (bSignalled)
+						if (bSignalled.f_Load())
 						{
-							bSignalled = false;
+							bSignalled.f_Store(false);
 
 							if ((LastSignal && (SignalStopwatch.f_GetTime() - LastSignal < 0.25)) || bInterruptCancels)
 							{
@@ -1286,6 +1552,12 @@ private:
 
 						if (_Settings.m_Timeout != fp64::fs_Inf() && TimeoutStopwatch.f_GetTime() > _Settings.m_Timeout)
 						{
+							// Delivers the queued launch and exit notifications, without launching more, so the running suites
+							// have published their process IDs
+							bCancelled = true;
+							while (auto Entry = ToDispatch.f_Pop())
+								(*Entry)();
+
 							DMibConOut("Timed out after {} s - aborting remaining tests, {} still running:{\n}", TimeoutStopwatch.f_GetTime().f_ToInt(), pState->m_RunningSuites.f_GetLen());
 							for (auto &pRunningStopwatch : pState->m_RunningSuites)
 								DMibConOut("    {} (running for {} s){\n}", pState->m_RunningSuites.fs_GetKey(pRunningStopwatch), pRunningStopwatch->f_GetTime().f_ToInt());
@@ -1295,6 +1567,48 @@ private:
 							{
 								if (pState->m_RunningSuites.f_Exists(Output.m_Suite))
 									Output.m_fOutput("Output at the timeout", false);
+							}
+
+							for (auto &FlakyState : pState->m_FlakyStateStates)
+							{
+								if (bSignalled.f_Load())
+									break;
+
+								if (!FlakyState.m_pLaunch || !pState->m_RunningSuites.f_Exists(FlakyState.m_Suite))
+									continue;
+
+								// The launch factory above only creates default launches
+								auto *pProcess = static_cast<CVirtualProcessLaunch_Default *>(FlakyState.m_pLaunch->f_GetProcessLaunch());
+								if (!pProcess || !pProcess->f_IsRunning())
+									continue;
+
+								DMibConOut
+									(
+										" {sz*,a-}  Stacks at the timeout ({}){\n}"
+										, FlakyState.m_Suite.m_Executable
+										, MaxTestLen
+										, FlakyState.m_Suite.m_Suite
+									)
+								;
+								CStr Stacks;
+								try
+								{
+									Stacks = fsp_CaptureStacks
+										(
+											pProcess->f_GetProcessID()
+											, [&]
+											{
+												return bSignalled.f_Load();
+											}
+										)
+									;
+								}
+								catch (NException::CException const &_Exception)
+								{
+									Stacks = "Failed to capture the stacks: {}"_f << _Exception;
+								}
+								for (auto &Line : Stacks.f_Trim().f_SplitLine<>())
+									DMibConOut(" {sz*,a-}  {}\n", "", MaxTestLen, Line);
 							}
 
 							bCancelled = true;

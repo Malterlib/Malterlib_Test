@@ -10,6 +10,7 @@
 #include <Mib/File/File>
 #include <Mib/Encoding/JsonShortcuts>
 #include <Mib/Log/AnsiLogger>
+#include <Mib/Process/Platform>
 
 #include "Malterlib_Test_Reporter_Null.h"
 #include "Malterlib_Test_Reporter_Text.h"
@@ -1240,6 +1241,9 @@ namespace NMib::NTest
 
 	uint32 fg_RunTests()
 	{
+		// Lets RunAllTests capture the stacks of a suite that hangs
+		NProcess::NPlatform::fg_Process_AllowParentToDebug();
+
 		NStorage::TCSharedPointer<NMib::NCommandLine::CCommandLineSpecification> pCommandLineSpec = fg_Construct();
 		pCommandLineSpec->f_AddHelpCommand();
 		pCommandLineSpec->f_AddTerminalOptions();
