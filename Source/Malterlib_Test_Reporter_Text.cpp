@@ -158,17 +158,7 @@ namespace NMib::NTest
 	{
 		using namespace NStr;
 		if (_bHeader)
-		{
-			fp_ReportText
-				(
-					"{} {} {}{\n}"_f
-					<< fp_ColorHeading("{sl100,a-}"_f << _FileLocation)
-					<< fp_ColorHeading("{sl24,a-}"_f << _Result)
-					<< fp_ColorHeading(_TestPath)
-					, _Severity
-				)
-			;
-		}
+			fp_ReportText("{} {} {}{\n}"_f << fp_ColorHeading("{sl100,a-}"_f << _FileLocation) << fp_ColorHeading("{sl24,a-}"_f << _Result) << fp_ColorHeading(_TestPath), _Severity);
 		else
 		{
 			CStr Values;
@@ -244,8 +234,7 @@ namespace NMib::NTest
 				if (mp_ReportFlags & ETestReportFlag_ExpectFailAndStop)
 					bReport = true;
 				break;
-			case ETest_None:
-				break;
+			case ETest_None: break;
 			}
 		}
 		else if (_Result == ETestResult_Success)
@@ -267,37 +256,38 @@ namespace NMib::NTest
 	}
 
 	void CTextTestResults::f_ReportResult
-	(
-		ETestResult _Result
-		, const NStr::CStr &_TestPath
-		, const NStr::CStr &_Message
-		, const NStr::CStr &_Values
-		, CTestLocation const &_Location
-		, ETest _FailureAction
-		, ECheckType _CheckType
-		, ETestFlag _Flags
-		, const NStr::CStr &_ExtraMultiLineReportData
-	)
+		(
+			ETestResult _Result
+			, NStr::CStr const &_TestPath
+			, NStr::CStr const &_Message
+			, NStr::CStr const &_Values
+			, CTestLocation const &_Location
+			, ETest _FailureAction
+			, ECheckType _CheckType
+			, ETestFlag _Flags
+			, NStr::CStr const &_ExtraMultiLineReportData
+		)
 	{
-		auto fReport = [&,this](NStr::CStr const &_MessageStr, ETestSeverity _Severity)
-		{
-			NStr::CStr FileLocation = NStr::CStr::CFormat(DMibPFileLineFormat "") << _Location.m_File << _Location.m_Line;
-			fp_AddReport(FileLocation, _MessageStr, _TestPath, _Message, _Values, _Severity, false);
-			if (!_ExtraMultiLineReportData.f_IsEmpty())
+		auto fReport = [&, this](NStr::CStr const &_MessageStr, ETestSeverity _Severity)
 			{
-				fp_ReportText("	" DMibNewLine, ETestSeverity_None);
-
-				bool bLastEmpty = false;
-				for (auto &Line : _ExtraMultiLineReportData.f_SplitLine())
+				NStr::CStr FileLocation = NStr::CStr::CFormat(DMibPFileLineFormat "") << _Location.m_File << _Location.m_Line;
+				fp_AddReport(FileLocation, _MessageStr, _TestPath, _Message, _Values, _Severity, false);
+				if (!_ExtraMultiLineReportData.f_IsEmpty())
 				{
-					bLastEmpty = Line.f_IsEmpty();
-					fp_ReportText(NStr::CStr::CFormat("	{}" DMibNewLine) << Line, ETestSeverity_None);
-				}
-
-				if (!bLastEmpty)
 					fp_ReportText("	" DMibNewLine, ETestSeverity_None);
+
+					bool bLastEmpty = false;
+					for (auto &Line : _ExtraMultiLineReportData.f_SplitLine())
+					{
+						bLastEmpty = Line.f_IsEmpty();
+						fp_ReportText(NStr::CStr::CFormat("	{}" DMibNewLine) << Line, ETestSeverity_None);
+					}
+
+					if (!bLastEmpty)
+						fp_ReportText("	" DMibNewLine, ETestSeverity_None);
+				}
 			}
-		};
+		;
 		if (_Result == ETestResult_Fail)
 		{
 			switch (_FailureAction)
@@ -322,8 +312,7 @@ namespace NMib::NTest
 				if (mp_ReportFlags & ETestReportFlag_ExpectFailAndStop)
 					fReport("FAILED (Expected) and ABORTED", ETestSeverity_Warning);
 				break;
-			case ETest_None:
-				break;
+			case ETest_None: break;
 			}
 		}
 		else if (_Result == ETestResult_Success)
@@ -347,119 +336,119 @@ namespace NMib::NTest
 				fReport("Ignored", ETestSeverity_None);
 		}
 	}
-	void CTextTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
+
+	void CTextTestResults::f_ReportSuite(NStr::CStr const &_TestPath, NContainer::TCSet<NStr::CStr> const &_TestGroups, CTestLocation const &_Location)
 	{
 	}
+
 	void CTextTestResults::f_PerformanceResults(CTestPerformanceResults const &_Results)
 	{
 		if (mp_ReportFlags & ETestReportFlag_DetailedPerformance)
 		{
 			CTestPerformanceResults Results = _Results;
 			auto fl_ReportRow0 = [&]
-			(
-				NStr::CStr const &_Name
-				, NStr::CStr const &_Iterations
-				, NStr::CStr const &_IterationsPerSec
-				, NStr::CStr const &_ThroughputPerSec
-				, NStr::CStr const &_BaseLine
-				, NStr::CStr const &_Repetitions
-				, NStr::CStr const &_CyclesMedian
-				, NStr::CStr const &_CyclesAverage
-				, NStr::CStr const &_CyclesMin
-				, NStr::CStr const &_CyclesMax
-				, NStr::CStr const &_CyclesStdDev
-			)
-			{
-				fp_ReportText
-					(
-						NStr::CStr::CFormat("{sz20,a-}{sz17}{sz17}{sz17}{sz12}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine)
-						<< _Name
-						<< _Iterations
-						<< _IterationsPerSec
-						<< _ThroughputPerSec
-						<< _BaseLine
-						<< _Repetitions
-						<< _CyclesMin
-						<< _CyclesMedian
-						<< _CyclesAverage
-						<< _CyclesMax
-						<< _CyclesStdDev
-						, ETestSeverity_None
-					)
-				;
-			};
+				(
+					NStr::CStr const &_Name
+					, NStr::CStr const &_Iterations
+					, NStr::CStr const &_IterationsPerSec
+					, NStr::CStr const &_ThroughputPerSec
+					, NStr::CStr const &_BaseLine
+					, NStr::CStr const &_Repetitions
+					, NStr::CStr const &_CyclesMedian
+					, NStr::CStr const &_CyclesAverage
+					, NStr::CStr const &_CyclesMin
+					, NStr::CStr const &_CyclesMax
+					, NStr::CStr const &_CyclesStdDev
+				)
+				{
+					fp_ReportText
+						(
+							NStr::CStr::CFormat("{sz20,a-}{sz17}{sz17}{sz17}{sz12}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine)
+							<< _Name
+							<< _Iterations
+							<< _IterationsPerSec
+							<< _ThroughputPerSec
+							<< _BaseLine
+							<< _Repetitions
+							<< _CyclesMin
+							<< _CyclesMedian
+							<< _CyclesAverage
+							<< _CyclesMax
+							<< _CyclesStdDev
+							, ETestSeverity_None
+						)
+					;
+				}
+			;
 
 			auto fl_ReportRow1 = [&]
-			(
-				NStr::CStr const &_Name
-				, NStr::CStr const &_TimeMedian
-				, NStr::CStr const &_TimeAverage
-				, NStr::CStr const &_TimeMin
-				, NStr::CStr const &_TimeMax
-				, NStr::CStr const &_TimeStdDev
-			)
-			{
-				fp_ReportText
-					(
-						NStr::CStr::CFormat("{sz20,a-}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine)
-						<< _Name
-						<< _TimeMin
-						<< _TimeMedian
-						<< _TimeAverage
-						<< _TimeMax
-						<< _TimeStdDev
-						, ETestSeverity_None
-					)
-				;
-			};
+				(
+					NStr::CStr const &_Name
+					, NStr::CStr const &_TimeMedian
+					, NStr::CStr const &_TimeAverage
+					, NStr::CStr const &_TimeMin
+					, NStr::CStr const &_TimeMax
+					, NStr::CStr const &_TimeStdDev
+				)
+				{
+					fp_ReportText
+						(
+							NStr::CStr::CFormat("{sz20,a-}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine) << _Name << _TimeMin << _TimeMedian << _TimeAverage << _TimeMax << _TimeStdDev
+							, ETestSeverity_None
+						)
+					;
+				}
+			;
 
 			auto fl_ReportCounterRow = [&]
-			(
-				NStr::CStr const &_Counter
-				, NStr::CStr const &_Name
-				, NStr::CStr const &_CyclesMedian
-				, NStr::CStr const &_CyclesAverage
-				, NStr::CStr const &_CyclesMin
-				, NStr::CStr const &_CyclesMax
-				, NStr::CStr const &_CyclesStdDev
-			)
-			{
-				fp_ReportText
-					(
-						NStr::CStr::CFormat("{sz20,a-}{sz20,a-}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine)
-						<< _Counter
-						<< _Name
-						<< _CyclesMedian
-						<< _CyclesAverage
-						<< _CyclesMin
-						<< _CyclesMax
-						<< _CyclesStdDev
-						, ETestSeverity_None
-					)
-				;
-			};
+				(
+					NStr::CStr const &_Counter
+					, NStr::CStr const &_Name
+					, NStr::CStr const &_CyclesMedian
+					, NStr::CStr const &_CyclesAverage
+					, NStr::CStr const &_CyclesMin
+					, NStr::CStr const &_CyclesMax
+					, NStr::CStr const &_CyclesStdDev
+				)
+				{
+					fp_ReportText
+						(
+							NStr::CStr::CFormat("{sz20,a-}{sz20,a-}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine)
+							<< _Counter
+							<< _Name
+							<< _CyclesMedian
+							<< _CyclesAverage
+							<< _CyclesMin
+							<< _CyclesMax
+							<< _CyclesStdDev
+							, ETestSeverity_None
+						)
+					;
+				}
+			;
 
 			fl_ReportRow0
-			(
-				"Name(*=ref)"
-				, "Iterations"
-				, "Iteratians/s"
-				, "Throughput/s"
-				, "Baseline(%)"
-				, "Repetitions"
-				, "Median(cycles)"
-				, "Average(cycles)"
-				, "Min(cycles)"
-				, "Max(cycles)"
-				, "StdDev(%)"
-			);
+				(
+					"Name(*=ref)"
+					, "Iterations"
+					, "Iteratians/s"
+					, "Throughput/s"
+					, "Baseline(%)"
+					, "Repetitions"
+					, "Median(cycles)"
+					, "Average(cycles)"
+					, "Min(cycles)"
+					, "Max(cycles)"
+					, "StdDev(%)"
+				)
+			;
 			CTestPerformanceResult const *pBaseLine = nullptr;
 			umint nResults = Results.m_Results.f_GetLen();
 			NContainer::TCSet<NStr::CStr> Counters;
 
 			Results.m_Results.f_Sort
 				(
-					[](CTestPerformanceResult const& _Left, CTestPerformanceResult const& _Right) -> COrdering_Partial
+					[](CTestPerformanceResult const &_Left, CTestPerformanceResult const &_Right) -> COrdering_Partial
 					{
 						if (auto Result = (_Left.m_MeasureType == ETestMeasureType_Baseline) <=> (_Right.m_MeasureType == ETestMeasureType_Baseline); Result != 0)
 							return Result;
@@ -472,7 +461,7 @@ namespace NMib::NTest
 				)
 			;
 
-			for (umint i = 0 ; i < nResults; ++i)
+			for (umint i = 0; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = Results.m_Results[i];
 				if (Result.m_MeasureType == ETestMeasureType_Baseline)
@@ -481,7 +470,7 @@ namespace NMib::NTest
 					break;
 				}
 			}
-			for (umint i = 0 ; i < nResults; ++i)
+			for (umint i = 0; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = Results.m_Results[i];
 				NStr::CStr Name = Result.m_Name;
@@ -498,48 +487,50 @@ namespace NMib::NTest
 					Counters[Iter.f_GetKey()];
 
 				NStr::CStr BaseLine;
-				auto IterationsPerSec = (fp64(1.0)/Result.m_Time.m_Min);
-				auto Throughput = (fp64(Result.m_nContributingThreads)/Result.m_Time.m_Min);
+				auto IterationsPerSec = (fp64(1.0) / Result.m_Time.m_Min);
+				auto Throughput = (fp64(Result.m_nContributingThreads) / Result.m_Time.m_Min);
 				if (pBaseLine && (&Result != pBaseLine))
 					BaseLine = NStr::CStr::CFormat("{fe2,fn2}") << (pBaseLine->m_Cycles.m_Min / Result.m_Cycles.m_Min) * 100.0;
 				if (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result)
 				{
 					fl_ReportRow0
-					(
-						Name
-						, NStr::CStr::CFormat("{}") << Result.m_nIterations
-						, NStr::CStr::CFormat("{}.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
-						, NStr::CStr::CFormat("{}.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
-						, BaseLine
-						, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
-						, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Median - pBaseLine->m_Cycles.m_Median)
-						, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Average - pBaseLine->m_Cycles.m_Average)
-						, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Min - pBaseLine->m_Cycles.m_Min)
-						, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Max - pBaseLine->m_Cycles.m_Max)
-						, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.f_StdDevFraction() * 100.0
-					);
+						(
+							Name
+							, NStr::CStr::CFormat("{}") << Result.m_nIterations
+							, NStr::CStr::CFormat("{}.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
+							, NStr::CStr::CFormat("{}.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
+							, BaseLine
+							, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
+							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Median - pBaseLine->m_Cycles.m_Median)
+							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Average - pBaseLine->m_Cycles.m_Average)
+							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Min - pBaseLine->m_Cycles.m_Min)
+							, NStr::CStr::CFormat("+ {fe2,fn2}") << (Result.m_Cycles.m_Max - pBaseLine->m_Cycles.m_Max)
+							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.f_StdDevFraction() * 100.0
+						)
+					;
 				}
 				else
 				{
 					fl_ReportRow0
-					(
-						Name
-						, NStr::CStr::CFormat("{}") << Result.m_nIterations
-						, NStr::CStr::CFormat("{}.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
-						, NStr::CStr::CFormat("{}.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
-						, BaseLine
-						, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
-						, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Median
-						, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Average
-						, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Min
-						, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Max
-						, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.f_StdDevFraction() * 100.0
-					);
+						(
+							Name
+							, NStr::CStr::CFormat("{}") << Result.m_nIterations
+							, NStr::CStr::CFormat("{}.{fr1,fn1}") << IterationsPerSec.f_ToInt() << IterationsPerSec.f_Fraction()
+							, NStr::CStr::CFormat("{}.{fr1,fn1}") << Throughput.f_ToInt() << Throughput.f_Fraction()
+							, BaseLine
+							, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
+							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Median
+							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Average
+							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Min
+							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.m_Max
+							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Cycles.f_StdDevFraction() * 100.0
+						)
+					;
 				}
 			}
 
 			fp64 SmallestAverage = fp64::fs_Inf();
-			for (umint i = 0 ; i < nResults; ++i)
+			for (umint i = 0; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = Results.m_Results[i];
 				if (Result.m_MeasureType == ETestMeasureType_Baseline && nResults != 1)
@@ -550,7 +541,6 @@ namespace NMib::NTest
 
 			NStr::CStr TimeUnit;
 			fp64 TimeScale;
-
 
 			if (SmallestAverage < 0.000000000001)
 			{
@@ -584,15 +574,16 @@ namespace NMib::NTest
 			}
 
 			fl_ReportRow1
-			(
-				"Name(*=ref)"
-				, NStr::CStr::CFormat("Median({})") << TimeUnit
-				, NStr::CStr::CFormat("Average({})") << TimeUnit
-				, NStr::CStr::CFormat("Min({})") << TimeUnit
-				, NStr::CStr::CFormat("Max({})") << TimeUnit
-				, "StdDev(%)"
-			);
-			for (umint i = 0 ; i < nResults; ++i)
+				(
+					"Name(*=ref)"
+					, NStr::CStr::CFormat("Median({})") << TimeUnit
+					, NStr::CStr::CFormat("Average({})") << TimeUnit
+					, NStr::CStr::CFormat("Min({})") << TimeUnit
+					, NStr::CStr::CFormat("Max({})") << TimeUnit
+					, "StdDev(%)"
+				)
+			;
+			for (umint i = 0; i < nResults; ++i)
 			{
 				CTestPerformanceResult const &Result = Results.m_Results[i];
 				NStr::CStr Name = Result.m_Name;
@@ -608,42 +599,34 @@ namespace NMib::NTest
 				if ((pBaseLine && pBaseLine != &Result && (mp_ReportFlags & ETestReportFlag_CompareToBaseline)))
 				{
 					fl_ReportRow1
-					(
-						Name
-						, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Median - pBaseLine->m_Time.m_Median)*TimeScale
-						, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Average - pBaseLine->m_Time.m_Average)*TimeScale
-						, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Min - pBaseLine->m_Time.m_Min)*TimeScale
-						, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Max - pBaseLine->m_Time.m_Max)*TimeScale
-						, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Time.f_StdDevFraction() * 100.0
-					);
+						(
+							Name
+							, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Median - pBaseLine->m_Time.m_Median) * TimeScale
+							, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Average - pBaseLine->m_Time.m_Average) * TimeScale
+							, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Min - pBaseLine->m_Time.m_Min) * TimeScale
+							, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Max - pBaseLine->m_Time.m_Max) * TimeScale
+							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Time.f_StdDevFraction() * 100.0
+						)
+					;
 				}
 				else
 				{
 					fl_ReportRow1
-					(
-						Name
-						, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Median*TimeScale
-						, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Average*TimeScale
-						, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Min*TimeScale
-						, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Max*TimeScale
-						, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Time.f_StdDevFraction() * 100.0
-					);
+						(
+							Name
+							, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Median * TimeScale
+							, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Average * TimeScale
+							, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Min * TimeScale
+							, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Max * TimeScale
+							, NStr::CStr::CFormat("{fe2,fn2}") << Result.m_Time.f_StdDevFraction() * 100.0
+						)
+					;
 				}
 			}
 
 			for (auto Iter = Counters.f_GetIterator(); Iter; ++Iter)
 			{
-				fl_ReportCounterRow
-					(
-						"Counter"
-						, "Name"
-						, "Median"
-						, "Average"
-						, "Min"
-						, "Max"
-						, "StdDev(%)"
-					)
-				;
+				fl_ReportCounterRow("Counter", "Name", "Median", "Average", "Min", "Max", "StdDev(%)");
 				fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << *Iter, ETestSeverity_None);
 				for (auto ResultIter = Results.m_Results.f_GetIterator(); ResultIter; ++ResultIter)
 				{
@@ -652,9 +635,7 @@ namespace NMib::NTest
 					CTestStats const *pStat = Result.m_PerformanceCounters.f_FindEqual(*Iter);
 
 					CTestStats const *pBaselineStat
-						= (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result)
-						? pBaseLine->m_PerformanceCounters.f_FindEqual(*Iter)
-						: nullptr
+						= (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result) ? pBaseLine->m_PerformanceCounters.f_FindEqual(*Iter) : nullptr
 					;
 
 					if (pStat)
@@ -708,103 +689,106 @@ namespace NMib::NTest
 		if (mp_ReportFlags & ETestReportFlag_DetailedMemory)
 		{
 			auto fl_ReportRow = [&]
-			(
-				NStr::CStr const &_Allocator
-				, NStr::CStr const &_Name
-				, NStr::CStr const &_0
-				, NStr::CStr const &_1
-				, NStr::CStr const &_2
-				, NStr::CStr const &_3
-				, NStr::CStr const &_4
-				, NStr::CStr const &_5
-				, NStr::CStr const &_6
-				, NStr::CStr const &_7
-				, NStr::CStr const &_8
-				, NStr::CStr const &_9
-				, NStr::CStr const &_10
-				, NStr::CStr const &_11
-				, NStr::CStr const &_12
-				, NStr::CStr const &_13
-				, NStr::CStr const &_14
-				, NStr::CStr const &_15
-				, NStr::CStr const &_16
-				, NStr::CStr const &_17
-				, NStr::CStr const &_18
-				, NStr::CStr const &_19
-				, NStr::CStr const &_20
-				, NStr::CStr const &_21
-				, NStr::CStr const &_22
-			)
-			{
-				fp_ReportText
-					(
-						NStr::CStr::CFormat
+				(
+					NStr::CStr const &_Allocator
+					, NStr::CStr const &_Name
+					, NStr::CStr const &_0
+					, NStr::CStr const &_1
+					, NStr::CStr const &_2
+					, NStr::CStr const &_3
+					, NStr::CStr const &_4
+					, NStr::CStr const &_5
+					, NStr::CStr const &_6
+					, NStr::CStr const &_7
+					, NStr::CStr const &_8
+					, NStr::CStr const &_9
+					, NStr::CStr const &_10
+					, NStr::CStr const &_11
+					, NStr::CStr const &_12
+					, NStr::CStr const &_13
+					, NStr::CStr const &_14
+					, NStr::CStr const &_15
+					, NStr::CStr const &_16
+					, NStr::CStr const &_17
+					, NStr::CStr const &_18
+					, NStr::CStr const &_19
+					, NStr::CStr const &_20
+					, NStr::CStr const &_21
+					, NStr::CStr const &_22
+				)
+				{
+					fp_ReportText
 						(
-							"{sz20,a-}{sz20,a-}{sz12}{sz12}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine
+							NStr::CStr::CFormat
+							(
+								"{sz20,a-}{sz20,a-}{sz12}{sz12}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}"
+								"" DMibNewLine
+							)
+							<< _Allocator
+							<< _Name
+							<< _0
+							<< _1
+							<< _2
+							<< _3
+							<< _4
+							<< _5
+							<< _6
+							<< _7
+							<< _8
+							<< _9
+							<< _10
+							<< _11
+							<< _12
+							<< _13
+							<< _14
+							<< _15
+							<< _16
+							<< _17
+							<< _18
+							<< _19
+							<< _20
+							<< _21
+							<< _22
+							, ETestSeverity_None
 						)
-						<< _Allocator
-						<< _Name
-						<< _0
-						<< _1
-						<< _2
-						<< _3
-						<< _4
-						<< _5
-						<< _6
-						<< _7
-						<< _8
-						<< _9
-						<< _10
-						<< _11
-						<< _12
-						<< _13
-						<< _14
-						<< _15
-						<< _16
-						<< _17
-						<< _18
-						<< _19
-						<< _20
-						<< _21
-						<< _22
-						, ETestSeverity_None
-					)
-				;
-			};
+					;
+				}
+			;
 
 			fl_ReportRow
-			(
-				"Allocator"
-				, "Name(*=ref)"
-				, "Iterations"
-				, "Repetitions"
-				, "BytesMaxAlloc"
-				, "nAllocations"
-				, "nFree"
-				, "nResize"
-				, "nRealloc"
-				, "nGetSize"
-				, "nProtect"
-				, "nCommit"
-				, "nDecommit"
-				, "BytesAlloc"
-				, "BytesFree"
-				, "BytesResize"
-				, "BytesRealloc"
-				, "BytesProtect"
-				, "BytesCommit"
-				, "BytesDecommit"
-				, "BytesOverhead"
-				, "BytesWaste"
-				, "OverheadAtMax"
-				, "WasteAtMax"
-				, "nAllocAtMax"
-			);
+				(
+					"Allocator"
+					, "Name(*=ref)"
+					, "Iterations"
+					, "Repetitions"
+					, "BytesMaxAlloc"
+					, "nAllocations"
+					, "nFree"
+					, "nResize"
+					, "nRealloc"
+					, "nGetSize"
+					, "nProtect"
+					, "nCommit"
+					, "nDecommit"
+					, "BytesAlloc"
+					, "BytesFree"
+					, "BytesResize"
+					, "BytesRealloc"
+					, "BytesProtect"
+					, "BytesCommit"
+					, "BytesDecommit"
+					, "BytesOverhead"
+					, "BytesWaste"
+					, "OverheadAtMax"
+					, "WasteAtMax"
+					, "nAllocAtMax"
+				)
+			;
 
 			NContainer::TCSet<NStr::CStr> Allocators;
 			Allocators["All"];
 			umint nResults = _Results.m_Results.f_GetLen();
-			for (umint i = 0 ; i < nResults; ++i)
+			for (umint i = 0; i < nResults; ++i)
 			{
 				CTestMemoryResult const &Result = _Results.m_Results[i];
 
@@ -817,7 +801,6 @@ namespace NMib::NTest
 						}
 					)
 				;
-
 			}
 
 			CTestMemoryStats EmptyStats;
@@ -829,7 +812,7 @@ namespace NMib::NTest
 					{
 						fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << _Allocator, ETestSeverity_None);
 						umint nResults = _Results.m_Results.f_GetLen();
-						for (umint i = 0 ; i < nResults; ++i)
+						for (umint i = 0; i < nResults; ++i)
 						{
 							CTestMemoryResult const &Result = _Results.m_Results[i];
 							NStr::CStr Name = Result.m_Name;
@@ -853,33 +836,34 @@ namespace NMib::NTest
 							}
 
 							fl_ReportRow
-							(
-								""
-								, Name
-								, NStr::CStr::CFormat("{}") << Result.m_nIterations
-								, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesMaxAlloc.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nAllocations.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nFree.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nResize.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nRealloc.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nGetSize.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nProtect.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nCommit.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nDecommit.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesAlloc.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesFree.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesResize.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesRealloc.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesProtect.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesCommit.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesDecommit.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesOverhead.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesPotentialWaste.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_AtBytesMaxAlloc.m_BytesOverhead.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_AtBytesMaxAlloc.m_BytesPotentialWaste.m_Average
-								, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_AtBytesMaxAlloc.m_nAllocations.m_Average
-							);
+								(
+									""
+									, Name
+									, NStr::CStr::CFormat("{}") << Result.m_nIterations
+									, NStr::CStr::CFormat("{}") << Result.m_nRepetitions
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesMaxAlloc.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nAllocations.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nFree.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nResize.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nRealloc.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nGetSize.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nProtect.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nCommit.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_nDecommit.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesAlloc.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesFree.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesResize.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesRealloc.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesProtect.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesCommit.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesDecommit.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesOverhead.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_BytesPotentialWaste.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_AtBytesMaxAlloc.m_BytesOverhead.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_AtBytesMaxAlloc.m_BytesPotentialWaste.m_Average
+									, NStr::CStr::CFormat("{fe2,fn2}") << pStats->m_AtBytesMaxAlloc.m_nAllocations.m_Average
+								)
+							;
 						}
 					}
 				)

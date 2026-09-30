@@ -13,7 +13,6 @@ namespace
 	class CTest_Tests : public NMib::NTest::CTest
 	{
 	public:
-
 		int m_Test;
 		CTest_Tests()
 		{
@@ -71,7 +70,6 @@ namespace
 			{
 				DMibTest(DMibExpr(true));
 				DMibTest(DMibExpr(0) == DMibExpr(0));
-
 			};
 			DMibTestSuite("LambdasExpr")
 			{
@@ -112,52 +110,48 @@ namespace
 			{
 				DMibTestSuite("Expressions")
 				{
-#					ifdef DMibDebug
-						const static umint nLoops = 10000;
-						const static umint nTests = 2;
-#					else
-						const static umint nLoops = 100000;
-						const static umint nTests = 10;
-#					endif
+#ifdef DMibDebug
+					static umint const nLoops = 10000;
+					static umint const nTests = 2;
+#else
+					static umint const nLoops = 100000;
+					static umint const nTests = 10;
+#endif
 
 					NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
 					for (umint i = 0; i < nTests; ++i)
 					{
 						TestTimer.f_Start();
 						for (umint i = 0; i < nLoops; ++i)
-						{
-							DMibTest(DMibExpr(i) < DMibExpr(nLoops)) (ETestFlag_Aggregated);
-						}
+							DMibTest(DMibExpr(i) < DMibExpr(nLoops))(ETestFlag_Aggregated);
 						TestTimer.f_Stop();
 					}
 
 					TestTimer /= nLoops;
 
 					umint ExpectedCycles = 1000;
-#					ifdef DMibDebug
-						ExpectedCycles = 5000;
-#					endif
+#ifdef DMibDebug
+					ExpectedCycles = 5000;
+#endif
 					if (NMib::NTest::fg_GroupActive("Performance"))
 						DMibTest(DMibExpr(TestTimer.f_GetCycles()) < DMibExpr(ExpectedCycles));
 				};
 				DMibTestSuite("Raw")
 				{
-#					ifdef DMibDebug
-						const static umint nLoops = 10000;
-						const static umint nTests = 2;
-#					else
-						const static umint nLoops = 100000;
-						const static umint nTests = 10;
-#					endif
+#ifdef DMibDebug
+					static umint const nLoops = 10000;
+					static umint const nTests = 2;
+#else
+					static umint const nLoops = 100000;
+					static umint const nTests = 10;
+#endif
 
 					NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
 					for (umint i = 0; i < nTests; ++i)
 					{
 						TestTimer.f_Start();
 						for (umint i = 0; i < nLoops; ++i)
-						{
-							DMibTest(i < nLoops) ("Loop test") (ETestFlag_Aggregated);
-						}
+							DMibTest(i < nLoops)("Loop test")(ETestFlag_Aggregated);
 						TestTimer.f_Stop();
 					}
 
@@ -178,9 +172,7 @@ namespace
 					int bARun = 0, bBRun = 0;
 
 					if (DMibTest(DMibExpr(bARun = 1) == DMibExpr(1)))
-					{
 						DMibTest(DMibExpr(bBRun = 1) == DMibExpr(1));
-					}
 
 					DMibTest(DMibExpr(bARun) == DMibExpr(1));
 					DMibTest(DMibExpr(bBRun) == DMibExpr(1));
@@ -189,10 +181,8 @@ namespace
 				{
 					int bARun = 0, bBRun = 0;
 
-					if (DMibTest(DMibExpr(bARun = 1) != DMibExpr(1)) (ETest_ExpectFail))
-					{
+					if (DMibTest(DMibExpr(bARun = 1) != DMibExpr(1))(ETest_ExpectFail))
 						DMibTest(DMibExpr(bBRun = 1) == DMibExpr(1));
-					}
 
 					DMibTest(DMibExpr(bARun) == DMibExpr(1));
 					DMibTest(DMibExpr(bBRun) == DMibExpr(0));
@@ -203,7 +193,7 @@ namespace
 				bool bTrue = true;
 				DMibTestExpr(bTrue);
 				bTrue = false;
-				DMibTestExpr(bTrue) ("Second") (ETest_ExpectFail);
+				DMibTestExpr(bTrue)("Second")(ETest_ExpectFail);
 			};
 			DMibTestSuite("Recursive tests")
 			{
@@ -213,7 +203,20 @@ namespace
 						DMibTestExpr(bShouldNotBeVisible);
 					}
 				;
-				DMibTest(DMibExpr(fg_TestRecursive([&]{fTest();})));
+				DMibTest
+					(
+						DMibExpr
+						(
+							fg_TestRecursive
+							(
+								[&]
+								{
+									fTest();
+								}
+							)
+						)
+					)
+				;
 				auto fTestFail = []
 					{
 						bool bShouldNotBeVisible = false;
@@ -225,13 +228,25 @@ namespace
 						DMibTestExpr(bShouldNotBeVisible && 6);
 					}
 				;
-				DMibTest(DMibExpr(fg_TestRecursive([&]{fTestFail();}))) (ETest_ExpectFail);
+				DMibTest
+					(
+						DMibExpr
+						(
+							fg_TestRecursive
+							(
+								[&]
+								{
+									fTestFail();
+								}
+							)
+						)
+					)
+					(ETest_ExpectFail)
+				;
 			};
 		}
-
 	};
 
 	DMibTestRegister(CTest_Tests, Malterlib::Test);
 }
-
 

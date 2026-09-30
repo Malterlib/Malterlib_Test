@@ -10,17 +10,18 @@ namespace NMib::NTest::NPrivate
 #if DMibConfig_Tests_Enable
 	class CReportTestAbortException
 	{
-		const static uint32 mcp_Magic = 0xF538CB10;
+		static uint32 const mcp_Magic = 0xF538CB10;
+
 	public:
 		uint32 m_Magic = mcp_Magic;
 		CReportTestAbortException()
 		{
 		}
+
 		bool f_IsValid() const
 		{
 			return m_Magic == mcp_Magic;
 		}
-
 	};
 
 	class CTestExceptionFilter : public NException::CExceptionFilter
@@ -30,22 +31,23 @@ namespace NMib::NTest::NPrivate
 			: m_pStackTraceInfo(nullptr)
 		{
 		}
+
 		~CTestExceptionFilter()
 		{
 			if (m_pStackTraceInfo)
 				NSys::fg_Debug_ReleaseStackTraceInfo(m_pStackTraceInfo);
 			f_SetDumpFiles(fg_Default());
 		}
+
 		NContainer::TCVector<NStr::CStr> m_DumpFiles;
 		CStackTraceInfo *m_pStackTraceInfo;
 
 		void f_Exception(void *_pExceptionData);
-		void f_SetDumpFiles(const NContainer::TCVector<NStr::CStr> &_Files);
+		void f_SetDumpFiles(NContainer::TCVector<NStr::CStr> const &_Files);
 		NContainer::TCVector<NStr::CStr> f_DetachDumpFiles();
-		const ch8 *f_GetFile();
+		ch8 const *f_GetFile();
 		int32 f_GetLine();
 	};
-
 
 	class CTestExceptionNoFilter : public NException::CExceptionFilter
 	{
@@ -53,6 +55,7 @@ namespace NMib::NTest::NPrivate
 		~CTestExceptionNoFilter()
 		{
 		}
+
 		void f_Exception(void *_pExceptionData)
 		{
 		}
@@ -60,17 +63,17 @@ namespace NMib::NTest::NPrivate
 
 	enum ETestResultReportFlag
 	{
-		ETestResultReportFlag_None = 0
-		, ETestResultReportFlag_Report = DMibBit(0)
-		, ETestResultReportFlag_AskReport = DMibBit(1)
-		, ETestResultReportFlag_Abort = DMibBit(2)
+		ETestResultReportFlag_None            = 0
+		, ETestResultReportFlag_Report        = DMibBit(0)
+		, ETestResultReportFlag_AskReport     = DMibBit(1)
+		, ETestResultReportFlag_Abort         = DMibBit(2)
 		, ETestResultReportFlag_FromException = DMibBit(3)
 	};
 
-	void fg_SetTestLastLocation(const ch8 *_pFile, int32 _Line);
-	void fg_GetTestLastLocation(const ch8 *&o_pFile, int32 &o_Line);
-	uint32 fg_RunTests(const NStr::CStr &_Path, CTestResults *_pResults);
-	NStr::CStr fg_PushCategory(const NStr::CStr &_Category);
+	void fg_SetTestLastLocation(ch8 const *_pFile, int32 _Line);
+	void fg_GetTestLastLocation(ch8 const * &o_pFile, int32 &o_Line);
+	uint32 fg_RunTests(NStr::CStr const &_Path, CTestResults *_pResults);
+	NStr::CStr fg_PushCategory(NStr::CStr const &_Category);
 	void fg_InsideTestSuite(bool _bInsideTestSuite);
 	bool fg_InsideTestSuite();
 	bool fg_SetEnableValues(bool _bEnableValues);
@@ -81,37 +84,27 @@ namespace NMib::NTest::NPrivate
 	bool fg_GetEnableExceptionFilter();
 	void fg_PopCategory(NStr::CStr const &PreviousPath);
 	NStr::CStr fg_GetExceptionCategoryPath();
-	NContainer::TCSet<NStr::CStr> fg_SetGroups(const NContainer::TCSet<NStr::CStr> &_Groups);
+	NContainer::TCSet<NStr::CStr> fg_SetGroups(NContainer::TCSet<NStr::CStr> const &_Groups);
 	NContainer::TCSet<NStr::CStr> fg_GetGroups();
 	NContainer::TCVector<NStr::CStr> fg_DumpTestException();
-	void fg_ReportTestException(const NContainer::TCVector<NStr::CStr> &_DumpFiles, const ch8 *_pFile, int32 _Line);
+	void fg_ReportTestException(NContainer::TCVector<NStr::CStr> const &_DumpFiles, ch8 const *_pFile, int32 _Line);
 	CTestResults &fg_GetResultReporter();
 	CTestResults *fg_SetResultReporter(CTestResults *_pNewReporter);
 	void fg_ReportTestResult
 		(
 			ETestResult _Result
-			, const NStr::CStr &_Description
-			, const NStr::CStr &_Values
+			, NStr::CStr const &_Description
+			, NStr::CStr const &_Values
 			, ETest _FailureAction
 			, ECheckType _CheckType
-			, const NStr::CStr &_File
+			, NStr::CStr const &_File
 			, int32 _Line
-			, const NStr::CStr &_ExtraMultiLineReportData
+			, NStr::CStr const &_ExtraMultiLineReportData
 			, ETestFlag _Flags
 			, ETestResultReportFlag _ReportOptions
 		)
 	;
-	ETestResultReportFlag fg_NeedReport
-		(
-			NStr::CStr const &_Description
-			, ETestResult _Result
-			, ETest _FailureAction
-			, ECheckType _CheckType
-			, const ch8 *_pFile
-			, int32 _Line
-			, ETestFlag _Flags
-		)
-	;
+	ETestResultReportFlag fg_NeedReport(NStr::CStr const &_Description, ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ch8 const *_pFile, int32 _Line, ETestFlag _Flags);
 	bool fg_ShouldRunSubTest(bool _bLeaf);
 	void fg_StepIntoSuites(bool _Step);
 
@@ -122,6 +115,7 @@ namespace NMib::NTest::NPrivate
 		{
 			m_pOldResults = fg_SetResultReporter(&_NewResults);
 		}
+
 		~CTestReporterScope()
 		{
 			fg_SetResultReporter(m_pOldResults);
@@ -144,12 +138,12 @@ namespace NMib::NTest::NPrivate
 		t_CExpression m_Expression;
 
 		bool fp_Evaluate() const
-#ifndef DCompiler_MSVC_Workaround
-			requires NTraits::cIsSame<t_CExpression, bool> || requires()
+#	ifndef DCompiler_MSVC_Workaround
+			requires NTraits::cIsSame<t_CExpression, bool> || requires ()
 			{
 				this->m_Expression.f_Eval(nullptr);
 			}
-#endif
+#	endif
 		{
 			if constexpr (NTraits::cIsSame<t_CExpression, bool>)
 			{
@@ -157,33 +151,14 @@ namespace NMib::NTest::NPrivate
 					return m_Expression;
 				ETestResultReportFlag ReportFlags = fg_NeedReport(m_CustomMessage, (ETestResult)m_Expression, m_FailureAction, ECheckType_Message, m_pFile, m_Line, m_Flags);
 				if (ReportFlags)
-				{
-					fg_ReportTestResult
-						(
-							(ETestResult)m_Expression
-							, m_CustomMessage
-							, ""
-							, m_FailureAction
-							, ECheckType_Message
-							, m_pFile
-							, m_Line
-							, NStr::CStr()
-							, m_Flags
-							, ReportFlags
-						)
-					;
-				}
+					fg_ReportTestResult((ETestResult)m_Expression, m_CustomMessage, "", m_FailureAction, ECheckType_Message, m_pFile, m_Line, NStr::CStr(), m_Flags, ReportFlags);
 				return m_Expression;
 			}
 			else
 			{
 				ETestResult Result;
 				NStr::CStr ValueDesc;
-				bool bPotentianlyNeedValues =
-					fg_GetEnableValues()
-					&& !(m_Flags & ETestFlag_NoValues)
-					&& (fg_TestReportFlags() & ETestReportFlag_ReportValues)
-				;
+				bool bPotentianlyNeedValues = fg_GetEnableValues() && !(m_Flags & ETestFlag_NoValues) && (fg_TestReportFlags() & ETestReportFlag_ReportValues);
 				bool bOnlyEvalOnce = m_Expression.f_OnlyEvalOnce();
 				bool bHasValue = false;
 				if (bOnlyEvalOnce && bPotentianlyNeedValues)
@@ -195,12 +170,12 @@ namespace NMib::NTest::NPrivate
 					Result = m_Expression.f_Eval(nullptr) ? ETestResult_Success : ETestResult_Fail;
 
 				if constexpr
-					(
-						requires ()
-						{
-							m_Expression.f_GetVariable(nullptr, false).f_IsIgnored();
-						}
-					)
+				(
+					requires ()
+					{
+						m_Expression.f_GetVariable(nullptr, false).f_IsIgnored();
+					}
+				)
 				{
 					if (m_Expression.f_GetVariable(nullptr, false).f_IsIgnored())
 						Result = ETestResult_Ignored;
@@ -212,12 +187,12 @@ namespace NMib::NTest::NPrivate
 				NStr::CStr Desc;
 
 				if constexpr
-					(
-						requires ()
-						{
-							m_Expression.f_GetVariable(nullptr, false).f_ModifyDescription(m_Expression.f_GetDesc());
-						}
-					)
+				(
+					requires ()
+					{
+						m_Expression.f_GetVariable(nullptr, false).f_ModifyDescription(m_Expression.f_GetDesc());
+					}
+				)
 				{
 					Desc = m_Expression.f_GetVariable(nullptr, false).f_ModifyDescription(m_Expression.f_GetDesc());
 				}
@@ -240,55 +215,33 @@ namespace NMib::NTest::NPrivate
 
 				if (ReportFlags)
 				{
-					bool bIsSuccess =
-						Result == ETestResult_Success
-						|| ((Result == ETestResult_Fail) && (m_FailureAction == ETest_ExpectFail || m_FailureAction == ETest_ExpectFailAndStop))
-					;
-					bool bNeedValues = bPotentianlyNeedValues
-						&&
-						(
-							!(m_Flags & ETestFlag_NoValuesOnSuccess)
-							|| !bIsSuccess
-						)
-					;
+					bool bIsSuccess = Result == ETestResult_Success || ((Result == ETestResult_Fail) && (m_FailureAction == ETest_ExpectFail || m_FailureAction == ETest_ExpectFailAndStop));
+					bool bNeedValues = bPotentianlyNeedValues && (!(m_Flags & ETestFlag_NoValuesOnSuccess) || !bIsSuccess);
 
 					NStr::CStr ExtraData;
 					if constexpr
-						(
-							requires ()
-							{
-								m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
-							}
-						)
+					(
+						requires ()
+						{
+							m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
+						}
+					)
 					{
-						ExtraData =  m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
+						ExtraData = m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
 					}
 
 					if (bNeedValues && !bHasValue)
 						m_Expression.f_Eval(&ValueDesc);
 
-					fg_ReportTestResult
-						(
-							Result
-							, Desc
-							, bNeedValues ? ValueDesc : NStr::CStr()
-							, m_FailureAction
-							, ECheckType_Predicate
-							, m_pFile
-							, m_Line
-							, ExtraData
-							, m_Flags
-							, ReportFlags
-						)
-					;
+					fg_ReportTestResult(Result, Desc, bNeedValues ? ValueDesc : NStr::CStr(), m_FailureAction, ECheckType_Predicate, m_pFile, m_Line, ExtraData, m_Flags, ReportFlags);
 
 					if constexpr
-						(
-							requires ()
-							{
-								m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
-							}
-						)
+					(
+						requires ()
+						{
+							m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
+						}
+					)
 					{
 						m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
 					}
@@ -296,12 +249,12 @@ namespace NMib::NTest::NPrivate
 				else if (ResultReporter.f_GetReportFlags() & (ETestReportFlag_DetailedPerformance | ETestReportFlag_DetailedMemory))
 				{
 					if constexpr
-						(
-							requires ()
-							{
-								m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
-							}
-						)
+					(
+						requires ()
+						{
+							m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
+						}
+					)
 					{
 						m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
 					}
@@ -312,8 +265,7 @@ namespace NMib::NTest::NPrivate
 		}
 
 	public:
-
-		TCTestFunctionHelper(const ch8 *_pFile, int32 _Line, t_CExpression &&_Expression)
+		TCTestFunctionHelper(ch8 const *_pFile, int32 _Line, t_CExpression &&_Expression)
 			: m_pFile(_pFile)
 			, m_Line(_Line)
 			, m_Expression(fg_Move(_Expression))
@@ -355,12 +307,12 @@ namespace NMib::NTest::NPrivate
 		}
 
 		operator bool () const
-#ifndef DCompiler_MSVC_Workaround
-			requires requires()
+#	ifndef DCompiler_MSVC_Workaround
+			requires requires ()
 			{
 				fp_Evaluate();
 			}
-#endif
+#	endif
 		{
 			DMibFastCheck(m_bValid);
 			DMibFastCheck(NMib::NTest::NPrivate::fg_InsideTestSuite());
@@ -386,7 +338,7 @@ namespace NMib::NTest::NPrivate
 			return *this;
 		}
 
-		inline_always TCTestFunctionHelper &operator () (const ch8 *_pMessage)
+		inline_always TCTestFunctionHelper &operator () (ch8 const *_pMessage)
 		{
 			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
 			m_CustomMessage = _pMessage;
@@ -414,7 +366,7 @@ namespace NMib::NTest::NPrivate
 		}
 
 		template <typename tf_CExpression>
-		inline TCTestFunctionHelper<t_bFailureOnly, tf_CExpression> operator () (const tf_CExpression &_Expression)
+		inline TCTestFunctionHelper<t_bFailureOnly, tf_CExpression> operator () (tf_CExpression const &_Expression)
 		{
 			static_assert(NTraits::cIsSame<t_CExpression, CDummyExpression>, "You can only specify expressions once");
 			return TCTestFunctionHelper<t_bFailureOnly, tf_CExpression>(fg_Move(*this), _Expression);
@@ -428,7 +380,7 @@ namespace NMib::NTest::NPrivate
 
 		ETest m_FailureAction;
 		ETestFlag m_Flags;
-		const ch8 *m_pFile;
+		ch8 const *m_pFile;
 		int32 m_Line;
 		NStr::CStr m_CustomMessage;
 		bool m_bValid;
@@ -458,27 +410,16 @@ namespace NMib::NTest::NPrivate
 		bool f_ContinueEnumerating() const;
 		void f_ReportLeafCategory();
 		void fp_LockSuite();
+
 	public:
-		CTestCategoryScope(const CTestCategory &_Category, const ch8 *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None);
+		CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None);
 		~CTestCategoryScope();
 
 		template <typename tf_CFunction>
 		void operator % (tf_CFunction &&_fCategory)
 		{
-			if constexpr
-				(
-					NConcurrency::NPrivate::TCIsFuture
-					<
-						NTraits::TCCallableReturnTypeFor
-						<
-							NTraits::TCRemoveReferenceAndQualifiers<tf_CFunction>
-							, void ()
-						>
-					>::mc_Value
-				)
-			{
+			if constexpr (NConcurrency::NPrivate::TCIsFuture<NTraits::TCCallableReturnTypeFor<NTraits::TCRemoveReferenceAndQualifiers<tf_CFunction>, void ()>>::mc_Value)
 				f_ProcessAsyncCategory(_fCategory);
-			}
 			else
 				f_ProcessCategory(_fCategory);
 		}
@@ -491,7 +432,7 @@ namespace NMib::NTest::NPrivate
 		CTestCategory mp_Category;
 		bool mp_bOldEnableValues;
 		bool mp_bOldEnableExceptionFilter;
-		const ch8 *mp_pFile;
+		ch8 const *mp_pFile;
 		int32 mp_Line;
 		ETestCategoryFlag mp_Flags;
 	};

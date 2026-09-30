@@ -29,19 +29,19 @@ namespace NMib::NTest::NPrivate
 	void CNullTestResults::f_ReportResult
 		(
 			ETestResult _Result
-			, const NStr::CStr &_TestPath
-			, const NStr::CStr &_Message
-			, const NStr::CStr &_Values
+			, NStr::CStr const &_TestPath
+			, NStr::CStr const &_Message
+			, NStr::CStr const &_Values
 			, CTestLocation const &_Location
 			, ETest _FailureAction
 			, ECheckType _CheckType
 			, ETestFlag _Flags
-			, const NStr::CStr &_ExtraMultiLineReportData
+			, NStr::CStr const &_ExtraMultiLineReportData
 		)
 	{
 	}
 
-	void CNullTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
+	void CNullTestResults::f_ReportSuite(NStr::CStr const &_TestPath, NContainer::TCSet<NStr::CStr> const &_TestGroups, CTestLocation const &_Location)
 	{
 	}
 

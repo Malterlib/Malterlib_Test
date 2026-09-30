@@ -57,7 +57,6 @@ namespace NMib::NTest
 		fp64 f_TimeAverage();
 		fp64 f_TimeMedian();
 		fp64 f_TimeStdDev();
-
 	};
 
 	template <typename t_CTimer, typename t_CIterations>
@@ -102,13 +101,14 @@ namespace NMib::NTest
 		}
 	};
 
-#	define DMibTestScopeMeasure(_Measure, _nIterations) NMib::NTest::TCTestMeasureScope<decltype(_Measure), decltype(_nIterations)> TimerScope(_Measure, _nIterations)
-#	define DMibTestScopeMeasureThreads(_Measure, _nIterations, _nThreads) NMib::NTest::TCTestMeasureScopeWithThread<decltype(_Measure), decltype(_nIterations)> TimerScope(_Measure, _nIterations, _nThreads)
+#define DMibTestScopeMeasure(_Measure, _nIterations) NMib::NTest::TCTestMeasureScope<decltype(_Measure), decltype(_nIterations)> TimerScope(_Measure, _nIterations)
+#define DMibTestScopeMeasureThreads(_Measure, _nIterations, _nThreads) \
+	NMib::NTest::TCTestMeasureScopeWithThread<decltype(_Measure), decltype(_nIterations)> TimerScope(_Measure, _nIterations, _nThreads)
 
-#	ifndef DMibPNoShortCuts
-#		define DTestScopeMeasure DMibTestScopeMeasure
-#		define DTestScopeMeasureThreads DMibTestScopeMeasureThreads
-#	endif
+#ifndef DMibPNoShortCuts
+#	define DTestScopeMeasure DMibTestScopeMeasure
+#	define DTestScopeMeasureThreads DMibTestScopeMeasureThreads
+#endif
 
 	class CTestPerformance
 	{
@@ -117,6 +117,7 @@ namespace NMib::NTest
 		bool m_bModifyDescription;
 		CTestPerformanceResult &fp_Add(CTestPerformanceMeasure &_Timer);
 		NStr::CStr fp_GetOutput() const;
+
 	public:
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
 		bool f_IsIgnored() const;

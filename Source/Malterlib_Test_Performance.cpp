@@ -13,7 +13,6 @@ namespace NMib::NTest
 	|___________________________________________________________________________________________________|
 	\***************************************************************************************************/
 
-
 	NTime::TCCyclesTimeMeasure<false> CTestPerformanceMeasure::ms_CyclesCorrection(0);
 	NTime::CTimeMeasure CTestPerformanceMeasure::ms_TimerCorrection(0);
 	bool CTestPerformanceMeasure::ms_CalculateCorrection = true;
@@ -47,7 +46,6 @@ namespace NMib::NTest
 		}
 	}
 
-
 	void CTestPerformanceMeasure::fp_CalcRepetition()
 	{
 		uint64 nIterations = m_nIterations;
@@ -78,7 +76,6 @@ namespace NMib::NTest
 		m_Cycles.f_Reset(0);
 		m_Timer.f_Reset(0);
 	}
-
 
 	void CTestPerformanceMeasure::f_AddThreadResult(CTestPerformanceMeasure const &_Right)
 	{
@@ -167,10 +164,10 @@ namespace NMib::NTest
 		for (umint i = 0; i < nHistory; ++i)
 		{
 			fp64 Delta = m_CyclesHistory[i] - Average;
-			SqrSum += Delta*Delta;
+			SqrSum += Delta * Delta;
 		}
 
-		return (SqrSum / fp64(nHistory -1)).f_Sqrt();
+		return (SqrSum / fp64(nHistory - 1)).f_Sqrt();
 	}
 
 	fp64 CTestPerformanceMeasure::f_CyclesMedian()
@@ -208,10 +205,10 @@ namespace NMib::NTest
 		for (umint i = 0; i < nHistory; ++i)
 		{
 			fp64 Delta = m_TimerHistory[i] - Average;
-			SqrSum += Delta*Delta;
+			SqrSum += Delta * Delta;
 		}
 
-		return (SqrSum / fp64(nHistory -1)).f_Sqrt();
+		return (SqrSum / fp64(nHistory - 1)).f_Sqrt();
 	}
 
 	fp64 CTestPerformanceMeasure::f_TimeMedian()
@@ -226,13 +223,11 @@ namespace NMib::NTest
 		return MedianList[nHistory / 2];
 	}
 
-
 	/***************************************************************************************************\
 	|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|
 	| Results																							|
 	|___________________________________________________________________________________________________|
 	\***************************************************************************************************/
-
 
 	CTestPerformanceResult &CTestPerformance::fp_Add(CTestPerformanceMeasure &_Timer)
 	{
@@ -267,26 +262,31 @@ namespace NMib::NTest
 		m_bModifyDescription = _bModifyDescription;
 		m_Results.m_Tolerance = _Tolerance;
 	}
+
 	void CTestPerformance::f_AddReference(CTestPerformanceMeasure &_Timer)
 	{
 		CTestPerformanceResult &Result = fp_Add(_Timer);
 		Result.m_MeasureType = ETestMeasureType_Reference;
 		m_References[Result.m_Cycles.m_Average] = &Result - m_Results.m_Results.f_GetArray();
 	}
+
 	void CTestPerformance::f_AddBaseline(CTestPerformanceMeasure &_Timer)
 	{
 		CTestPerformanceResult &Result = fp_Add(_Timer);
 		Result.m_MeasureType = ETestMeasureType_Baseline;
 	}
+
 	void CTestPerformance::f_AddDebug(CTestPerformanceMeasure &_Timer)
 	{
 		CTestPerformanceResult &Result = fp_Add(_Timer);
 		Result.m_MeasureType = ETestMeasureType_Debug;
 	}
+
 	void CTestPerformance::f_Add(CTestPerformanceMeasure &_Timer)
 	{
 		fp_Add(_Timer);
 	}
+
 	void CTestPerformance::f_Add(CTestPerformanceResult const &_Result)
 	{
 		CTestPerformanceResult &Result = m_Results.m_Results.f_Insert(_Result);
@@ -298,6 +298,7 @@ namespace NMib::NTest
 	{
 		_Results.f_PerformanceResults(m_Results);
 	}
+
 	CTestPerformance::operator bool () const
 	{
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
@@ -315,9 +316,7 @@ namespace NMib::NTest
 			{
 				fp64 ThisValue = Reference / Result.m_Cycles.m_Average;
 				if (ThisValue > BestValue)
-				{
 					BestValue = ThisValue;
-				}
 			}
 		}
 		return BestValue > m_Results.m_Tolerance;
@@ -387,7 +386,16 @@ namespace NMib::NTest
 			}
 
 			if (pBest)
-				Output = NStr::CStr::CFormat("{fn3,fe3}   {} {sz9,fn1,fe1}   {} {sz9,fn1,fe1}") << BestValue << pBestRef->m_Name << pBestRef->m_Cycles.m_Min << pBest->m_Name << pBest->m_Cycles.m_Min;
+			{
+				Output
+					= NStr::CStr::CFormat("{fn3,fe3}   {} {sz9,fn1,fe1}   {} {sz9,fn1,fe1}")
+					<< BestValue
+					<< pBestRef->m_Name
+					<< pBestRef->m_Cycles.m_Min
+					<< pBest->m_Name
+					<< pBest->m_Cycles.m_Min
+				;
+			}
 			else
 				Output = "No value to compare reference to";
 		}
