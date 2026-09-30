@@ -11,6 +11,7 @@ namespace NMib::NTest
 	{
 		NStr::CStr m_TextBuffer;
 		void fp_HandleRecord(NStr::CStr const &_Text);
+
 	public:
 		virtual void f_HandleHeader(NContainer::CRegistry const &_Reg) = 0;
 		virtual void f_HandleFooter(NContainer::CRegistry const &_Reg) = 0;

@@ -54,6 +54,7 @@ namespace NMib::NTest
 			fg_OperateOnStatUnary<tf_Flags>(_Stats.m_AtBytesMaxAlloc.m_BytesPotentialWaste, _Functor);
 			fg_OperateOnStatUnary<tf_Flags>(_Stats.m_AtBytesMaxAlloc.m_nAllocations, _Functor);
 		}
+
 		template <CStatAffectFlagUnderlying tf_LeftFlags, CStatAffectFlagUnderlying tf_RightFlags, typename tf_CFunctor>
 		static void fg_OperateOnStatBinary(CTestStats &_StatLeft, CTestStats &_StatRight, tf_CFunctor &&_Functor)
 		{
@@ -151,13 +152,11 @@ namespace NMib::NTest
 		}
 	}
 
-
 	/***************************************************************************************************\
 	|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|
 	| Measure																							|
 	|___________________________________________________________________________________________________|
 	\***************************************************************************************************/
-
 
 	CTestMemoryMeasure::CTestMemoryMeasure(NStr::CStr const &_Name)
 		: mp_nIterationsSum(0)
@@ -243,7 +242,6 @@ namespace NMib::NTest
 		m_nAllocationsAtMaxAlloc = 0;
 	}
 
-
 	void CTestMemoryMeasure::CAllocatorStats::fp_UpdateAtMaxAlloc()
 	{
 		if (m_CurrentBytesAlloc > m_BytesMaxAlloc)
@@ -268,6 +266,7 @@ namespace NMib::NTest
 		m_CurrentBytesPotentialWaste += _Waste;
 		fp_UpdateAtMaxAlloc();
 	}
+
 	void CTestMemoryMeasure::CAllocatorStats::f_ResizeReallocFree(uint64 _Size, uint64 _Overhead, uint64 _Waste)
 	{
 		m_BytesFree += _Size;
@@ -276,6 +275,7 @@ namespace NMib::NTest
 		m_CurrentBytesOverhead -= _Overhead;
 		m_CurrentBytesPotentialWaste -= _Waste;
 	}
+
 	void CTestMemoryMeasure::CAllocatorStats::f_Resize(uint64 _Size, uint64 _Overhead, uint64 _Waste)
 	{
 		++m_nResize;
@@ -290,6 +290,7 @@ namespace NMib::NTest
 		m_CurrentBytesPotentialWaste += _Waste;
 		fp_UpdateAtMaxAlloc();
 	}
+
 	void CTestMemoryMeasure::CAllocatorStats::f_Realloc(uint64 _Size, uint64 _Overhead, uint64 _Waste)
 	{
 		++m_nRealloc;
@@ -304,6 +305,7 @@ namespace NMib::NTest
 		m_CurrentBytesPotentialWaste += _Waste;
 		fp_UpdateAtMaxAlloc();
 	}
+
 	void CTestMemoryMeasure::CAllocatorStats::f_Free(uint64 _Size, uint64 _Overhead, uint64 _Waste)
 	{
 		++m_nFree;
@@ -313,20 +315,24 @@ namespace NMib::NTest
 		m_CurrentBytesOverhead -= _Overhead;
 		m_CurrentBytesPotentialWaste -= _Waste;
 	}
+
 	void CTestMemoryMeasure::CAllocatorStats::f_GetSize()
 	{
 		++m_nGetSize;
 	}
+
 	void CTestMemoryMeasure::CAllocatorStats::f_Protect(uint64 _Size)
 	{
 		++m_nProtect;
 		m_BytesProtect += _Size;
 	}
+
 	void CTestMemoryMeasure::CAllocatorStats::f_Commit(uint64 _Size)
 	{
 		++m_nCommit;
 		m_BytesCommit += _Size;
 	}
+
 	void CTestMemoryMeasure::CAllocatorStats::f_Decommit(uint64 _Size)
 	{
 		++m_nDecommit;
@@ -341,7 +347,7 @@ namespace NMib::NTest
 		return nullptr;
 	}
 
-	CTestMemoryMeasure::CAllocatorStats &CTestMemoryMeasure::fp_GetActiveStats(umint _Heap, const ch8 *_pHeapName)
+	CTestMemoryMeasure::CAllocatorStats &CTestMemoryMeasure::fp_GetActiveStats(umint _Heap, ch8 const *_pHeapName)
 	{
 		CAllocatorStats **pStats = mp_ActiveAllocators.f_FindEqual(_Heap);
 		if (pStats)
@@ -501,7 +507,6 @@ namespace NMib::NTest
 			mp_AllAllocations.f_Free(pOldAlloc->m_Size, pOldAlloc->m_Overhead, pOldAlloc->m_PotentialWaste);
 			mp_Allocations.f_Remove(pOldAlloc);
 		}
-
 	}
 
 	void CTestMemoryMeasure::f_GetSize(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size, void const *_pAllocationInfo)
@@ -576,7 +581,7 @@ namespace NMib::NTest
 					(
 						*pStats
 						, Stats
-						, [] (fp64 &_Left, fp64 &_Right)
+						, [](fp64 &_Left, fp64 &_Right)
 						{
 							_Left = fg_Min(_Left, _Right);
 						}
@@ -586,7 +591,7 @@ namespace NMib::NTest
 					(
 						*pStats
 						, Stats
-						, [] (fp64 &_Left, fp64 &_Right)
+						, [](fp64 &_Left, fp64 &_Right)
 						{
 							_Left = fg_Max(_Left, _Right);
 						}
@@ -596,7 +601,7 @@ namespace NMib::NTest
 					(
 						*pStats
 						, Stats
-						, [] (fp64 &_Left, fp64 &_Right)
+						, [](fp64 &_Left, fp64 &_Right)
 						{
 							_Left += _Right;
 						}
@@ -608,7 +613,7 @@ namespace NMib::NTest
 			fg_OperateOnStatsUnary<EStatAffectFlag_Average>
 				(
 					*pStats
-					, [&] (fp64 &_Left)
+					, [&](fp64 &_Left)
 					{
 						_Left /= Repetitions;
 					}
@@ -620,7 +625,7 @@ namespace NMib::NTest
 				// Calculate StdDev
 				CTestMemoryStats SqrSum;
 
-				for (auto & SourceStats : History)
+				for (auto &SourceStats : History)
 				{
 					CTestMemoryStats Stats;
 					SourceStats.f_TransferToStats<EStatAffectFlag(EStatAffectFlag_StdDev)>(Stats);
@@ -629,7 +634,7 @@ namespace NMib::NTest
 						(
 							Stats
 							, *pStats
-							, [] (fp64 &_Left, fp64 &_Right)
+							, [](fp64 &_Left, fp64 &_Right)
 							{
 								fp64 Delta = (_Left - _Right);
 								_Left = Delta * Delta;
@@ -640,7 +645,7 @@ namespace NMib::NTest
 						(
 							SqrSum
 							, Stats
-							, [] (fp64 &_Left, fp64 &_Right)
+							, [](fp64 &_Left, fp64 &_Right)
 							{
 								_Left += _Right;
 							}
@@ -652,7 +657,7 @@ namespace NMib::NTest
 					(
 						*pStats
 						, SqrSum
-						, [&] (fp64 &_Left, fp64 &_Right)
+						, [&](fp64 &_Left, fp64 &_Right)
 						{
 							_Left = (_Right / fp64(mp_nRepetitions - 1)).f_Sqrt();
 						}
@@ -662,7 +667,6 @@ namespace NMib::NTest
 
 			if (History.f_GetLen() >= 1)
 			{
-
 				NContainer::TCVector<fp64> nAllocations;
 				NContainer::TCVector<fp64> nFree;
 				NContainer::TCVector<fp64> nResize;
@@ -685,7 +689,7 @@ namespace NMib::NTest
 				NContainer::TCVector<fp64> AtBytesMaxAllocBytesPotentialWaste;
 				NContainer::TCVector<fp64> AtBytesMaxAllocnAllocations;
 
-				for (auto & SourceStats : History)
+				for (auto &SourceStats : History)
 				{
 					CTestMemoryStats Stats;
 					SourceStats.f_TransferToStats<EStatAffectFlag(EStatAffectFlag_Median)>(Stats);
@@ -757,12 +761,9 @@ namespace NMib::NTest
 				pStats->m_AtBytesMaxAlloc.m_BytesOverhead.m_Median = AtBytesMaxAllocBytesOverhead[iIndex];
 				pStats->m_AtBytesMaxAlloc.m_BytesPotentialWaste.m_Median = AtBytesMaxAllocBytesPotentialWaste[iIndex];
 				pStats->m_AtBytesMaxAlloc.m_nAllocations.m_Median = AtBytesMaxAllocnAllocations[iIndex];
-
 			}
-
 		}
 	}
-
 
 	/***************************************************************************************************\
 	|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|
@@ -789,21 +790,25 @@ namespace NMib::NTest
 		mp_Results.m_Tolerance = _Tolerance;
 		mp_bCompareNumAllocations = _bCompareNumAllocations;
 	}
+
 	void CTestMemory::f_AddReference(CTestMemoryMeasure &_Measure)
 	{
 		CTestMemoryResult &Result = fp_Add(_Measure);
 		Result.m_MeasureType = ETestMeasureType_Reference;
 	}
+
 	void CTestMemory::f_AddBaseline(CTestMemoryMeasure &_Measure)
 	{
 		CTestMemoryResult &Result = fp_Add(_Measure);
 		Result.m_MeasureType = ETestMeasureType_Baseline;
 	}
+
 	void CTestMemory::f_AddDebug(CTestMemoryMeasure &_Measure)
 	{
 		CTestMemoryResult &Result = fp_Add(_Measure);
 		Result.m_MeasureType = ETestMeasureType_Debug;
 	}
+
 	void CTestMemory::f_Add(CTestMemoryMeasure &_Measure)
 	{
 		fp_Add(_Measure);
@@ -823,6 +828,7 @@ namespace NMib::NTest
 	{
 		_Results.f_MemoryResults(mp_Results);
 	}
+
 	CTestMemory::operator bool () const
 	{
 #if defined(DConfig_Optimized) || defined(DConfig_Release) || defined(DConfig_Profile)
@@ -860,13 +866,11 @@ namespace NMib::NTest
 	{
 		umint nResults = mp_Results.m_Results.f_GetLen();
 		if (nResults > 0)
-		{
 			return NStr::CStr::CFormat("{}({})") << _Description << mp_Results.m_Results[0].m_nIterations;
-		}
 		return _Description;
 	}
 
-	void CTestMemory::fp_GetBest(CTestMemoryResult const *&_pBestRef, CTestMemoryResult const *&_pBest) const
+	void CTestMemory::fp_GetBest(CTestMemoryResult const * &_pBestRef, CTestMemoryResult const * &_pBest) const
 	{
 		CTestMemoryResult const *pBestRef = nullptr;
 		CTestMemoryResult const *pBest = nullptr;
@@ -878,13 +882,7 @@ namespace NMib::NTest
 			CTestMemoryResult const &Result = mp_Results.m_Results[i];
 			fp64 ThisValue;
 			if (mp_bCompareNumAllocations)
-			{
-				ThisValue
-					= Result.m_AllAllocations.m_nAllocations.m_Average
-					+ Result.m_AllAllocations.m_nResize.m_Average
-					+ Result.m_AllAllocations.m_nRealloc.m_Average
-				;
-			}
+				ThisValue = Result.m_AllAllocations.m_nAllocations.m_Average + Result.m_AllAllocations.m_nResize.m_Average + Result.m_AllAllocations.m_nRealloc.m_Average;
 			else
 			{
 				ThisValue
@@ -925,16 +923,8 @@ namespace NMib::NTest
 		{
 			if (pBestRef && pBest)
 			{
-				fp64 RefValue
-					= pBestRef->m_AllAllocations.m_nAllocations.m_Average
-					+ pBestRef->m_AllAllocations.m_nResize.m_Average
-					+ pBestRef->m_AllAllocations.m_nRealloc.m_Average
-				;
-				fp64 Value
-					= pBest->m_AllAllocations.m_nAllocations.m_Average
-					+ pBest->m_AllAllocations.m_nResize.m_Average
-					+ pBest->m_AllAllocations.m_nRealloc.m_Average
-				;
+				fp64 RefValue = pBestRef->m_AllAllocations.m_nAllocations.m_Average + pBestRef->m_AllAllocations.m_nResize.m_Average + pBestRef->m_AllAllocations.m_nRealloc.m_Average;
+				fp64 Value = pBest->m_AllAllocations.m_nAllocations.m_Average + pBest->m_AllAllocations.m_nResize.m_Average + pBest->m_AllAllocations.m_nRealloc.m_Average;
 				fp64 Diff = 1.0;
 				if (Value != 0.0)
 					Diff = RefValue / Value;
@@ -942,20 +932,12 @@ namespace NMib::NTest
 			}
 			else if (pBest)
 			{
-				fp64 Value
-					= pBest->m_AllAllocations.m_nAllocations.m_Average
-					+ pBest->m_AllAllocations.m_nResize.m_Average
-					+ pBest->m_AllAllocations.m_nRealloc.m_Average
-				;
+				fp64 Value = pBest->m_AllAllocations.m_nAllocations.m_Average + pBest->m_AllAllocations.m_nResize.m_Average + pBest->m_AllAllocations.m_nRealloc.m_Average;
 				Output = NStr::CStr::CFormat("{} {sz9,fn1,fe1}") << pBest->m_Name << Value;
 			}
 			else if (pBestRef)
 			{
-				fp64 RefValue
-					= pBestRef->m_AllAllocations.m_nAllocations.m_Average
-					+ pBestRef->m_AllAllocations.m_nResize.m_Average
-					+ pBestRef->m_AllAllocations.m_nRealloc.m_Average
-				;
+				fp64 RefValue = pBestRef->m_AllAllocations.m_nAllocations.m_Average + pBestRef->m_AllAllocations.m_nResize.m_Average + pBestRef->m_AllAllocations.m_nRealloc.m_Average;
 				Output = NStr::CStr::CFormat("{} {sz9,fn1,fe1}") << pBestRef->m_Name << RefValue;
 			}
 			else
@@ -965,7 +947,6 @@ namespace NMib::NTest
 		{
 			if (pBestRef && pBest)
 			{
-
 				fp64 RefValue
 					= pBestRef->m_AllAllocations.m_BytesMaxAlloc.m_Average
 					+ pBestRef->m_AllAllocations.m_AtBytesMaxAlloc.m_BytesOverhead.m_Average

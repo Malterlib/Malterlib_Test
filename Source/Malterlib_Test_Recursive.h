@@ -13,7 +13,6 @@ namespace NMib::NTest
 	class TCTestRecursive
 	{
 	public:
-
 		t_CFunction m_Function;
 
 		TCTestRecursive(t_CFunction const &_Function)
@@ -42,6 +41,7 @@ namespace NMib::NTest
 				if (_ReportFlags & ETestReportFlag_BreakOnFail)
 					mp_ReportFlags |= ETestReportFlag_BreakOnFail;
 			}
+
 			bool m_bSuccess;
 			NStr::CStr m_ReportText;
 
@@ -53,14 +53,14 @@ namespace NMib::NTest
 					if (mp_ReportFlags & ETestReportFlag_BreakOnFail)
 						DMibPDebugBreak;
 					m_bSuccess = false;
-					return ETestNeedReportFlag_AllowDuplicates | ETestNeedReportFlag_Report;// | ETestNeedReportFlag_Abort;
+					return ETestNeedReportFlag_AllowDuplicates | ETestNeedReportFlag_Report; // | ETestNeedReportFlag_Abort;
 				}
 				else if (_Result == ETestResult_Success && (_FailureAction == ETest_ExpectFail || _FailureAction == ETest_ExpectFailAndStop))
 				{
 					if (mp_ReportFlags & ETestReportFlag_BreakOnFail)
 						DMibPDebugBreak;
 					m_bSuccess = false;
-					return ETestNeedReportFlag_AllowDuplicates | ETestNeedReportFlag_Report;// | ETestNeedReportFlag_Abort;
+					return ETestNeedReportFlag_AllowDuplicates | ETestNeedReportFlag_Report; // | ETestNeedReportFlag_Abort;
 				}
 				return ETestNeedReportFlag_AllowDuplicates;
 			}
@@ -130,7 +130,7 @@ namespace NMib::NTest
 		// auto f_CreateStringFormatter(t_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
 		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(t_CFormatter &_Formatter) const
 		{
-			static const ch8 * const pData = "";
+			static ch8 const * const pData = "";
 			return NStr::fg_CreateStringFormatter(_Formatter, pData);
 		}
 	};
@@ -141,11 +141,11 @@ namespace NMib::NTest
 		return TCTestRecursive<tf_CFunction>(_Function);
 	}
 
-#	define DMibTestRecursive(_Expression) DMibExpr(fg_TestRecursive([&]{_Expression;}))
+#define DMibTestRecursive(_Expression) DMibExpr(fg_TestRecursive([&]{_Expression;}))
 
-#	ifndef DMibPNoShortCuts
-#		define DTestRecursive DMibTestRecursive
-#	endif
+#ifndef DMibPNoShortCuts
+#	define DTestRecursive DMibTestRecursive
+#endif
 }
 
 #endif

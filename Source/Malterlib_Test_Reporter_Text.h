@@ -26,39 +26,41 @@ namespace NMib::NTest
 		{
 			return mp_ReportFlags;
 		}
+
 		void f_ReportHeader(ETestReportFlag _ReportFlags) override;
 		void f_ReportFooter(umint _nTestsTotal, umint _nSuccessful, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored) override;
 		ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) override;
 		void f_ReportResult
 			(
 				ETestResult _Result
-				, const NStr::CStr &_TestPath
-				, const NStr::CStr &_Message
-				, const NStr::CStr &_Values
+				, NStr::CStr const &_TestPath
+				, NStr::CStr const &_Message
+				, NStr::CStr const &_Values
 				, CTestLocation const &_Location
 				, ETest _FailureAction
 				, ECheckType _CheckType
 				, ETestFlag _Flags
-				, const NStr::CStr &_ExtraMultiLineReportData
-			) override
+				, NStr::CStr const &_ExtraMultiLineReportData
+			)
+			override
 		;
-		void f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location) override;
+		void f_ReportSuite(NStr::CStr const &_TestPath, NContainer::TCSet<NStr::CStr> const &_TestGroups, CTestLocation const &_Location) override;
 		void f_PerformanceResults(CTestPerformanceResults const &_Results) override;
 		void f_MemoryResults(CTestMemoryResults const &_Results) override;
 
 	protected:
 		virtual void fp_AddReport
 			(
-				const NStr::CStr &_FileLocation
-				, const NStr::CStr &_MessageStr
-				, const NStr::CStr &_TestPath
-				, const NStr::CStr &_Message
-				, const NStr::CStr &_Values
+				NStr::CStr const &_FileLocation
+				, NStr::CStr const &_MessageStr
+				, NStr::CStr const &_TestPath
+				, NStr::CStr const &_Message
+				, NStr::CStr const &_Values
 				, ETestSeverity _Severity
 				, bool _bHeader
 			)
 		;
-		virtual void fp_ReportText(const NStr::CStr &_Text, ETestSeverity _Severity) = 0;
+		virtual void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) = 0;
 		NStr::CStr fp_ColorSeverity(NStr::CStr const &_ToColor, ETestSeverity _Severity) const;
 		NStr::CStr fp_ColorPath(NStr::CStr const &_String) const;
 		NStr::CStr fp_ColorExpression(NStr::CStr const &_String) const;
@@ -77,11 +79,11 @@ namespace NMib::NTest
 
 		void fp_AddReport
 			(
-				const NStr::CStr &_FileLocation
-				, const NStr::CStr &_MessageStr
-				, const NStr::CStr &_TestPath
-				, const NStr::CStr &_Message
-				, const NStr::CStr &_Values
+				NStr::CStr const &_FileLocation
+				, NStr::CStr const &_MessageStr
+				, NStr::CStr const &_TestPath
+				, NStr::CStr const &_Message
+				, NStr::CStr const &_Values
 				, ETestSeverity _Severity
 				, bool _bHeader
 			)
