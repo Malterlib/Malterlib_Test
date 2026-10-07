@@ -1619,7 +1619,9 @@ private:
 				while (auto Entry = ToDispatch.f_Pop())
 					(*Entry)();
 
-				LaunchHandler.f_StopAll();
+				// Each suite runs in a process group of its own, so this also reaches the processes it launched, which would outlive
+				// a suite that exits on the signal
+				LaunchHandler.f_StopAll(true);
 				CStopwatch GracePeriod(true);
 				while (pState->m_nRunning && GracePeriod.f_GetTime() < 1.0)
 				{
@@ -1631,7 +1633,8 @@ private:
 				}
 
 				LaunchHandler.f_ReapCompleted();
-				LaunchHandler.f_TerminateAll(true);
+				// A suite that is still running can have launched processes of its own, which outlive it unless the whole tree ends
+				LaunchHandler.f_TerminateAll(true, nullptr, EProcessLaunchCloseFlag_TerminateProcessTree);
 			}
 		}
 
