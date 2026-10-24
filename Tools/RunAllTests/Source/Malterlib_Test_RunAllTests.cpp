@@ -538,6 +538,7 @@ private:
 	{
 		CStr m_Executable;
 		TCVector<CStr> m_Params;
+		TCVector<CStr> m_FailureMessages; // Output that means the debugger printed no usable stacks, so the next debugger is tried
 	};
 
 	static TCVector<CStackDebugger> fsp_GetStackDebuggers(umint _ProcessID)
@@ -545,18 +546,29 @@ private:
 		CStr ProcessID = CStr::fs_ToStr(_ProcessID);
 		TCVector<CStackDebugger> Debuggers;
 
+#if defined(DPlatformFamily_Linux) || defined(DPlatformFamily_macOS)
+		// Without this the attach prints the disassembly at the stop location of every thread before the backtraces
+		TCVector<CStr> LLDBParams{"--batch", "--no-lldbinit", "-O", "settings set stop-disassembly-display never", "--attach-pid", ProcessID, "--one-line", "thread backtrace all"};
+#endif
+
 #if defined(DPlatformFamily_Linux)
+		// The distribution's gdb may not read our zstd compressed debug sections, so CI provides the LLDB from our LLVM build
+		CStr LLDB = fg_GetSys()->f_GetEnvironmentVariable("MalterlibStackLLDB", "");
+		if (!LLDB.f_IsEmpty())
+			Debuggers.f_Insert({LLDB, LLDBParams, {"initialization failed"}});
+
 		Debuggers.f_Insert
 			(
 				{
 					"gdb"
 					, {"--batch", "--nx", "-iex", "set print thread-events off", "-p", ProcessID, "-ex", "set pagination off", "-ex", "thread apply all bt"}
+					, {"can't read symbols", "not built with zstd support"}
 				}
 			)
 		;
 		Debuggers.f_Insert({"eu-stack", {"--pid", ProcessID}});
 #elif defined(DPlatformFamily_macOS)
-		Debuggers.f_Insert({"lldb", {"--batch", "--no-lldbinit", "--attach-pid", ProcessID, "--one-line", "thread backtrace all"}});
+		Debuggers.f_Insert({"lldb", LLDBParams});
 #elif defined(DPlatformFamily_Windows)
 	#if defined(DArchitecture_arm64)
 		CStr DebuggerArchitecture = "arm64";
@@ -779,6 +791,22 @@ private:
 			if (pCapture->m_bLaunchFailed)
 			{
 				Failures += "{} could not be launched: {}\n"_f << Debugger.m_Executable << pCapture->m_LaunchError;
+				continue;
+			}
+
+			CStr const *pFailureMessage = nullptr;
+			for (auto &Message : Debugger.m_FailureMessages)
+			{
+				if (pCapture->m_Output.f_Find(Message) >= 0)
+				{
+					pFailureMessage = &Message;
+					break;
+				}
+			}
+
+			if (pFailureMessage)
+			{
+				Failures += "{} could not print the stacks: {}\n"_f << Debugger.m_Executable << *pFailureMessage;
 				continue;
 			}
 
