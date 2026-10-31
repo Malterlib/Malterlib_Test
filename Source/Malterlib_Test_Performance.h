@@ -102,8 +102,9 @@ namespace NMib::NTest
 		}
 	};
 
-#	define DMibTestScopeMeasure(_Measure, _nIterations) NMib::NTest::TCTestMeasureScope<decltype(_Measure), decltype(_nIterations)> TimerScope(_Measure, _nIterations)
-#	define DMibTestScopeMeasureThreads(_Measure, _nIterations, _nThreads) NMib::NTest::TCTestMeasureScopeWithThread<decltype(_Measure), decltype(_nIterations)> TimerScope(_Measure, _nIterations, _nThreads)
+#define DMibTestScopeMeasure(_Measure, _nIterations) NMib::NTest::TCTestMeasureScope<decltype(_Measure), decltype(_nIterations)> TimerScope(_Measure, _nIterations)
+#define DMibTestScopeMeasureThreads(_Measure, _nIterations, _nThreads) \
+	NMib::NTest::TCTestMeasureScopeWithThread<decltype(_Measure), decltype(_nIterations)> TimerScope(_Measure, _nIterations, _nThreads)
 
 #	ifndef DMibPNoShortCuts
 #		define DTestScopeMeasure DMibTestScopeMeasure

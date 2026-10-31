@@ -99,192 +99,230 @@ namespace NMib::NTest::NExpression
 #define DImplementExpressionInterfaceNoEval(_ThisType) \
 	public:\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Spaceship> operator <=> (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator <=> (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Spaceship>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Spaceship>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Spaceship> operator <=> (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator <=> (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Spaceship>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Spaceship>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_LessThan> operator < (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator < (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_LessThan>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_LessThan>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_LessThan> operator < (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator < (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_LessThan>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_LessThan>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_LessThanEqual> operator <= (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator <= (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_LessThanEqual>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_LessThanEqual>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_LessThanEqual> operator <= (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator <= (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_LessThanEqual>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_LessThanEqual>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_GreaterThan> operator > (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator > (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_GreaterThan>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_GreaterThan>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_GreaterThan> operator > (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator > (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_GreaterThan>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_GreaterThan>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_GreaterThanEqual> operator >= (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator >= (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_GreaterThanEqual>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_GreaterThanEqual>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_GreaterThanEqual> operator >= (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator >= (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_GreaterThanEqual>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_GreaterThanEqual>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Equal> operator == (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator == (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Equal>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Equal>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Equal> operator == (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator == (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Equal>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Equal>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_NotEqual> operator != (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator != (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_NotEqual>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_NotEqual>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_NotEqual> operator != (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator != (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_NotEqual>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_NotEqual>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Logical_And> operator && (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator && (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Logical_And>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Logical_And>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Logical_And> operator && (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator && (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Logical_And>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Logical_And>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Logical_Or> operator || (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator || (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Logical_Or>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Logical_Or>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Logical_Or> operator || (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator || (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Logical_Or>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Logical_Or>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Addition> operator + (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator + (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Addition>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Addition>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Addition> operator + (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator + (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Addition>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Addition>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Subtraction> operator - (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator - (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Subtraction>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Subtraction>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Subtraction> operator - (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator - (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Subtraction>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Subtraction>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Multiplication> operator * (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator * (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Multiplication>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Multiplication>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Multiplication> operator * (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator * (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Multiplication>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Multiplication>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Division> operator / (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator / (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Division>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Division>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Division> operator / (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator / (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Division>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Division>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Modulu> operator % (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator % (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Modulu>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Arithmetic_Modulu>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Modulu> operator % (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator % (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Modulu>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Arithmetic_Modulu>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_ShiftLeft> operator << (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator << (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_ShiftLeft>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_ShiftLeft>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_ShiftLeft> operator << (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator << (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_ShiftLeft>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_ShiftLeft>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_ShiftRight> operator >> (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator >> (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_ShiftRight>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_ShiftRight>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_ShiftRight> operator >> (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator >> (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_ShiftRight>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_ShiftRight>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_Xor> operator ^ (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator ^ (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_Xor>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_Xor>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_Xor> operator ^ (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator ^ (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_Xor>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_Xor>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_And> operator & (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator & (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_And>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_And>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_And> operator & (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator & (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_And>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_And>(*this, _Other);\
 		}\
 		template <typename t_CType2, CLambdaUnderlying t_bLambda2, typename t_CLambdaReturn2>\
-		TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_Or> operator | (const TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> &_Other) const\
+		auto operator | (TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_Or>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpression<t_CType2, t_bLambda2, t_CLambdaReturn2>, EOperator_Bitwise_Or>(*this, _Other);\
 		}\
 		template <typename t_CLeft2, typename t_CRight2, COperatorUnderlying _Operator2>\
-		TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_Or> operator | (const TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> &_Other) const\
+		auto operator | (TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2> const &_Other) const\
+			-> TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_Or>\
 		{\
 			return TCExpressionWithOperator<_ThisType, TCExpressionWithOperator<t_CLeft2, t_CRight2, _Operator2>, EOperator_Bitwise_Or>(*this, _Other);\
 		}\
