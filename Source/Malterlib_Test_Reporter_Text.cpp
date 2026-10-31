@@ -740,7 +740,8 @@ namespace NMib::NTest
 					(
 						NStr::CStr::CFormat
 						(
-							"{sz20,a-}{sz20,a-}{sz12}{sz12}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}" DMibNewLine
+							"{sz20,a-}{sz20,a-}{sz12}{sz12}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}{sz16}"
+							"" DMibNewLine
 						)
 						<< _Allocator
 						<< _Name
