@@ -10,9 +10,9 @@ namespace NMib::NTest
 	using CStatAffectFlagUnderlying = int32;
 	enum EStatAffectFlag : int32
 	{
-		EStatAffectFlag_Average = DMibBit(0)
-		, EStatAffectFlag_Min = DMibBit(1)
-		, EStatAffectFlag_Max = DMibBit(2)
+		EStatAffectFlag_Average  = DMibBit(0)
+		, EStatAffectFlag_Min    = DMibBit(1)
+		, EStatAffectFlag_Max    = DMibBit(2)
 		, EStatAffectFlag_StdDev = DMibBit(3)
 		, EStatAffectFlag_Median = DMibBit(4)
 	};
@@ -166,17 +166,12 @@ namespace NMib::NTest
 		NContainer::TCMap<NStr::CStrNonTracked, CAllocatorStats, CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_Allocators;
 		CAllocatorStats mp_AllAllocations;
 
-		NContainer::TCMap
-			<
-				NStr::CStrNonTracked
-				, NContainer::TCVector<CAllocatorStats, NMemory::CAllocator_NonTrackedHeap>
-				, NMib::CSort_Default
-				, NMemory::CAllocator_NonTrackedHeap
-			> mp_AllocatorHistory
+		NContainer::TCMap<NStr::CStrNonTracked, NContainer::TCVector<CAllocatorStats, NMemory::CAllocator_NonTrackedHeap>, NMib::CSort_Default, NMemory::CAllocator_NonTrackedHeap>
+			mp_AllocatorHistory
 		;
 
 		CAllocatorStats *fp_GetActiveStats(umint _Heap);
-		CAllocatorStats &fp_GetActiveStats(umint _Heap, const ch8 *_pHeapName);
+		CAllocatorStats &fp_GetActiveStats(umint _Heap, ch8 const *_pHeapName);
 
 		void f_Alloc
 			(
@@ -251,7 +246,8 @@ namespace NMib::NTest
 
 		CTestMemoryResult &fp_Add(CTestMemoryMeasure &_Measure);
 		NStr::CStr fp_GetOutput() const;
-		void fp_GetBest(CTestMemoryResult const *&_pBestRef, CTestMemoryResult const *&_pBest) const;
+		void fp_GetBest(CTestMemoryResult const * &_pBestRef, CTestMemoryResult const * &_pBest) const;
+
 	public:
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
 		bool f_IsIgnored() const;

@@ -85,9 +85,8 @@ namespace NMib::NTest::NPrivate
 						NMib::NTest::NPrivate::fg_ReportTestException
 							(
 								TestExceptionFilter.f_DetachDumpFiles()
-								, TestExceptionFilter.f_GetFile() ? TestExceptionFilter.f_GetFile()
-								: mp_pFile, TestExceptionFilter.f_GetFile() ? TestExceptionFilter.f_GetLine()
-								: mp_Line
+								, TestExceptionFilter.f_GetFile() ? TestExceptionFilter.f_GetFile() : mp_pFile
+								, TestExceptionFilter.f_GetFile() ? TestExceptionFilter.f_GetLine() : mp_Line
 							)
 						;
 					}

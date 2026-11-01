@@ -19,26 +19,26 @@ extern ch8 const *g_AllTests[];
 extern umint g_nAllTests;
 
 #if DMalterlibCodeCoverage
-	extern ch8 const *g_AllCoverageBinaries[];
-	extern umint g_nAllCoverageBinaries;
+extern ch8 const *g_AllCoverageBinaries[];
+extern umint g_nAllCoverageBinaries;
 
-	CUniversallyUniqueIdentifier g_UUIDNamespace{"6B2A543F-CB3F-4B6D-A617-7D286BBC931E", EUniversallyUniqueIdentifierFormat_Bare};
+CUniversallyUniqueIdentifier g_UUIDNamespace{"6B2A543F-CB3F-4B6D-A617-7D286BBC931E", EUniversallyUniqueIdentifierFormat_Bare};
 #endif
 
 struct CRunAllTestsApplication : public NMib::CApplication
 {
-	constexpr static uint64 mc_DefaultMemoryPerTestBase = (3 * 1024) / 2;
+	static constexpr uint64 mc_DefaultMemoryPerTestBase = (3 * 1024) / 2;
 
 #if defined(DMibSanitizerEnabled_UndefinedBehavior)
-	constexpr static uint64 mc_DefaultMemoryPerTest = (mc_DefaultMemoryPerTestBase * 3) / 2;
+	static constexpr uint64 mc_DefaultMemoryPerTest = (mc_DefaultMemoryPerTestBase * 3) / 2;
 #elif defined(DMibSanitizerEnabled_Address)
-	constexpr static uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase * 8;
+	static constexpr uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase * 8;
 #elif defined(DMibSanitizerEnabled_Thread)
-	constexpr static uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase * 3;
+	static constexpr uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase * 3;
 #elif defined(DMibDebug)
-	constexpr static uint64 mc_DefaultMemoryPerTest = (mc_DefaultMemoryPerTestBase * 5) / 2;
+	static constexpr uint64 mc_DefaultMemoryPerTest = (mc_DefaultMemoryPerTestBase * 5) / 2;
 #else
-	constexpr static uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase;
+	static constexpr uint64 mc_DefaultMemoryPerTest = mc_DefaultMemoryPerTestBase;
 #endif
 
 	CRunAllTestsApplication()
@@ -497,20 +497,21 @@ private:
 					DConOut
 						(
 							"TOTAL{a+,sj*}{a+,sj*}{fe2,sj*}%{\n}"
-							, TotalRegions, RegionsLocation - 5
-							, TotalMissedRegions, MissedRegionsLocation - RegionsLocation
-							, (fp64(TotalRegions - TotalMissedRegions) / fp64(TotalRegions)) * 100.0, (PercentageLocation - MissedRegionsLocation) - 1
+							, TotalRegions
+							, RegionsLocation - 5
+							, TotalMissedRegions
+							, MissedRegionsLocation - RegionsLocation
+							, (fp64(TotalRegions - TotalMissedRegions) / fp64(TotalRegions)) * 100.0
+							, (PercentageLocation - MissedRegionsLocation) - 1
 						)
 					;
 
-					//(PercentageLocation - MissedRegionsLocation)
-//						DConOut("Params: {vs}{\n}", Params);
-//						Report = CProcessLaunch::fs_LaunchTool(CFile::fs_AppendPath(ClangPath, "llvm-cov"), Params);
+					// (PercentageLocation - MissedRegionsLocation)
+					// 	DConOut("Params: {vs}{\n}", Params);
+					// 	Report = CProcessLaunch::fs_LaunchTool(CFile::fs_AppendPath(ClangPath, "llvm-cov"), Params);
 				}
 				else
-				{
 					DConOut("{}{\n}", Report);
-				}
 			}
 		}
 		catch (NException::CException const &_Exception)
@@ -570,13 +571,13 @@ private:
 #elif defined(DPlatformFamily_macOS)
 		Debuggers.f_Insert({"lldb", LLDBParams});
 #elif defined(DPlatformFamily_Windows)
-	#if defined(DArchitecture_arm64)
+#	if defined(DArchitecture_arm64)
 		CStr DebuggerArchitecture = "arm64";
-	#elif defined(DArchitecture_x64)
+#	elif defined(DArchitecture_x64)
 		CStr DebuggerArchitecture = "x64";
-	#else
+#	else
 		CStr DebuggerArchitecture = "x86";
-	#endif
+#	endif
 		// A non-invasive attach leaves the process running when the debugger quits
 		Debuggers.f_Insert
 			(
@@ -595,10 +596,10 @@ private:
 	// A debugger that is still running when _fCancelled returns true is terminated.
 	static CStr fsp_CaptureStacks(umint _ProcessID, TCFunction<bool ()> const &_fCancelled)
 	{
-		constexpr static fp64 c_Timeout = 120.0;
+		static constexpr fp64 c_Timeout = 120.0;
 #ifndef DPlatformFamily_Windows
 		// The shell reports a debugger it cannot run with this exit code
-		constexpr static uint32 c_CommandNotFound = 127;
+		static constexpr uint32 c_CommandNotFound = 127;
 #endif
 		CStr Failures;
 
@@ -721,7 +722,7 @@ private:
 				// Stops the helpers left in the debugger's process group. The group is gone when none are left.
 				// Before the launch notification the ID is not valid, and signalling the group of -1 would signal PID 1.
 				// A launch still in flight when the capture ends is waited for, so the helpers it starts are stopped.
-				constexpr static fp64 c_LaunchTimeout = 10.0;
+				static constexpr fp64 c_LaunchTimeout = 10.0;
 				bool bLaunched = false;
 				CStopwatch LaunchStopwatch(true);
 				while (true)
@@ -858,11 +859,8 @@ private:
 
 		// Without an interactive terminal, cancellation must work on the first signal.
 		NStr::CStr InterruptMode = fg_GetSys()->f_GetEnvironmentVariable("MalterlibTestInterrupt", "");
-		bool bInterruptCancels =
-			InterruptMode == "cancel"
-			|| (InterruptMode.f_IsEmpty() && (bRunningCI || !NSys::fg_ConsoleInputIsTerminal()))
-		;
-		constexpr static umint c_MaxFlakyTries = 10;
+		bool bInterruptCancels = InterruptMode == "cancel" || (InterruptMode.f_IsEmpty() && (bRunningCI || !NSys::fg_ConsoleInputIsTerminal()));
+		static constexpr umint c_MaxFlakyTries = 10;
 
 		struct CFlakyState
 		{
@@ -1205,15 +1203,7 @@ private:
 							if (!bFlaky)
 								break;
 
-							DMibConErrOut
-								(
-									" {sz*,a-}  Test suite list is flaky, rescheduling {}/{}{\n}"
-									, ExecutableName
-									, MaxTestLen
-									, i
-									, c_MaxFlakyTries
-								)
-							;
+							DMibConErrOut(" {sz*,a-}  Test suite list is flaky, rescheduling {}/{}{\n}", ExecutableName, MaxTestLen, i, c_MaxFlakyTries);
 
 							Result.m_Output.f_Clear();
 							Result.m_OutputWithErrors.f_Clear();
@@ -1422,17 +1412,13 @@ private:
 									pFlakyState->m_pLaunch = nullptr;
 
 									if
-										(
-											!bCancelled
-											&& pState->m_Settings.m_bLaunchPerSuite
-											&& ExitCode != 0
-											&&
-											(
-												fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, pState->m_Settings.m_FlakySuites)
-												|| bHasFlakyError
-											)
-											&& pFlakyState->m_nTries < c_MaxFlakyTries
-										)
+									(
+										!bCancelled
+										&& pState->m_Settings.m_bLaunchPerSuite
+										&& ExitCode != 0
+										&& (fg_StrMatchesAnyWildcardInContainer(Suite.m_Suite, pState->m_Settings.m_FlakySuites) || bHasFlakyError)
+										&& pFlakyState->m_nTries < c_MaxFlakyTries
+									)
 									{
 										fOutputThisTest("Test suite is flaky, rescheduling {}/{}"_f << pFlakyState->m_nTries << c_MaxFlakyTries, true);
 										++pFlakyState->m_nTries;
@@ -1610,14 +1596,7 @@ private:
 								if (!pProcess || !pProcess->f_IsRunning())
 									continue;
 
-								DMibConOut
-									(
-										" {sz*,a-}  Stacks at the timeout ({}){\n}"
-										, FlakyState.m_Suite.m_Executable
-										, MaxTestLen
-										, FlakyState.m_Suite.m_Suite
-									)
-								;
+								DMibConOut(" {sz*,a-}  Stacks at the timeout ({}){\n}", FlakyState.m_Suite.m_Executable, MaxTestLen, FlakyState.m_Suite.m_Suite);
 								CStr Stacks;
 								try
 								{
@@ -1678,6 +1657,7 @@ private:
 				CStr m_Name;
 				fp64 m_Memory = 0.0;
 			};
+
 			TCVector<CSuiteMemory> AllUsages;
 
 			for (auto const &SortedSuite : SortedTestSuites)
@@ -1725,7 +1705,7 @@ private:
 				DMibConOut("Max memory          {sj8,ns,} MiB{\n}", AllUsages.f_GetFirst().m_Memory.f_ToInt());
 				DMibConOut("Worst case usage    {sj8,ns,} MiB{\n}", WorstCaseUsage.f_ToInt());
 				DMibConOut("Worst case usage 2c {sj8,ns,} MiB{\n}", WorstCaseUsage2Core.f_ToInt());
-				DMibConOut("Suggested memory    {sj8,ns,} MiB{\n}", ((WorstCaseUsage * 1.5) / fp64 (fg_Min(nThreads, AllUsages.f_GetLen()))).f_ToInt());
+				DMibConOut("Suggested memory    {sj8,ns,} MiB{\n}", ((WorstCaseUsage * 1.5) / fp64(fg_Min(nThreads, AllUsages.f_GetLen()))).f_ToInt());
 				DMibConOut("Suggested memory 2c {sj8,ns,} MiB{\n}", ((WorstCaseUsage2Core * 1.5) / fg_Min(2u, AllUsages.f_GetLen())).f_ToInt());
 				DMibConOut("Top ten{\n}");
 

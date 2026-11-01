@@ -27,7 +27,7 @@ BuildTarget "Tests - Malterlib"
 			Params "Malterlib Malterlib"
 		}
 	}
-	
+
 	Stages Build
 	{
 		Stage Build
@@ -93,7 +93,7 @@ BuildTarget "Tests - Malterlib"
 			}
 		}
 	}
-	
+
 	PostStage "Post Build Clean"
 	{
 		Command "../../Shared/BuildScripts/Postbuild.sh"

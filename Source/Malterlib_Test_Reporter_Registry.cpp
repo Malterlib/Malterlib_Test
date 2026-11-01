@@ -149,7 +149,6 @@ namespace NMib::NTest
 		return Ret;
 	}
 
-
 	ETestReportFlag CRegistryTestResults::fs_ReportFlagsFromStr(NStr::CStr const &_Flags)
 	{
 		NStr::CStr Flags = _Flags;
@@ -202,7 +201,6 @@ namespace NMib::NTest
 			fg_AddStrSep(Ret, "Aggregate", ',');
 		return Ret;
 	}
-
 
 	ETestFlag CRegistryTestResults::fs_TestFlagsFromStr(NStr::CStr const &_Flags)
 	{
@@ -328,7 +326,6 @@ namespace NMib::NTest
 		return ECheckType_Predicate;
 	}
 
-
 	void CRegistryTestResults::f_ReportHeader(ETestReportFlag _ReportFlags)
 	{
 		mp_ReportFlags = _ReportFlags;
@@ -387,8 +384,7 @@ namespace NMib::NTest
 				if (mp_ReportFlags & ETestReportFlag_ExpectFailAndStop)
 					bReport = true;
 				break;
-			case ETest_None:
-				break;
+			case ETest_None: break;
 			}
 		}
 		else if (_Result == ETestResult_Success)
@@ -427,17 +423,17 @@ namespace NMib::NTest
 	}
 
 	void CRegistryTestResults::f_ReportResult
-	(
-		ETestResult _Result
-		, const NStr::CStr &_TestPath
-		, const NStr::CStr &_Message
-		, const NStr::CStr &_Values
-		, CTestLocation const &_Location
-		, ETest _FailureAction
-		, ECheckType _CheckType
-		, ETestFlag _Flags
-		, const NStr::CStr &_ExtraMultiLineReportData
-	)
+		(
+			ETestResult _Result
+			, NStr::CStr const &_TestPath
+			, NStr::CStr const &_Message
+			, NStr::CStr const &_Values
+			, CTestLocation const &_Location
+			, ETest _FailureAction
+			, ECheckType _CheckType
+			, ETestFlag _Flags
+			, NStr::CStr const &_ExtraMultiLineReportData
+		)
 	{
 		uint32 &CurrentID = *m_CurrentID;
 		CurrentID = m_NextID.f_FetchAdd(1);
@@ -457,7 +453,8 @@ namespace NMib::NTest
 		pReg->f_SetValue("ExtraData", _ExtraMultiLineReportData);
 		DMibConOut("{}", Registry.f_GenerateStr());
 	}
-	void CRegistryTestResults::f_ReportSuite(const NStr::CStr &_TestPath, const NContainer::TCSet<NStr::CStr> &_TestGroups, CTestLocation const &_Location)
+
+	void CRegistryTestResults::f_ReportSuite(NStr::CStr const &_TestPath, NContainer::TCSet<NStr::CStr> const &_TestGroups, CTestLocation const &_Location)
 	{
 		NContainer::CRegistry Registry;
 		NContainer::CRegistry *pReg = Registry.f_CreateChild("Category");
@@ -501,7 +498,6 @@ namespace NMib::NTest
 				else
 					fsp_DecodeStatistics(*StatIter, Result.m_PerformanceCounters[StatIter->f_GetThisValue()]);
 			}
-
 		}
 	}
 
@@ -530,9 +526,7 @@ namespace NMib::NTest
 			fsp_AddStatistics(pPerfReg, "Cycles", Result.m_Cycles);
 
 			for (auto Iter = Result.m_PerformanceCounters.f_GetIterator(); Iter; ++Iter)
-			{
 				fsp_AddStatistics(pPerfReg, Iter.f_GetKey(), *Iter);
-			}
 		}
 
 		DMibConOut("{}", Registry.f_GenerateStr());
@@ -557,7 +551,6 @@ namespace NMib::NTest
 				else
 					fsp_DecodeMemoryStatistics(*StatIter, Result.m_PerAllocationType[StatIter->f_GetThisValue()]);
 			}
-
 		}
 	}
 
@@ -583,12 +576,9 @@ namespace NMib::NTest
 			fsp_AddMemoryStatistics(pPerfReg, "All", Result.m_AllAllocations);
 
 			for (auto Iter = Result.m_PerAllocationType.f_GetIterator(); Iter; ++Iter)
-			{
 				fsp_AddMemoryStatistics(pPerfReg, Iter.f_GetKey(), *Iter);
-			}
 		}
 
 		DMibConOut("{}", Registry.f_GenerateStr());
 	}
-
 }

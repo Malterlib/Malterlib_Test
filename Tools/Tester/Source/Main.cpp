@@ -10,7 +10,6 @@ class CTestApplication : public NMib::CApplication
 public:
 	CTestApplication()
 	{
-
 	}
 
 	aint f_Main()

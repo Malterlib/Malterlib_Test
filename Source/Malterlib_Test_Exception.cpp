@@ -13,7 +13,8 @@ namespace NMib::NTest
 	{
 		return TCThrowsException<NContract::CContractException_Require>();
 	}
-	TCThrowsExceptionExact<NContract::CContractException_Require> fg_ViolatesRequire(const ch8 *_pError)
+
+	TCThrowsExceptionExact<NContract::CContractException_Require> fg_ViolatesRequire(ch8 const *_pError)
 	{
 		return NContract::CContractException_Require("CContractException_Require", DMibPFile, DMibPLine, DMibPFunction, _pError, true);
 	}
@@ -22,7 +23,8 @@ namespace NMib::NTest
 	{
 		return TCThrowsException<>();
 	}
-	TCThrowsException<> fg_ViolatesRequire(const ch8 *_pError)
+
+	TCThrowsException<> fg_ViolatesRequire(ch8 const *_pError)
 	{
 		return TCThrowsException<>();
 	}
@@ -33,7 +35,8 @@ namespace NMib::NTest
 	{
 		return TCThrowsException<NContract::CContractException_Check>();
 	}
-	TCThrowsExceptionExact<NContract::CContractException_Check> fg_ViolatesCheck(const ch8 *_pError)
+
+	TCThrowsExceptionExact<NContract::CContractException_Check> fg_ViolatesCheck(ch8 const *_pError)
 	{
 		return NContract::CContractException_Check("CContractException_Check", DMibPFile, DMibPLine, DMibPFunction, _pError, true);
 	}
@@ -42,7 +45,8 @@ namespace NMib::NTest
 	{
 		return TCThrowsException<>();
 	}
-	TCThrowsException<> fg_ViolatesCheck(const ch8 *_pError)
+
+	TCThrowsException<> fg_ViolatesCheck(ch8 const *_pError)
 	{
 		return TCThrowsException<>();
 	}
@@ -54,7 +58,7 @@ namespace NMib::NTest
 		return TCThrowsException<NException::CExceptionSafeCheck>();
 	}
 
-	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck(const ch8 *_pError)
+	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck(ch8 const *_pError)
 	{
 		return NException::CExceptionSafeCheck("CExceptionSafeCheck", DMibPFile, DMibPLine, DMibPFunction, _pError, true);
 	}
@@ -63,18 +67,18 @@ namespace NMib::NTest
 	{
 		return TCThrowsException<>();
 	}
-	TCThrowsException<> fg_ViolatesSafeCheck(const ch8 *_pError)
+
+	TCThrowsException<> fg_ViolatesSafeCheck(ch8 const *_pError)
 	{
 		return TCThrowsException<>();
 	}
 #endif
-
 }
 
 namespace NMib::NTest::NPrivate
 {
 #if DMibConfig_Tests_Enable
-	void CTestExceptionFilter::f_SetDumpFiles(const NContainer::TCVector<NStr::CStr> &_Files)
+	void CTestExceptionFilter::f_SetDumpFiles(NContainer::TCVector<NStr::CStr> const &_Files)
 	{
 		umint nDumpFiles = m_DumpFiles.f_GetLen();
 
@@ -96,7 +100,7 @@ namespace NMib::NTest::NPrivate
 		return fg_Move(m_DumpFiles);
 	}
 
-	const ch8 *CTestExceptionFilter::f_GetFile()
+	ch8 const *CTestExceptionFilter::f_GetFile()
 	{
 		if (!m_pStackTraceInfo || !(*m_pStackTraceInfo->m_pSourceFileName))
 			return nullptr;
@@ -139,7 +143,10 @@ namespace NMib::NTest::NPrivate
 			CStackTraceInfo *pInfo = NSys::fg_Debug_AquireStackTraceInfo(Stack[i]);
 			if (pInfo)
 			{
-				if (*pInfo->m_pSourceFileName && NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core\\source\\platform") < 0
+				if
+				(
+					*pInfo->m_pSourceFileName
+					&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core\\source\\platform") < 0
 					&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "core/source/platform") < 0
 					&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "throw.cpp") < 0
 					&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_test.cpp") < 0
@@ -147,7 +154,7 @@ namespace NMib::NTest::NPrivate
 					&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_contract.h") < 0
 					&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "malterlib_debug.cpp") < 0
 					&& NStr::fg_StrFindNoCase(pInfo->m_pSourceFileName, "include\\xx") < 0
-					)
+				)
 				{
 					//DMibTrace(DMibPFileLineFormat " {}" DMibNewLine, pInfo->m_pSourceFileName, pInfo->m_SourceLine, pInfo->m_pFunctionName);
 					m_pStackTraceInfo = pInfo;
@@ -166,11 +173,11 @@ namespace NMib::NTest::NPrivate
 		return GeneratedLogs;
 	}
 
-	void fg_ReportTestException(const NContainer::TCVector<NStr::CStr> &_DumpFiles, const ch8 *_pFile, int32 _Line)
+	void fg_ReportTestException(NContainer::TCVector<NStr::CStr> const &_DumpFiles, ch8 const *_pFile, int32 _Line)
 	{
 		using namespace NStr;
 
-		const ch8 *pFile = nullptr;
+		ch8 const *pFile = nullptr;
 		int32 Line = 0;
 		fg_GetTestLastLocation(pFile, Line);
 		NStr::CStr ExtraReportData;
@@ -183,9 +190,7 @@ namespace NMib::NTest::NPrivate
 		{
 			ExtraReportData += "The following crash dump files were generated:" DMibNewLine;
 			for (umint i = 0; i < nLogs; ++i)
-			{
 				ExtraReportData += "{}{\n}"_f << _DumpFiles[i];
-			}
 		}
 
 		if (ExtraReportData.f_Trim())
@@ -197,7 +202,7 @@ namespace NMib::NTest::NPrivate
 			{
 				throw;
 			}
-#if defined DMibContract_AnyEnabled
+#	if defined DMibContract_AnyEnabled
 			catch (NContract::CContractException_Require const &_Exception)
 			{
 				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
@@ -288,8 +293,8 @@ namespace NMib::NTest::NPrivate
 					)
 				;
 			}
-#endif
-#if DMibEnableSafeCheck > 0
+#	endif
+#	if DMibEnableSafeCheck > 0
 			catch (NException::CExceptionSafeCheck const &_Exception)
 			{
 				CStr ReportData = DMibPFileLineFormat " {}{}"_f << _Exception.f_GetFile() << _Exception.f_GetLine() << _Exception.f_GetErrorStr() << ExtraReportData;
@@ -308,10 +313,11 @@ namespace NMib::NTest::NPrivate
 					)
 				;
 			}
-#endif
+#	endif
 			catch (NException::CExceptionBase const &_Exception)
 			{
-				CStr ReportData = DMibPFileLineFormat " Uncaught {} exception:{\n}{}{}"_f
+				CStr ReportData
+					= DMibPFileLineFormat " Uncaught {} exception:{\n}{}{}"_f
 					<< _Exception.f_GetFile()
 					<< _Exception.f_GetLine()
 					<< _Exception.f_GetClass()
@@ -333,7 +339,7 @@ namespace NMib::NTest::NPrivate
 					)
 				;
 			}
-			catch (std::exception const& _Exception)
+			catch (std::exception const &_Exception)
 			{
 				CStr ReportData = "Uncaught exception: {}{}"_f << NStr::CStr(_Exception.what()) << ExtraReportData;
 				fg_ReportTestResult

@@ -27,7 +27,6 @@ namespace NMib::NTest
 		class CTestManager
 		{
 		public:
-
 			NThread::CMutual m_Lock;
 
 			CTestResults *m_pResults;
@@ -70,7 +69,7 @@ namespace NMib::NTest
 			class CUniqueTest
 			{
 			public:
-				const ch8 *m_pFile;
+				ch8 const *m_pFile;
 				int32 m_Line;
 				COrdering_Strong operator <=> (CUniqueTest const &_Other) const noexcept
 				{
@@ -150,7 +149,7 @@ namespace NMib::NTest
 				mutable NThread::CMutual m_PropertiesLock;
 				NContainer::TCSet<NStr::CStr> m_TestGroups;
 				CTestResults *m_pResults = nullptr;
-				const ch8 *m_pLastTestFile = nullptr;
+				ch8 const *m_pLastTestFile = nullptr;
 				int32 m_LastTestLine = 0;
 
 				NStr::CStr *m_pDynamicValue = nullptr;
@@ -283,7 +282,7 @@ namespace NMib::NTest
 					return {};
 
 				DMibLock(ThreadLocal.m_TestPathLock);
-				const ch8 *pFile = ThreadLocal.m_pLastTestFile;
+				ch8 const *pFile = ThreadLocal.m_pLastTestFile;
 				int32 Line = ThreadLocal.m_LastTestLine;
 				auto Path = ThreadLocal.m_TestPath;
 
@@ -318,7 +317,7 @@ namespace NMib::NTest
 			CTestPathRestoringScope *m_pOldScope = nullptr;
 		};
 
-		CTestCategoryScope::CTestCategoryScope(const CTestCategory &_Category, const ch8 *_pFile, int32 _Line, ETestCategoryFlag _Flags)
+		CTestCategoryScope::CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags)
 			: mp_Category(_Category)
 			, mp_pFile(_pFile)
 			, mp_Line(_Line)
@@ -374,7 +373,7 @@ namespace NMib::NTest
 							}
 						;
 
-#if DMibConfig_Tests_Enable
+#	if DMibConfig_Tests_Enable
 						auto &ThreadLocal = fg_SystemThreadLocal();
 						auto OldFlags = ThreadLocal.m_ExtraCoroutineFlags;
 						ThreadLocal.m_ExtraCoroutineFlags |= NConcurrency::ECoroutineFlag_CaptureExceptions;
@@ -384,7 +383,7 @@ namespace NMib::NTest
 								ThreadLocal.m_ExtraCoroutineFlags = OldFlags;
 							}
 						;
-#endif
+#	endif
 
 						if (fg_GroupActive("Performance"))
 							(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_Function)).f_CallSync(pRunLoop);
@@ -449,13 +448,15 @@ namespace NMib::NTest
 			CTestManager *pTestManager = g_Tests;
 			return pTestManager->m_ThreadLocal->m_bInsideTestSuite;
 		}
+
 		void fg_InsideTestSuite(bool _bInsideTestSuite)
 		{
 			CTestManager *pTestManager = g_Tests;
 			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			pTestManager->m_ThreadLocal->m_bInsideTestSuite = _bInsideTestSuite;
 		}
-		NStr::CStr fg_PushCategory(const NStr::CStr &_Category)
+
+		NStr::CStr fg_PushCategory(NStr::CStr const &_Category)
 		{
 			CTestManager *pTestManager = g_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
@@ -465,7 +466,7 @@ namespace NMib::NTest
 			return PreviousPath;
 		}
 
-		void fg_SetTestLastLocation(const ch8 *_pFile, int32 _Line)
+		void fg_SetTestLastLocation(ch8 const *_pFile, int32 _Line)
 		{
 			CTestManager *pTestManager = g_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
@@ -474,7 +475,7 @@ namespace NMib::NTest
 			ThreadLocal.m_LastTestLine = _Line;
 		}
 
-		void fg_GetTestLastLocation(const ch8 *&o_pFile, int32 &o_Line)
+		void fg_GetTestLastLocation(ch8 const * &o_pFile, int32 &o_Line)
 		{
 			CTestManager *pTestManager = g_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
@@ -505,7 +506,7 @@ namespace NMib::NTest
 			ThreadLocal.m_TestPath = PreviousPath;
 		}
 
-		NContainer::TCSet<NStr::CStr> fg_SetGroups(const NContainer::TCSet<NStr::CStr> &_Groups)
+		NContainer::TCSet<NStr::CStr> fg_SetGroups(NContainer::TCSet<NStr::CStr> const &_Groups)
 		{
 			CTestManager *pTestManager = g_Tests;
 			NContainer::TCSet<NStr::CStr> Ret = fg_Move(pTestManager->m_ThreadLocal->m_TestGroups);
@@ -522,40 +523,19 @@ namespace NMib::NTest
 			return Ret;
 		}
 
-
-		inline_small void fg_NeedReportImpl
-			(
-				CTestManager *_pTestManager
-				, ETestResult _Result
-				, ETest _FailureAction
-				, ECheckType _CheckType
-				, const ch8 *_pFile
-				, int32 _Line
-				, ETestFlag _Flags
-			)
+		inline_small void fg_NeedReportImpl(CTestManager *_pTestManager, ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ch8 const *_pFile, int32 _Line, ETestFlag _Flags)
 		{
 			_pTestManager->m_nTotalTests.f_FetchAdd(1);
 			if (_Result == ETestResult_Fail)
 			{
 				switch (_FailureAction)
 				{
-				case ETest_Warn:
-					_pTestManager->m_nWarnings.f_FetchAdd(1);
-					break;
-				case ETest_Fail:
-					_pTestManager->m_nFailed.f_FetchAdd(1);
-					break;
-				case ETest_FailAndStop:
-					_pTestManager->m_nFailed.f_FetchAdd(1);
-					break;
-				case ETest_ExpectFail:
-					_pTestManager->m_nExpectedFailed.f_FetchAdd(1);
-					break;
-				case ETest_ExpectFailAndStop:
-					_pTestManager->m_nExpectedFailed.f_FetchAdd(1);
-					break;
-				case ETest_None:
-					break;
+				case ETest_Warn: _pTestManager->m_nWarnings.f_FetchAdd(1); break;
+				case ETest_Fail: _pTestManager->m_nFailed.f_FetchAdd(1); break;
+				case ETest_FailAndStop: _pTestManager->m_nFailed.f_FetchAdd(1); break;
+				case ETest_ExpectFail: _pTestManager->m_nExpectedFailed.f_FetchAdd(1); break;
+				case ETest_ExpectFailAndStop: _pTestManager->m_nExpectedFailed.f_FetchAdd(1); break;
+				case ETest_None: break;
 				}
 			}
 			else if (_Result == ETestResult_Success)
@@ -569,7 +549,8 @@ namespace NMib::NTest
 				_pTestManager->m_nIgnored.f_FetchAdd(1);
 		}
 
-		ETestResultReportFlag fg_NeedReport(NStr::CStr const &_Description, ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, const ch8 *_pFile, int32 _Line, ETestFlag _Flags)
+		auto fg_NeedReport(NStr::CStr const &_Description, ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ch8 const *_pFile, int32 _Line, ETestFlag _Flags)
+			-> ETestResultReportFlag
 		{
 			CTestManager *pTestManager = g_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
@@ -598,7 +579,7 @@ namespace NMib::NTest
 			}
 			if (!(NeedReportFlags & ETestNeedReportFlag_AllowDuplicates))
 			{
-				NStr::CStr FullPath = ThreadLocal.m_TestPath + "/" +_Description;
+				NStr::CStr FullPath = ThreadLocal.m_TestPath + "/" + _Description;
 				{
 					DMibLock(ThreadLocal.m_UniqueTestsLock);
 					auto AggregatedTestsMapResult = ThreadLocal.m_UniqueTests(FullPath);
@@ -659,13 +640,13 @@ namespace NMib::NTest
 		void fg_ReportTestResult
 			(
 				ETestResult _Result
-				, const NStr::CStr &_Description
-				, const NStr::CStr &_Values
+				, NStr::CStr const &_Description
+				, NStr::CStr const &_Values
 				, ETest _FailureAction
 				, ECheckType _CheckType
-				, const NStr::CStr &_File
+				, NStr::CStr const &_File
 				, int32 _Line
-				, const NStr::CStr &_ExtraMultiLineReportData
+				, NStr::CStr const &_ExtraMultiLineReportData
 				, ETestFlag _Flags
 				, ETestResultReportFlag _AlwaysReport
 			)
@@ -676,14 +657,14 @@ namespace NMib::NTest
 				TestPath = fg_GetExceptionCategoryPath();
 
 			if
+			(
+				_AlwaysReport & ETestResultReportFlag_Report
+				||
 				(
-					_AlwaysReport & ETestResultReportFlag_Report
-					||
-					(
-						_AlwaysReport & ETestResultReportFlag_AskReport
-						&& ((_AlwaysReport = fg_NeedReport(_Description, _Result, _FailureAction, _CheckType, _File, _Line, _Flags)) & ETestResultReportFlag_Report) != 0
-					)
+					_AlwaysReport & ETestResultReportFlag_AskReport
+					&& ((_AlwaysReport = fg_NeedReport(_Description, _Result, _FailureAction, _CheckType, _File, _Line, _Flags)) & ETestResultReportFlag_Report) != 0
 				)
+			)
 			{
 				CTestManager *pTestManager = g_Tests;
 				auto &ThreadLocal = *pTestManager->m_ThreadLocal;
@@ -711,9 +692,8 @@ namespace NMib::NTest
 
 		bool CTestCategoryScope::f_ContinueEnumerating() const
 		{
-			auto& Manager = CTestManager::fs_GetManager();
-			return !Manager.m_ThreadLocal->m_bEnumerating
-				|| !(mp_Flags & ETestCategoryFlag_Tests);
+			auto &Manager = CTestManager::fs_GetManager();
+			return !Manager.m_ThreadLocal->m_bEnumerating || !(mp_Flags & ETestCategoryFlag_Tests);
 		}
 
 		NStr::CStr fg_GetSuiteLockPath(NStr::CStr const &_Suite)
@@ -758,11 +738,11 @@ namespace NMib::NTest
 
 		void CTestCategoryScope::f_ReportLeafCategory()
 		{
-			auto& Manager = CTestManager::fs_GetManager();
+			auto &Manager = CTestManager::fs_GetManager();
 			Manager.f_GetResults(*Manager.m_ThreadLocal)->f_ReportSuite(Manager.m_ThreadLocal->m_TestPath, Manager.m_ThreadLocal->m_TestGroups, CTestLocation(mp_pFile, mp_Line));
 		}
 
-		NStr::EMatchWildcardResult fg_MatchPattern(const NStr::CStr &_String, NContainer::TCVector<NStr::CStr> const &_PathPatterns, NStr::EMatchWildcardResult _Default)
+		NStr::EMatchWildcardResult fg_MatchPattern(NStr::CStr const &_String, NContainer::TCVector<NStr::CStr> const &_PathPatterns, NStr::EMatchWildcardResult _Default)
 		{
 			NStr::EMatchWildcardResult Ret = NStr::EMatchWildcardResult_NotMatched;
 
@@ -797,11 +777,11 @@ namespace NMib::NTest
 			if (_bLeaf)
 			{
 				if
-					(
-						IncludeResult != NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted
-						|| fg_MatchPattern(ThreadLocal.m_TestPath, pManager->m_ExcludePatterns, NStr::EMatchWildcardResult_NotMatched)
-						== NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted
-					)
+				(
+					IncludeResult != NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted
+					|| fg_MatchPattern(ThreadLocal.m_TestPath, pManager->m_ExcludePatterns, NStr::EMatchWildcardResult_NotMatched)
+					== NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted
+				)
 				{
 					return false;
 				}
@@ -818,9 +798,7 @@ namespace NMib::NTest
 					if (Iter->f_IsEmpty())
 					{
 						if (ThreadLocal.m_TestGroups.f_IsEmpty())
-						{
 							bIncluded = true;
-						}
 					}
 					else if (ThreadLocal.m_TestGroups.f_FindEqual(*Iter))
 						bIncluded = true;
@@ -835,9 +813,7 @@ namespace NMib::NTest
 					if (Iter->f_IsEmpty())
 					{
 						if (ThreadLocal.m_TestGroups.f_IsEmpty())
-						{
 							bIncluded = false;
-						}
 					}
 					else if (ThreadLocal.m_TestGroups.f_FindEqual(*Iter))
 						bIncluded = false;
@@ -847,22 +823,23 @@ namespace NMib::NTest
 
 			return bIncluded;
 		}
+
 		void fg_StepIntoSuites(bool _Step)
 		{
-			auto& Manager = CTestManager::fs_GetManager();
+			auto &Manager = CTestManager::fs_GetManager();
 			Manager.m_ThreadLocal->m_bEnumerating = _Step;
 		}
 
 		uint32 fg_RunTests(CTestResults *_pResults, CRunTestOptions const &_Options)
 		{
-#ifdef DMibNeedDebugException
-			NFunction::TCFunction<void(NContract::CContractViolation const&)> OldLogger = NContract::fg_SetContractLoggerThrowExceptions();
+#	ifdef DMibNeedDebugException
+			NFunction::TCFunction<void (NContract::CContractViolation const &)> OldLogger = NContract::fg_SetContractLoggerThrowExceptions();
 			auto Cleanup = g_OnScopeExit / [&]
 				{
 					NContract::fg_SetContractLogger(OldLogger);
 				}
 			;
-#endif
+#	endif
 
 			if (_Options.m_ReportFlags & ETestReportFlag_ReportCategories)
 				fg_StepIntoSuites(true);
@@ -874,17 +851,16 @@ namespace NMib::NTest
 				}
 			;
 
-#			if DMibEnableSafeCheck > 0
-				bool bOldAssethThrow = NContract::fg_MibSafeCheckSetThrowsException(true);
-				auto Cleanup3 = g_OnScopeExit / [&]
-					{
-						NContract::fg_MibSafeCheckSetThrowsException(bOldAssethThrow);
-					}
-				;
-#			endif
+#	if DMibEnableSafeCheck > 0
+			bool bOldAssethThrow = NContract::fg_MibSafeCheckSetThrowsException(true);
+			auto Cleanup3 = g_OnScopeExit / [&]
+				{
+					NContract::fg_MibSafeCheckSetThrowsException(bOldAssethThrow);
+				}
+			;
+#	endif
 
-
-#if DMibSysLogSeverities
+#	if DMibSysLogSeverities
 			NConcurrency::TCActor<NConcurrency::CActor> LogActor;
 			auto CleanupLogs = g_OnScopeExit / [&]
 				{
@@ -904,13 +880,7 @@ namespace NMib::NTest
 					(
 						[LogActor](NFunction::TCFunctionMovable<void ()> &&_fToDispatch)
 						{
-							fg_Dispatch
-								(
-									LogActor
-									, fg_Move(_fToDispatch)
-								)
-								.f_DiscardResult()
-							;
+							fg_Dispatch(LogActor, fg_Move(_fToDispatch)).f_DiscardResult();
 						}
 					)
 				;
@@ -926,23 +896,14 @@ namespace NMib::NTest
 							LogSeverities |= NLog::fg_LookupSeverity(SeverityName.f_Trim());
 					}
 
-					fg_GetSys()->f_GetLogger().f_PushGlobalDestination
-						(
-							NLog::CLogToStdErrAnsi
-							(
-								_Options.m_AnsiEncodingFlags
-								, LogSeverities
-								, false
-							)
-						)
-					;
+					fg_GetSys()->f_GetLogger().f_PushGlobalDestination(NLog::CLogToStdErrAnsi(_Options.m_AnsiEncodingFlags, LogSeverities, false));
 				}
 				else
 					fg_GetSys()->f_AddStdErrLogger();
 			}
 			else
 				CleanupLogs.f_Clear();
-#endif
+#	endif
 
 			CTestManager *pManager = g_Tests;
 
@@ -1006,7 +967,8 @@ namespace NMib::NTest
 					if (iFindTest >= 0)
 					{
 						FullName = FullName.f_Extract(ToFind.f_GetLen());
-						bool bFound = fg_MatchPattern(FullName, pManager->m_IncludePatterns, NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted)
+						bool bFound
+							= fg_MatchPattern(FullName, pManager->m_IncludePatterns, NStr::EMatchWildcardResult_WholeStringMatchedAndPatternExhausted)
 							& NStr::EMatchWildcardResult_WholeStringMatched
 						;
 
@@ -1051,11 +1013,12 @@ namespace NMib::NTest
 										catch (...)
 										{
 											fg_ReportTestException
-											(
-												ExceptionFilter.f_DetachDumpFiles()
-												, ExceptionFilter.f_GetFile() ? ExceptionFilter.f_GetFile() : DMibPFile
-												, ExceptionFilter.f_GetFile() ? ExceptionFilter.f_GetLine() : DMibPLine
-											);
+												(
+													ExceptionFilter.f_DetachDumpFiles()
+													, ExceptionFilter.f_GetFile() ? ExceptionFilter.f_GetFile() : DMibPFile
+													, ExceptionFilter.f_GetFile() ? ExceptionFilter.f_GetLine() : DMibPLine
+												)
+											;
 										}
 									}
 								}
@@ -1067,15 +1030,16 @@ namespace NMib::NTest
 			}
 
 			_pResults->f_ReportFooter
-			(
-				pManager->m_nTotalTests.f_Load()
-				, pManager->m_nSuccess.f_Load()
-				, pManager->m_nSuccessUnexpected.f_Load()
-				, pManager->m_nFailed.f_Load()
-				, pManager->m_nExpectedFailed.f_Load()
-				, pManager->m_nWarnings.f_Load()
-				, pManager->m_nIgnored.f_Load()
-			);
+				(
+					pManager->m_nTotalTests.f_Load()
+					, pManager->m_nSuccess.f_Load()
+					, pManager->m_nSuccessUnexpected.f_Load()
+					, pManager->m_nFailed.f_Load()
+					, pManager->m_nExpectedFailed.f_Load()
+					, pManager->m_nWarnings.f_Load()
+					, pManager->m_nIgnored.f_Load()
+				)
+			;
 
 			if (pManager->m_nFailed.f_Load() != 0 || pManager->m_nSuccessUnexpected.f_Load() != 0)
 				return 1;
@@ -1105,7 +1069,7 @@ namespace NMib::NTest
 			{
 			}
 
-			void fp_ReportText(const NStr::CStr &_Text, ETestSeverity _Severity) override
+			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override
 			{
 				NMib::NCommandLine::fg_MalterlibConOut(_Text);
 			}
@@ -1114,129 +1078,128 @@ namespace NMib::NTest
 
 	void fg_TestSetReturnValue(uint32 _RetValue)
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pManager = NPrivate::g_Tests;
-			pManager->m_ReturnValue = _RetValue;
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pManager = NPrivate::g_Tests;
+		pManager->m_ReturnValue = _RetValue;
+#endif
 	}
 
 	uint32 fg_RunTests(CTestResults *_pResults, CRunTestOptions const &_Options)
 	{
-#		if DMibConfig_Tests_Enable
-			return NPrivate::fg_RunTests(_pResults, _Options);
-#		else
-			_pResults->f_ReportResult(ETestResult_Fail, "Root", "Tests disabled", "", CTestLocation(DMibPFile, DMibPLine), ETest_FailAndStop, ECheckType_Message, ETestFlag_None, "");
-			return 1;
-#		endif
+#if DMibConfig_Tests_Enable
+		return NPrivate::fg_RunTests(_pResults, _Options);
+#else
+		_pResults->f_ReportResult(ETestResult_Fail, "Root", "Tests disabled", "", CTestLocation(DMibPFile, DMibPLine), ETest_FailAndStop, ECheckType_Message, ETestFlag_None, "");
+		return 1;
+#endif
 	}
 
 	uint32 fg_RunTests(CRunTestOptions const &_Options)
 	{
 		NPrivate::CDefaultTestResults Results(NCommandLine::EAnsiEncodingFlag_None);
 
-#		if DMibConfig_Tests_Enable
-			return NPrivate::fg_RunTests(&Results, _Options);
-#		else
-			Results.f_ReportResult(ETestResult_Fail, "Root", "Tests disabled", "", CTestLocation(DMibPFile, DMibPLine), ETest_FailAndStop, ECheckType_Message, ETestFlag_None, "");
-			return 1;
-#		endif
+#if DMibConfig_Tests_Enable
+		return NPrivate::fg_RunTests(&Results, _Options);
+#else
+		Results.f_ReportResult(ETestResult_Fail, "Root", "Tests disabled", "", CTestLocation(DMibPFile, DMibPLine), ETest_FailAndStop, ECheckType_Message, ETestFlag_None, "");
+		return 1;
+#endif
 	}
 
 	NStr::CStr fg_TestGetExtraData()
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			return pTestManager->m_ExtraData;
-#		else
-			return NStr::CStr();
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		return pTestManager->m_ExtraData;
+#else
+		return NStr::CStr();
+#endif
 	}
 
 	NStr::CStr fg_TestGetCurrentPath()
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			NPrivate::CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
-			return ThreadLocal.m_TestPath;
-#		else
-			return NStr::CStr();
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
+		return ThreadLocal.m_TestPath;
+#else
+		return NStr::CStr();
+#endif
 	}
 
 	NContainer::TCSet<NStr::CStr> fg_TestGetCurrentGroups()
 	{
-#		if DMibConfig_Tests_Enable
-			return NPrivate::fg_GetGroups();
-#		else
-			return NContainer::TCSet<NStr::CStr>();
-#		endif
+#if DMibConfig_Tests_Enable
+		return NPrivate::fg_GetGroups();
+#else
+		return NContainer::TCSet<NStr::CStr>();
+#endif
 	}
 
 	ETestReportFlag fg_TestReportFlags()
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			return pTestManager->m_ReportFlags;
-#		else
-			return ETestReportFlag_None;
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		return pTestManager->m_ReportFlags;
+#else
+		return ETestReportFlag_None;
+#endif
 	}
 
 	NCommandLine::EAnsiEncodingFlag fg_TestAnsiEncodingFlags()
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			return pTestManager->m_AnsiEncodingFlags;
-#		else
-			return NCommandLine::EAnsiEncodingFlag_AllFeatures;
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		return pTestManager->m_AnsiEncodingFlags;
+#else
+		return NCommandLine::EAnsiEncodingFlag_AllFeatures;
+#endif
 	}
 
 	uint32 fg_TestTerminalWidth()
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			return pTestManager->m_TerminalWidth;
-#		else
-			return 80;
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		return pTestManager->m_TerminalWidth;
+#else
+		return 80;
+#endif
 	}
 
 	uint32 fg_TestTerminalHeight()
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			return pTestManager->m_TerminalHeight;
-#		else
-			return 40;
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		return pTestManager->m_TerminalHeight;
+#else
+		return 40;
+#endif
 	}
-
 
 	void fg_TestAddCleanupPath(NStr::CStr const &_Directory)
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			pTestManager->f_AddCleanupPath(_Directory);
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		pTestManager->f_AddCleanupPath(_Directory);
+#endif
 	}
 
 	void fg_TestAddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_ExceptionHandler)
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			pTestManager->f_AddExceptionInfoGenerator(fg_Move(_ExceptionHandler));
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		pTestManager->f_AddExceptionInfoGenerator(fg_Move(_ExceptionHandler));
+#endif
 	}
 
 	NStr::CStr fg_TestGetExceptionInfo()
 	{
-#		if DMibConfig_Tests_Enable
-			NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
-			return pTestManager->f_GetExceptionInfo();
-#		else
-			return {};
-#		endif
+#if DMibConfig_Tests_Enable
+		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		return pTestManager->f_GetExceptionInfo();
+#else
+		return {};
+#endif
 	}
 
 	uint32 fg_RunTests()

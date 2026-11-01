@@ -57,12 +57,7 @@ namespace
 					CStr StdOut, StdErr;
 					uint32 ExitCode = 0;
 
-					bool bLaunched = NProcess::CProcessLaunch::fs_LaunchBlock
-						(
-							NFile::CFile::fs_GetProgramPath(), {"--test", Suite}
-							, StdOut, StdErr, ExitCode, Params
-						)
-					;
+					bool bLaunched = NProcess::CProcessLaunch::fs_LaunchBlock(NFile::CFile::fs_GetProgramPath(), {"--test", Suite}, StdOut, StdErr, ExitCode, Params);
 
 					DMibAssertTrue(bLaunched);
 					DMibExpect(ExitCode, !=, 0);
@@ -75,12 +70,7 @@ namespace
 					CStr StdOut, StdErr;
 					uint32 ExitCode = 0;
 
-					bool bLaunched = NProcess::CProcessLaunch::fs_LaunchBlock
-						(
-							NFile::CFile::fs_GetProgramPath(), {"--test", Suite, "--process-recursive"}
-							, StdOut, StdErr, ExitCode, Params
-						)
-					;
+					bool bLaunched = NProcess::CProcessLaunch::fs_LaunchBlock(NFile::CFile::fs_GetProgramPath(), {"--test", Suite, "--process-recursive"}, StdOut, StdErr, ExitCode, Params);
 
 					DMibAssertTrue(bLaunched);
 					DMibExpect(ExitCode, ==, 0);
@@ -106,8 +96,12 @@ namespace
 
 					bool bLaunched = NProcess::CProcessLaunch::fs_LaunchBlock
 						(
-							NFile::CFile::fs_GetProgramPath(), {"--test", NFile::CFile::fs_GetPath(Suite) / "IndependentHelper", "--groups", "Manual"}
-							, StdOut, StdErr, ExitCode, Params
+							NFile::CFile::fs_GetProgramPath()
+							, {"--test", NFile::CFile::fs_GetPath(Suite) / "IndependentHelper", "--groups", "Manual"}
+							, StdOut
+							, StdErr
+							, ExitCode
+							, Params
 						)
 					;
 

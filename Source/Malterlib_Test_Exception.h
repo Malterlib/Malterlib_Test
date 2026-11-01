@@ -62,7 +62,7 @@ namespace NMib::NTest
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
 			DMibExceptionFilter(TestExceptionFilter);
 #endif
-			if constexpr(t_bOuter)
+			if constexpr (t_bOuter)
 			{
 				try
 				{
@@ -300,12 +300,7 @@ namespace NMib::NTest
 	struct TCThrowsExceptionExactImpl<t_bOuter, t_CException, tp_CExceptions...> : private TCThrowsExceptionExactImpl<false, tp_CExceptions...>
 	{
 	public:
-
-		TCThrowsExceptionExactImpl
-			(
-				t_CException const &_Exception
-				, tp_CExceptions const &...p_Exceptions
-			)
+		TCThrowsExceptionExactImpl(t_CException const &_Exception, tp_CExceptions const & ...p_Exceptions)
 			: TCThrowsExceptionExactImpl<false, tp_CExceptions...>(p_Exceptions...)
 			, m_Exception(_Exception)
 		{
@@ -400,25 +395,25 @@ namespace NMib::NTest
 
 #if defined DMibContractConfigure_RequireEnabled
 	TCThrowsException<NContract::CContractException_Require> fg_ViolatesRequire();
-	TCThrowsExceptionExact<NContract::CContractException_Require> fg_ViolatesRequire(const ch8 *_pError);
+	TCThrowsExceptionExact<NContract::CContractException_Require> fg_ViolatesRequire(ch8 const *_pError);
 #else
 	TCThrowsException<> fg_ViolatesRequire();
-	TCThrowsException<> fg_ViolatesRequire(const ch8 *_pError);
+	TCThrowsException<> fg_ViolatesRequire(ch8 const *_pError);
 #endif
 
 #if defined DMibContractConfigure_CheckEnabled
 	TCThrowsException<NContract::CContractException_Check> fg_ViolatesCheck();
-	TCThrowsExceptionExact<NContract::CContractException_Check> fg_ViolatesCheck(const ch8 *_pError);
+	TCThrowsExceptionExact<NContract::CContractException_Check> fg_ViolatesCheck(ch8 const *_pError);
 #else
 	TCThrowsException<> fg_ViolatesCheck();
-	TCThrowsException<> fg_ViolatesCheck(const ch8 *_pError);
+	TCThrowsException<> fg_ViolatesCheck(ch8 const *_pError);
 #endif
 
 #if DMibEnableSafeCheck > 0
 	TCThrowsException<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck();
-	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck(const ch8 *_pError);
+	TCThrowsExceptionExact<NException::CExceptionSafeCheck> fg_ViolatesSafeCheck(ch8 const *_pError);
 #else
 	TCThrowsException<> fg_ViolatesSafeCheck();
-	TCThrowsException<> fg_ViolatesSafeCheck(const ch8 *_pError);
+	TCThrowsException<> fg_ViolatesSafeCheck(ch8 const *_pError);
 #endif
 }

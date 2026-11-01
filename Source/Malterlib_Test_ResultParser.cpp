@@ -14,29 +14,17 @@ namespace NMib::NTest
 		Registry.f_ParseStr(_Text);
 		NContainer::CRegistry *pChild = nullptr;
 		if ((pChild = Registry.f_GetChild("Header")))
-		{
 			f_HandleHeader(*pChild);
-		}
 		else if ((pChild = Registry.f_GetChild("Footer")))
-		{
 			f_HandleFooter(*pChild);
-		}
 		else if ((pChild = Registry.f_GetChild("Category")))
-		{
 			f_HandleCategory(*pChild);
-		}
 		else if ((pChild = Registry.f_GetChild("Result")))
-		{
 			f_HandleResult(*pChild);
-		}
 		else if ((pChild = Registry.f_GetChild("ResultsPerformance")))
-		{
 			f_HandlePerformanceResult(*pChild);
-		}
 		else if ((pChild = Registry.f_GetChild("ResultsMemory")))
-		{
 			f_HandleMemoryResult(*pChild);
-		}
 		else
 			DMibFastCheck(0);
 	}

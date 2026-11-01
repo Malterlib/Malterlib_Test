@@ -61,27 +61,28 @@ constinit TCAggregate<TCVector<CStr>> g_FilteredCommandLine = {DAggregateInit};
 
 + (NSBundle *)bundleForClass
 {
-    return [NSBundle bundleForClass:[MalterlibTestLoader class]];
+	return [NSBundle bundleForClass: [MalterlibTestLoader class]];
 }
 
 + (NSArray *)testInvocations
 {
-    NSMutableArray *invocations = [NSMutableArray array];
+	NSMutableArray *invocations = [NSMutableArray array];
 
-    unsigned int methodCount = 0;
-    Method *methods = class_copyMethodList([self class], &methodCount);
+	unsigned int methodCount = 0;
+	Method *methods = class_copyMethodList([self class], &methodCount);
 
-    for (unsigned int i = 0; i < methodCount; i++) {
-        SEL sel = method_getName(methods[i]);
-        NSMethodSignature *sig = [self instanceMethodSignatureForSelector:sel];
-        NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sig];
-        [invocation setSelector:sel];
-        [invocations addObject:invocation];
-    }
+	for (unsigned int i = 0; i < methodCount; i++)
+	{
+		SEL sel = method_getName(methods[i]);
+		NSMethodSignature *sig = [self instanceMethodSignatureForSelector: sel];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature: sig];
+		[invocation setSelector: sel];
+		[invocations addObject: invocation];
+	}
 
-    free(methods);
+	free(methods);
 
-    return invocations;
+	return invocations;
 }
 
 @end
@@ -106,12 +107,15 @@ static void fg_RunTests
 			, mp_fOnTestResult(_fOnTestResult)
 		{
 		}
+
 		virtual void f_HandleHeader(NMib::NContainer::CRegistry const &_Reg) override
 		{
 		}
+
 		virtual void f_HandleFooter(NMib::NContainer::CRegistry const &_Reg) override
 		{
 		}
+
 		virtual void f_HandleCategory(NMib::NContainer::CRegistry const &_Reg) override
 		{
 			CStr TestPath = _Reg.f_GetValue("Path", "");
@@ -127,18 +131,22 @@ static void fg_RunTests
 			}
 			mp_fOnCategory(TestPath, Location, Thread, Groups);
 		}
+
 		virtual void f_HandleResult(NMib::NContainer::CRegistry const &_Reg) override
 		{
 			CTestResult Result;
 			CTestResultParser::fs_DecodeResult(_Reg, Result);
 			mp_fOnTestResult(Result);
 		}
+
 		virtual void f_HandlePerformanceResult(NMib::NContainer::CRegistry const &_Reg) override
 		{
 		}
+
 		virtual void f_HandleMemoryResult(NMib::NContainer::CRegistry const &_Reg) override
 		{
 		}
+
 	private:
 		TCFunction<void (CStr const &_TestPath, CTestLocation const &_Location, umint _Thread, TCSet<CStr> const &_Groups)> mp_fOnCategory;
 		TCFunction<void (CTestResult const &_TestResult)> mp_fOnTestResult;
@@ -183,8 +191,7 @@ static void fg_RunTests
 
 	NMib::NStorage::TCUniquePointer<CProcessLaunch> pProcessLaunch;
 
-	Params.m_fOnOutput =
-		[&](EProcessLaunchOutputType _OutputType, NMib::NStr::CStr const &_Output)
+	Params.m_fOnOutput = [&](EProcessLaunchOutputType _OutputType, NMib::NStr::CStr const &_Output)
 		{
 			if (_OutputType == EProcessLaunchOutputType_StdOut)
 				ResultParser.f_FeedText(_Output);
@@ -258,13 +265,7 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 						OutputText += _Text;
 					}
 				;
-				auto fAddReport = [&]
-					(
-						const NStr::CStr &_Result
-						, const NStr::CStr &_TestPath
-						, const NStr::CStr &_Expression
-						, const NStr::CStr &_Values
-					)
+				auto fAddReport = [&](NStr::CStr const &_Result, NStr::CStr const &_TestPath, NStr::CStr const &_Expression, NStr::CStr const &_Values)
 					{
 						fReportText(fg_Format("{}   {}   [{}]", _Result, _Expression, _Values));
 					}
@@ -290,15 +291,9 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 				{
 					switch (_TestResult.m_FailureAction)
 					{
-					case ETest_Warn:
-						fReport("Warning");
-						break;
-					case ETest_Fail:
-						fReport("FAILED");
-						break;
-					case ETest_FailAndStop:
-						fReport("FAILED and ABORTED");
-						break;
+					case ETest_Warn: fReport("Warning"); break;
+					case ETest_Fail: fReport("FAILED"); break;
+					case ETest_FailAndStop: fReport("FAILED and ABORTED"); break;
 					case ETest_None:
 					case ETest_ExpectFail:
 					case ETest_ExpectFailAndStop:
@@ -472,8 +467,8 @@ namespace NMib::NSys
 	for (auto &Executable : *g_TestExecutables)
 	{
 		DConErrOut("Register test executable: {}\n", Executable.m_Name);
-        Class pTestClass = objc_allocateClassPair([MalterlibTestCase class], Executable.m_Name.f_GetStr(), 0);
-        NSAssert1
+		Class pTestClass = objc_allocateClassPair([MalterlibTestCase class], Executable.m_Name.f_GetStr(), 0);
+		NSAssert1
 			(
 				pTestClass
 				, @"Failed to register Malterlb Test class \"%@\""
@@ -497,10 +492,10 @@ namespace NMib::NSys
 			while (!UsedNames(Name).f_WasCreated())
 				Name = fg_MakeNiceName(fg_Format("{}{}", Distinguisher++, Test.m_TestPath));
 			Executable.m_NameToPath[Name] = Test.m_TestPath;
-            SEL selector = sel_registerName(Name.f_GetStr());
-            NSAssert1(selector, @"Failed to register select \"%@\"", @(Name.f_GetStr()));
-            BOOL bAdded = class_addMethod(pTestClass, selector, (IMP)fg_RunTest, "v@:");
-            NSAssert1(bAdded, @"Failed to add method \"%@\"", @(Name.f_GetStr()));
+			SEL selector = sel_registerName(Name.f_GetStr());
+			NSAssert1(selector, @"Failed to register select \"%@\"", @(Name.f_GetStr()));
+			BOOL bAdded = class_addMethod(pTestClass, selector, (IMP)fg_RunTest, "v@:");
+			NSAssert1(bAdded, @"Failed to add method \"%@\"", @(Name.f_GetStr()));
 		}
 		objc_registerClassPair(pTestClass);
 	}
