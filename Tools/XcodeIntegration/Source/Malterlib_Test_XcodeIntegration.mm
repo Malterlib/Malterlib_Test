@@ -49,12 +49,12 @@ constinit TCAggregate<TCVector<CTestExecutable>> g_TestExecutables = {DAggregate
 constinit TCAggregate<TCMap<Class, CTestExecutable *>> g_TestClassToExecutable = {DAggregateInit};
 constinit TCAggregate<TCVector<CStr>> g_FilteredCommandLine = {DAggregateInit};
 
-#define XCTestCaseHidden XCTestCase
+#define DXCTestCaseHidden XCTestCase
 
 @interface MalterlibTestLoader : NSObject
 @end
 
-@interface MalterlibTestCase : XCTestCaseHidden
+@interface MalterlibTestCase : DXCTestCaseHidden
 @end
 
 @implementation MalterlibTestCase

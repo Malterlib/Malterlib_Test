@@ -141,7 +141,7 @@ namespace NMib::NTest
 		return TCTestRecursive<tf_CFunction>(_Function);
 	}
 
-#define DMibTestRecursive(_Expression) DMibExpr(fg_TestRecursive([&]{_Expression;}))
+#define DMibTestRecursive(d_Expression) DMibExpr(fg_TestRecursive([&]{d_Expression;}))
 
 #ifndef DMibPNoShortCuts
 #	define DTestRecursive DMibTestRecursive

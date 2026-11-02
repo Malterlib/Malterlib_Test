@@ -499,9 +499,9 @@ namespace NMib::NTest
 		, DMibTestHelperExpression_B
 	};
 
-#	define DMibTestHelperExpression_B(_Expression) DMibTestHelperExpression_OP(_Expression, A)
-#	define DMibTestHelperExpression_A(_Expression) DMibTestHelperExpression_OP(_Expression, B)
-#	define DMibTestHelperExpression_OP(_Expression, _Next) DMibTestHelperExpression_ ## _Next
+#	define DMibTestHelperExpression_B(d_Expression) DMibTestHelperExpression_OP(d_Expression, A)
+#	define DMibTestHelperExpression_A(d_Expression) DMibTestHelperExpression_OP(d_Expression, B)
+#	define DMibTestHelperExpression_OP(d_Expression, d_Next) DMibTestHelperExpression_ ## d_Next
 
 #	define DMibTest false ? false : DMibTestHelperExpression_A
 #	define DMibTestExpr(d_Expression) false ? false : DMibTestHelperExpression_A
