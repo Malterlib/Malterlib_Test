@@ -66,23 +66,23 @@ constinit TCAggregate<TCVector<CStr>> g_FilteredCommandLine = {DAggregateInit};
 
 + (NSArray *)testInvocations
 {
-	NSMutableArray *invocations = [NSMutableArray array];
+	NSMutableArray *pInvocations = [NSMutableArray array];
 
-	unsigned int methodCount = 0;
-	Method *methods = class_copyMethodList([self class], &methodCount);
+	unsigned int nMethods = 0;
+	Method *pMethods = class_copyMethodList([self class], &nMethods);
 
-	for (unsigned int i = 0; i < methodCount; i++)
+	for (unsigned int i = 0; i < nMethods; i++)
 	{
-		SEL sel = method_getName(methods[i]);
-		NSMethodSignature *sig = [self instanceMethodSignatureForSelector: sel];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature: sig];
-		[invocation setSelector: sel];
-		[invocations addObject: invocation];
+		SEL pSelector = method_getName(pMethods[i]);
+		NSMethodSignature *pSignature = [self instanceMethodSignatureForSelector: pSelector];
+		NSInvocation *pInvocation = [NSInvocation invocationWithMethodSignature: pSignature];
+		[pInvocation setSelector: pSelector];
+		[pInvocations addObject: pInvocation];
 	}
 
-	free(methods);
+	free(pMethods);
 
-	return invocations;
+	return pInvocations;
 }
 
 @end
@@ -232,7 +232,7 @@ static void fg_RunTest(XCTestCase *_pSelf, SEL _Command)
 	CStr TestPath = [NSStringFromSelector(_Command) UTF8String];
 
 	auto pTestExecutable = (*g_TestClassToExecutable).f_FindEqual([_pSelf class]);
-	[[maybe_unused]] auto self = _pSelf;
+	[[maybe_unused]] auto self = _pSelf; // NOLINT(malterlib-variable-naming, malterlib-conceptual-prefix): the name the XCTAssert macros refer to
 	XCTAssertTrue(pTestExecutable, @"No test executable found for class %@", [_pSelf class]);
 	auto &TestExecutable = **pTestExecutable;
 
@@ -492,9 +492,9 @@ namespace NMib::NSys
 			while (!UsedNames(Name).f_WasCreated())
 				Name = fg_MakeNiceName(fg_Format("{}{}", Distinguisher++, Test.m_TestPath));
 			Executable.m_NameToPath[Name] = Test.m_TestPath;
-			SEL selector = sel_registerName(Name.f_GetStr());
-			NSAssert1(selector, @"Failed to register select \"%@\"", @(Name.f_GetStr()));
-			BOOL bAdded = class_addMethod(pTestClass, selector, (IMP)fg_RunTest, "v@:");
+			SEL pSelector = sel_registerName(Name.f_GetStr());
+			NSAssert1(pSelector, @"Failed to register select \"%@\"", @(Name.f_GetStr()));
+			BOOL bAdded = class_addMethod(pTestClass, pSelector, (IMP)fg_RunTest, "v@:");
 			NSAssert1(bAdded, @"Failed to add method \"%@\"", @(Name.f_GetStr()));
 		}
 		objc_registerClassPair(pTestClass);
