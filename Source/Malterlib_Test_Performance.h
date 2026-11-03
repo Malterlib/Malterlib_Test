@@ -65,17 +65,8 @@ namespace NMib::NTest
 		t_CTimer &m_Timer;
 		t_CIterations const &m_Iterations;
 
-		TCTestMeasureScope(t_CTimer &_Timer, t_CIterations const &_Iterations)
-			: m_Iterations(_Iterations)
-			, m_Timer(_Timer)
-		{
-			_Timer.f_Start();
-		}
-
-		~TCTestMeasureScope()
-		{
-			m_Timer.f_Stop(m_Iterations);
-		}
+		TCTestMeasureScope(t_CTimer &_Timer, t_CIterations const &_Iterations);
+		~TCTestMeasureScope();
 	};
 
 	template <typename t_CTimer, typename t_CIterations>
@@ -85,18 +76,8 @@ namespace NMib::NTest
 		t_CIterations const &m_Iterations;
 		umint m_nThreads;
 
-		TCTestMeasureScopeWithThread(t_CTimer &_Timer, t_CIterations const &_Iterations, umint _nThreads)
-			: m_Iterations(_Iterations)
-			, m_Timer(_Timer)
-			, m_nThreads(_nThreads)
-		{
-			_Timer.f_Start();
-		}
-
-		~TCTestMeasureScopeWithThread()
-		{
-			m_Timer.f_Stop(m_Iterations, m_nThreads);
-		}
+		TCTestMeasureScopeWithThread(t_CTimer &_Timer, t_CIterations const &_Iterations, umint _nThreads);
+		~TCTestMeasureScopeWithThread();
 	};
 
 #define DMibTestScopeMeasure(d_Measure, d_nIterations) NMib::NTest::TCTestMeasureScope<decltype(d_Measure), decltype(d_nIterations)> TimerScope(d_Measure, d_nIterations)
@@ -118,7 +99,6 @@ namespace NMib::NTest
 		void f_AddReference(CTestPerformanceMeasure &_Timer);
 		void f_AddDebug(CTestPerformanceMeasure &_Timer);
 		void f_Add(CTestPerformanceMeasure &_Timer);
-
 		void f_Add(CTestPerformanceResult const &_Result);
 
 		void f_TestReport(CTestResults &_Results) const;
@@ -129,10 +109,7 @@ namespace NMib::NTest
 		template <typename tf_CFormatter>
 		// This crashes GCC
 		// auto f_CreateStringFormatter(tf_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
-		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const
-		{
-			return NStr::fg_CreateStringFormatter(_Formatter, fg_ByValue(fp_GetOutput()));
-		}
+		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const;
 
 	private:
 		CTestPerformanceResults mp_Results;
@@ -142,3 +119,5 @@ namespace NMib::NTest
 		NStr::CStr fp_GetOutput() const;
 	};
 }
+
+#include "Malterlib_Test_Performance.hpp"

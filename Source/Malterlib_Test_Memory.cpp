@@ -208,6 +208,37 @@ namespace NMib::NTest
 		return mp_Name;
 	}
 
+	CTestMemoryMeasure::CAllocatorStats &CTestMemoryMeasure::CAllocatorStats::operator += (CAllocatorStats const &_Right)
+	{
+		m_nAllocations += _Right.m_nAllocations;
+		m_nFree += _Right.m_nFree;
+		m_nResize += _Right.m_nResize;
+		m_nRealloc += _Right.m_nRealloc;
+		m_nGetSize += _Right.m_nGetSize;
+		m_nProtect += _Right.m_nProtect;
+		m_nCommit += _Right.m_nCommit;
+		m_nDecommit += _Right.m_nDecommit;
+		m_BytesAlloc += _Right.m_BytesAlloc;
+		m_BytesFree += _Right.m_BytesFree;
+		m_BytesResize += _Right.m_BytesResize;
+		m_BytesRealloc += _Right.m_BytesRealloc;
+		m_BytesProtect += _Right.m_BytesProtect;
+		m_BytesCommit += _Right.m_BytesCommit;
+		m_BytesDecommit += _Right.m_BytesDecommit;
+		m_BytesOverhead += _Right.m_BytesOverhead;
+		m_BytesPotentialWaste += _Right.m_BytesPotentialWaste;
+		m_CurrentBytesAlloc += _Right.m_CurrentBytesAlloc;
+		m_CurrentBytesOverhead += _Right.m_CurrentBytesOverhead;
+		m_CurrentBytesPotentialWaste += _Right.m_CurrentBytesPotentialWaste;
+		m_nCurrentAllocations += _Right.m_nCurrentAllocations;
+		m_BytesMaxAlloc += _Right.m_BytesMaxAlloc;
+		m_BytesOverheadAtMaxAlloc += _Right.m_BytesOverheadAtMaxAlloc;
+		m_BytesPotentialWasteAtMaxAlloc += _Right.m_BytesPotentialWasteAtMaxAlloc;
+		m_nAllocationsAtMaxAlloc += _Right.m_nAllocationsAtMaxAlloc;
+
+		return *this;
+	}
+
 	CTestMemoryMeasure::CAllocatorStats::CAllocatorStats()
 	{
 		f_Clear();
@@ -987,5 +1018,15 @@ namespace NMib::NTest
 		}
 
 		return Output;
+	}
+
+	CTestMemoryMaxAllocatedBytes::CTestMemoryMaxAllocatedBytes(fp64 const &_Tolerance)
+		: CTestMemory(_Tolerance, false)
+	{
+	}
+
+	CTestMemoryNumAllocations::CTestMemoryNumAllocations(fp64 const &_Tolerance)
+		: CTestMemory(_Tolerance, true)
+	{
 	}
 }

@@ -66,62 +66,10 @@ namespace NMib::NTest
 			uint64 m_BytesPotentialWasteAtMaxAlloc;
 			uint64 m_nAllocationsAtMaxAlloc;
 
-			CAllocatorStats &operator += (CAllocatorStats const &_Right)
-			{
-				m_nAllocations += _Right.m_nAllocations;
-				m_nFree += _Right.m_nFree;
-				m_nResize += _Right.m_nResize;
-				m_nRealloc += _Right.m_nRealloc;
-				m_nGetSize += _Right.m_nGetSize;
-				m_nProtect += _Right.m_nProtect;
-				m_nCommit += _Right.m_nCommit;
-				m_nDecommit += _Right.m_nDecommit;
-				m_BytesAlloc += _Right.m_BytesAlloc;
-				m_BytesFree += _Right.m_BytesFree;
-				m_BytesResize += _Right.m_BytesResize;
-				m_BytesRealloc += _Right.m_BytesRealloc;
-				m_BytesProtect += _Right.m_BytesProtect;
-				m_BytesCommit += _Right.m_BytesCommit;
-				m_BytesDecommit += _Right.m_BytesDecommit;
-				m_BytesOverhead += _Right.m_BytesOverhead;
-				m_BytesPotentialWaste += _Right.m_BytesPotentialWaste;
-				m_CurrentBytesAlloc += _Right.m_CurrentBytesAlloc;
-				m_CurrentBytesOverhead += _Right.m_CurrentBytesOverhead;
-				m_CurrentBytesPotentialWaste += _Right.m_CurrentBytesPotentialWaste;
-				m_nCurrentAllocations += _Right.m_nCurrentAllocations;
-				m_BytesMaxAlloc += _Right.m_BytesMaxAlloc;
-				m_BytesOverheadAtMaxAlloc += _Right.m_BytesOverheadAtMaxAlloc;
-				m_BytesPotentialWasteAtMaxAlloc += _Right.m_BytesPotentialWasteAtMaxAlloc;
-				m_nAllocationsAtMaxAlloc += _Right.m_nAllocationsAtMaxAlloc;
-
-				return *this;
-			}
+			CAllocatorStats &operator += (CAllocatorStats const &_Right);
 
 			template <CStatAffectFlagUnderlying tf_Flags>
-			void f_TransferToStats(CTestMemoryStats &_Stats) const
-			{
-				fsp_TransferStat<tf_Flags>(_Stats.m_nAllocations, m_nAllocations);
-				fsp_TransferStat<tf_Flags>(_Stats.m_nFree, m_nFree);
-				fsp_TransferStat<tf_Flags>(_Stats.m_nResize, m_nResize);
-				fsp_TransferStat<tf_Flags>(_Stats.m_nRealloc, m_nRealloc);
-				fsp_TransferStat<tf_Flags>(_Stats.m_nGetSize, m_nGetSize);
-				fsp_TransferStat<tf_Flags>(_Stats.m_nProtect, m_nProtect);
-				fsp_TransferStat<tf_Flags>(_Stats.m_nCommit, m_nCommit);
-				fsp_TransferStat<tf_Flags>(_Stats.m_nDecommit, m_nDecommit);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesAlloc, m_BytesAlloc);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesFree, m_BytesFree);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesResize, m_BytesResize);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesRealloc, m_BytesRealloc);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesProtect, m_BytesProtect);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesCommit, m_BytesCommit);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesDecommit, m_BytesDecommit);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesOverhead, fp64(m_BytesOverhead) / fp64(1000.0));
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesPotentialWaste, m_BytesPotentialWaste);
-				fsp_TransferStat<tf_Flags>(_Stats.m_BytesMaxAlloc, m_BytesMaxAlloc);
-				fsp_TransferStat<tf_Flags>(_Stats.m_AtBytesMaxAlloc.m_BytesOverhead, fp64(m_BytesOverheadAtMaxAlloc) / fp64(1000.0));
-				fsp_TransferStat<tf_Flags>(_Stats.m_AtBytesMaxAlloc.m_BytesPotentialWaste, m_BytesPotentialWasteAtMaxAlloc);
-				fsp_TransferStat<tf_Flags>(_Stats.m_AtBytesMaxAlloc.m_nAllocations, m_nAllocationsAtMaxAlloc);
-			}
+			void f_TransferToStats(CTestMemoryStats &_Stats) const;
 
 			void f_Clear();
 
@@ -139,19 +87,7 @@ namespace NMib::NTest
 
 		private:
 			template <CStatAffectFlagUnderlying tf_Flags>
-			static void fsp_TransferStat(CTestStats &_Stat, fp64 _Value)
-			{
-				if constexpr (tf_Flags & EStatAffectFlag_Average)
-					_Stat.m_Average = _Value;
-				if constexpr ((tf_Flags & EStatAffectFlag_Min) != 0)
-					_Stat.m_Min = _Value;
-				if constexpr ((tf_Flags & EStatAffectFlag_Max) != 0)
-					_Stat.m_Max = _Value;
-				if constexpr ((tf_Flags & EStatAffectFlag_StdDev) != 0)
-					_Stat.m_StdDev = _Value;
-				if constexpr ((tf_Flags & EStatAffectFlag_Median) != 0)
-					_Stat.m_Median = _Value;
-			}
+			static void fsp_TransferStat(CTestStats &_Stat, fp64 _Value);
 
 			void fp_UpdateAtMaxAlloc();
 		};
@@ -261,12 +197,8 @@ namespace NMib::NTest
 
 		template <typename tf_CFormatter>
 		int f_GetStringFormatType(tf_CFormatter &_Formatter);
-
 		template <typename tf_CFormatter>
-		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const
-		{
-			return NStr::fg_CreateStringFormatter(_Formatter, fg_ByValue(fp_GetOutput()));
-		}
+		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const;
 
 	private:
 		CTestMemoryResults mp_Results;
@@ -279,17 +211,13 @@ namespace NMib::NTest
 
 	struct CTestMemoryMaxAllocatedBytes : public CTestMemory
 	{
-		CTestMemoryMaxAllocatedBytes(fp64 const &_Tolerance)
-			: CTestMemory(_Tolerance, false)
-		{
-		}
+		CTestMemoryMaxAllocatedBytes(fp64 const &_Tolerance);
 	};
 
 	struct CTestMemoryNumAllocations : public CTestMemory
 	{
-		CTestMemoryNumAllocations(fp64 const &_Tolerance)
-			: CTestMemory(_Tolerance, true)
-		{
-		}
+		CTestMemoryNumAllocations(fp64 const &_Tolerance);
 	};
 }
+
+#include "Malterlib_Test_Memory.hpp"

@@ -21,10 +21,7 @@ namespace NMib::NTest
 	{
 		CTextTestResults(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags);
 
-		ETestReportFlag f_GetReportFlags() override
-		{
-			return mp_ReportFlags;
-		}
+		ETestReportFlag f_GetReportFlags() override;
 
 		void f_ReportHeader(ETestReportFlag _ReportFlags) override;
 		void f_ReportFooter(umint _nTestsTotal, umint _nSuccessful, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored) override;

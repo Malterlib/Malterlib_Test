@@ -33,3 +33,40 @@ namespace NMib::NTest::NExpression::NPrivate
 		return _Desc;
 	}
 }
+
+namespace NMib::NTest::NExpression
+{
+	CExpression::~CExpression()
+	{
+		fg_Delete(mp_pExpression);
+	}
+
+	NStr::CStr CExpression::f_GetDesc() const
+	{
+		return mp_pExpression->f_GetDesc();
+	}
+
+	NStr::CStr CExpression::f_GetDescRecursive() const
+	{
+		return mp_pExpression->f_GetDescRecursive();
+	}
+
+	NStr::CStr CExpression::f_GetValueDescRecursive() const
+	{
+		return mp_pExpression->f_GetValueDescRecursive();
+	}
+
+	bool CExpression::f_Eval(NStr::CStr *o_pValueDesc) const
+	{
+		return mp_pExpression->f_Eval(o_pValueDesc);
+	}
+
+	bool CExpression::f_OnlyEvalOnce() const
+	{
+		return mp_pExpression->f_OnlyEvalOnce();
+	}
+
+	CExpression::CExpressionInternal::~CExpressionInternal()
+	{
+	}
+}

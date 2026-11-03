@@ -6,6 +6,33 @@
 namespace NMib::NTest::NPrivate
 {
 #if DMibConfig_Tests_Enable
+	CReportTestAbortException::CReportTestAbortException()
+	{
+	}
+
+	bool CReportTestAbortException::f_IsValid() const
+	{
+		return m_Magic == mcp_Magic;
+	}
+
+	CTestExceptionNoFilter::~CTestExceptionNoFilter()
+	{
+	}
+
+	void CTestExceptionNoFilter::f_Exception(void *_pExceptionData)
+	{
+	}
+
+	CTestReporterScope::CTestReporterScope(CTestResults &_NewResults)
+	{
+		mp_pOldResults = fg_SetResultReporter(&_NewResults);
+	}
+
+	CTestReporterScope::~CTestReporterScope()
+	{
+		fg_SetResultReporter(mp_pOldResults);
+	}
+
 	CTestPathScope::CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
 		: mp_Path(_Path)
 		, mp_pFile(_pFile)

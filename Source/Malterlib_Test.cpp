@@ -1071,6 +1071,129 @@ namespace NMib::NTest
 		};
 	}
 
+	CTest::~CTest()
+	{
+	}
+
+	CTestStats::CTestStats()
+		: m_Min(0.0)
+		, m_Max(0.0)
+		, m_Average(0.0)
+		, m_Median(0.0)
+		, m_StdDev(0.0)
+	{
+	}
+
+	CTestStats::CTestStats(fp64 _Stat)
+		: m_Min(_Stat)
+		, m_Max(_Stat)
+		, m_Average(_Stat)
+		, m_Median(_Stat)
+		, m_StdDev(0.0)
+	{
+	}
+
+	fp64 CTestStats::f_StdDevFraction() const
+	{
+		if (m_Average != 0.0)
+			return m_StdDev / m_Average;
+		else
+			return 0.0;
+	}
+
+	CTestResult::CTestResult()
+		: m_ThreadID(0)
+		, m_ResultID(0)
+		, m_Result(ETestResult_Fail)
+		, m_Line(0)
+		, m_FailureAction(ETest_None)
+		, m_CheckType(ECheckType_Predicate)
+		, m_Flags(ETestFlag_None)
+	{
+	}
+
+	CTestPerformanceResult::CTestPerformanceResult()
+		: m_nIterations(0)
+		, m_nRepetitions(0)
+		, m_MeasureType(ETestMeasureType_Normal)
+		, m_nContributingThreads(0)
+	{
+	}
+
+	CTestMemoryResult::CTestMemoryResult()
+		: m_nIterations(0)
+		, m_nRepetitions(0)
+		, m_MeasureType(ETestMeasureType_Normal)
+	{
+	}
+
+	CTestPerformanceResults::CTestPerformanceResults()
+		: m_Tolerance(0.0)
+	{
+	}
+
+	CTestMemoryResults::CTestMemoryResults()
+		: m_Tolerance(0.0)
+	{
+	}
+
+	CTestGroup::CTestGroup(NStr::CStr const &_Group)
+		: mp_Group(_Group)
+	{
+		DMibRequire(_Group == "Performance" || _Group == "Torture" || _Group == "Memory" || _Group == "Unfinished" || _Group == "Expensive" || _Group == "Manual" || _Group == "SuperUser");
+	}
+
+	NStr::CStr const &CTestGroup::f_GetGroup() const
+	{
+		return mp_Group;
+	}
+
+	CTestCategory::CTestCategory(ch8 const *_pCategory)
+		: mp_Category(_pCategory)
+	{
+	}
+
+	CTestCategory::CTestCategory(NStr::CStr const &_Category)
+		: mp_Category(_Category)
+	{
+	}
+
+	CTestCategory::CTestCategory(NStr::CStr::CFormat const &_Category)
+		: mp_Category(_Category)
+	{
+	}
+
+	CTestCategory &CTestCategory::operator << (CTestGroup const &_Group)
+	{
+		mp_Groups[_Group.f_GetGroup()];
+		return *this;
+	}
+
+	NStr::CStr const &CTestCategory::f_GetCategory() const
+	{
+		return mp_Category;
+	}
+
+	NContainer::TCSet<NStr::CStr> const &CTestCategory::f_GetGroups() const
+	{
+		return mp_Groups;
+	}
+
+	CTestLocation::CTestLocation()
+	{
+	}
+
+	CTestLocation::CTestLocation(NStr::CStr const &_File, int _Line)
+		: m_File(_File)
+		, m_Line(_Line)
+	{
+	}
+
+	ETestReportFlag CTestResults::f_GetReportFlags()
+	{
+		return ETestReportFlag_None;
+	}
+
 	void fg_TestSetReturnValue(uint32 _RetValue)
 	{
 #if DMibConfig_Tests_Enable
@@ -1622,4 +1745,22 @@ namespace NMib::NTest
 		Return << _Group;
 		return Return;
 	}
+
+#if !DMibConfig_Tests_Enable
+	CTestCategoryScope::CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags)
+	{
+	}
+
+	CTestCategoryScope::~CTestCategoryScope()
+	{
+	}
+
+	CTestPathScope::CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
+	{
+	}
+
+	CTestPathScope::~CTestPathScope()
+	{
+	}
+#endif
 }

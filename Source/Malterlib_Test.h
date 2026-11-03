@@ -93,9 +93,7 @@ namespace NMib::NTest
 
 	struct CTest : public NConcurrency::CAllowUnsafeThis
 	{
-		virtual ~CTest()
-		{
-		}
+		virtual ~CTest();
 
 		virtual void f_DoTests() = 0;
 	};
@@ -107,41 +105,13 @@ namespace NMib::NTest
 #endif
 	struct CTestStats
 	{
-		CTestStats()
-			: m_Min(0.0)
-			, m_Max(0.0)
-			, m_Average(0.0)
-			, m_Median(0.0)
-			, m_StdDev(0.0)
-		{
-		}
+		CTestStats();
+		CTestStats(fp64 _Stat);
 
-		CTestStats(fp64 _Stat)
-			: m_Min(_Stat)
-			, m_Max(_Stat)
-			, m_Average(_Stat)
-			, m_Median(_Stat)
-			, m_StdDev(0.0)
-		{
-		}
-
-		fp64 f_StdDevFraction() const
-		{
-			if (m_Average != 0.0)
-				return m_StdDev / m_Average;
-			else
-				return 0.0;
-		}
+		fp64 f_StdDevFraction() const;
 
 		template <typename tf_CStream>
-		void f_Stream(tf_CStream &_Stream)
-		{
-			_Stream % m_Min;
-			_Stream % m_Max;
-			_Stream % m_Average;
-			_Stream % m_Median;
-			_Stream % m_StdDev;
-		}
+		void f_Stream(tf_CStream &_Stream);
 
 		fp64 m_Min;
 		fp64 m_Max;
@@ -152,16 +122,7 @@ namespace NMib::NTest
 
 	struct CTestResult
 	{
-		CTestResult()
-			: m_ThreadID(0)
-			, m_ResultID(0)
-			, m_Result(ETestResult_Fail)
-			, m_Line(0)
-			, m_FailureAction(ETest_None)
-			, m_CheckType(ECheckType_Predicate)
-			, m_Flags(ETestFlag_None)
-		{
-		}
+		CTestResult();
 
 		// ThreadID and ResultID is unique together
 		uint64 m_ThreadID;
@@ -181,13 +142,7 @@ namespace NMib::NTest
 
 	struct CTestPerformanceResult
 	{
-		CTestPerformanceResult()
-			: m_nIterations(0)
-			, m_nRepetitions(0)
-			, m_MeasureType(ETestMeasureType_Normal)
-			, m_nContributingThreads(0)
-		{
-		}
+		CTestPerformanceResult();
 
 		NStr::CStr m_Name;
 		uint64 m_nIterations;
@@ -235,12 +190,7 @@ namespace NMib::NTest
 
 	struct CTestMemoryResult
 	{
-		CTestMemoryResult()
-			: m_nIterations(0)
-			, m_nRepetitions(0)
-			, m_MeasureType(ETestMeasureType_Normal)
-		{
-		}
+		CTestMemoryResult();
 
 		NStr::CStr m_Name;
 		uint64 m_nIterations;
@@ -253,10 +203,7 @@ namespace NMib::NTest
 
 	struct CTestPerformanceResults
 	{
-		CTestPerformanceResults()
-			: m_Tolerance(0.0)
-		{
-		}
+		CTestPerformanceResults();
 
 		fp64 m_Tolerance;
 		NContainer::TCVector<CTestPerformanceResult> m_Results;
@@ -264,10 +211,7 @@ namespace NMib::NTest
 
 	struct CTestMemoryResults
 	{
-		CTestMemoryResults()
-			: m_Tolerance(0.0)
-		{
-		}
+		CTestMemoryResults();
 
 		fp64 m_Tolerance;
 		NContainer::TCVector<CTestMemoryResult> m_Results;
@@ -280,20 +224,9 @@ namespace NMib::NTest
 
 	struct CTestGroup
 	{
-		CTestGroup(NStr::CStr const &_Group)
-			: mp_Group(_Group)
-		{
-			DMibRequire
-				(
-					_Group == "Performance" || _Group == "Torture" || _Group == "Memory" || _Group == "Unfinished" || _Group == "Expensive" || _Group == "Manual" || _Group == "SuperUser"
-				)
-			;
-		}
+		CTestGroup(NStr::CStr const &_Group);
 
-		NStr::CStr const &f_GetGroup() const
-		{
-			return mp_Group;
-		}
+		NStr::CStr const &f_GetGroup() const;
 
 		friend CTestCategory operator << (NStr::CStr const &_CategoryName, CTestGroup const &_Group);
 
@@ -303,36 +236,14 @@ namespace NMib::NTest
 
 	struct CTestCategory
 	{
-		CTestCategory(ch8 const *_pCategory)
-			: mp_Category(_pCategory)
-		{
-		}
+		CTestCategory(ch8 const *_pCategory);
+		CTestCategory(NStr::CStr const &_Category);
+		CTestCategory(NStr::CStr::CFormat const &_Category);
 
-		CTestCategory(NStr::CStr const &_Category)
-			: mp_Category(_Category)
-		{
-		}
+		CTestCategory &operator << (CTestGroup const &_Group);
 
-		CTestCategory(NStr::CStr::CFormat const &_Category)
-			: mp_Category(_Category)
-		{
-		}
-
-		CTestCategory &operator << (CTestGroup const &_Group)
-		{
-			mp_Groups[_Group.f_GetGroup()];
-			return *this;
-		}
-
-		NStr::CStr const &f_GetCategory() const
-		{
-			return mp_Category;
-		}
-
-		NContainer::TCSet<NStr::CStr> const &f_GetGroups() const
-		{
-			return mp_Groups;
-		}
+		NStr::CStr const &f_GetCategory() const;
+		NContainer::TCSet<NStr::CStr> const &f_GetGroups() const;
 
 	private:
 		NStr::CStr mp_Category;
@@ -350,15 +261,8 @@ namespace NMib::NTest
 
 	struct CTestLocation
 	{
-		CTestLocation()
-		{
-		}
-
-		CTestLocation(NStr::CStr const &_File, int _Line)
-			: m_File(_File)
-			, m_Line(_Line)
-		{
-		}
+		CTestLocation();
+		CTestLocation(NStr::CStr const &_File, int _Line);
 
 		NStr::CStr m_File;
 		int32 m_Line = -1;
@@ -366,10 +270,7 @@ namespace NMib::NTest
 
 	struct CTestResults
 	{
-		virtual ETestReportFlag f_GetReportFlags()
-		{
-			return ETestReportFlag_None;
-		}
+		virtual ETestReportFlag f_GetReportFlags();
 
 		virtual void f_ReportHeader(ETestReportFlag _ReportFlags) = 0;
 		virtual void f_ReportFooter(umint _nTestsTotal, umint _nSuccess, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored) = 0;
@@ -451,29 +352,17 @@ namespace NMib::NTest
 #else
 	struct CTestCategoryScope
 	{
-		CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None)
-		{
-		}
-
-		~CTestCategoryScope()
-		{
-		}
+		CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None);
+		~CTestCategoryScope();
 
 		template <typename t_CFunctionType>
-		void operator % (t_CFunctionType const &_Function)
-		{
-		}
+		void operator % (t_CFunctionType const &_Function);
 	};
 
 	struct CTestPathScope
 	{
-		CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
-		{
-		}
-
-		~CTestPathScope()
-		{
-		}
+		CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line);
+		~CTestPathScope();
 	};
 
 #endif
@@ -559,4 +448,6 @@ namespace NMib::NTest
 #ifndef DMibPNoShortCuts
 using namespace NMib::NTest;
 #endif
+
+#include "Malterlib_Test.hpp"
 

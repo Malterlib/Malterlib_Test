@@ -61,6 +61,11 @@ namespace NMib::NTest
 	{
 	}
 
+	ETestReportFlag CTextTestResults::f_GetReportFlags()
+	{
+		return mp_ReportFlags;
+	}
+
 	NStr::CStr CTextTestResults::fp_ColorPath(NStr::CStr const &_String) const
 	{
 		using namespace NStr;

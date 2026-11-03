@@ -11,14 +11,9 @@ namespace NMib::NTest::NPrivate
 	struct CReportTestAbortException
 	{
 		uint32 m_Magic = mcp_Magic;
-		CReportTestAbortException()
-		{
-		}
+		CReportTestAbortException();
 
-		bool f_IsValid() const
-		{
-			return m_Magic == mcp_Magic;
-		}
+		bool f_IsValid() const;
 
 	private:
 		static constexpr uint32 mcp_Magic = 0xF538CB10;
@@ -26,17 +21,8 @@ namespace NMib::NTest::NPrivate
 
 	struct CTestExceptionFilter : public NException::CExceptionFilter
 	{
-		CTestExceptionFilter()
-			: m_pStackTraceInfo(nullptr)
-		{
-		}
-
-		~CTestExceptionFilter()
-		{
-			if (m_pStackTraceInfo)
-				NSys::fg_Debug_ReleaseStackTraceInfo(m_pStackTraceInfo);
-			f_SetDumpFiles(fg_Default());
-		}
+		CTestExceptionFilter();
+		~CTestExceptionFilter();
 
 		NContainer::TCVector<NStr::CStr> m_DumpFiles;
 		CStackTraceInfo *m_pStackTraceInfo;
@@ -50,13 +36,9 @@ namespace NMib::NTest::NPrivate
 
 	struct CTestExceptionNoFilter : public NException::CExceptionFilter
 	{
-		~CTestExceptionNoFilter()
-		{
-		}
+		~CTestExceptionNoFilter();
 
-		void f_Exception(void *_pExceptionData)
-		{
-		}
+		void f_Exception(void *_pExceptionData);
 	};
 
 	enum ETestResultReportFlag
@@ -108,15 +90,8 @@ namespace NMib::NTest::NPrivate
 
 	struct CTestReporterScope
 	{
-		CTestReporterScope(CTestResults &_NewResults)
-		{
-			mp_pOldResults = fg_SetResultReporter(&_NewResults);
-		}
-
-		~CTestReporterScope()
-		{
-			fg_SetResultReporter(mp_pOldResults);
-		}
+		CTestReporterScope(CTestResults &_NewResults);
+		~CTestReporterScope();
 
 	private:
 		DMibThreadLocalScopeDebugMember;
@@ -142,167 +117,14 @@ namespace NMib::NTest::NPrivate
 				this->m_Expression.f_Eval(nullptr);
 			}
 #	endif
-		{
-			if constexpr (NTraits::cIsSame<t_CExpression, bool>)
-			{
-				if (t_bFailureOnly && m_Expression)
-					return m_Expression;
-				ETestResultReportFlag ReportFlags = fg_NeedReport(m_CustomMessage, (ETestResult)m_Expression, m_FailureAction, ECheckType_Message, m_pFile, m_Line, m_Flags);
-				if (ReportFlags)
-					fg_ReportTestResult((ETestResult)m_Expression, m_CustomMessage, "", m_FailureAction, ECheckType_Message, m_pFile, m_Line, NStr::CStr(), m_Flags, ReportFlags);
-				return m_Expression;
-			}
-			else
-			{
-				ETestResult Result;
-				NStr::CStr ValueDesc;
-				bool bPotentianlyNeedValues = fg_GetEnableValues() && !(m_Flags & ETestFlag_NoValues) && (fg_TestReportFlags() & ETestReportFlag_ReportValues);
-				bool bOnlyEvalOnce = m_Expression.f_OnlyEvalOnce();
-				bool bHasValue = false;
-				if (bOnlyEvalOnce && bPotentianlyNeedValues)
-				{
-					bHasValue = true;
-					Result = m_Expression.f_Eval(&ValueDesc) ? ETestResult_Success : ETestResult_Fail;
-				}
-				else
-					Result = m_Expression.f_Eval(nullptr) ? ETestResult_Success : ETestResult_Fail;
-
-				if constexpr
-				(
-					requires ()
-					{
-						m_Expression.f_GetVariable(nullptr, false).f_IsIgnored();
-					}
-				)
-				{
-					if (m_Expression.f_GetVariable(nullptr, false).f_IsIgnored())
-						Result = ETestResult_Ignored;
-				}
-
-				if (t_bFailureOnly && Result != ETestResult_Fail)
-					return Result != ETestResult_Fail;
-
-				NStr::CStr Desc;
-
-				if constexpr
-				(
-					requires ()
-					{
-						m_Expression.f_GetVariable(nullptr, false).f_ModifyDescription(m_Expression.f_GetDesc());
-					}
-				)
-				{
-					Desc = m_Expression.f_GetVariable(nullptr, false).f_ModifyDescription(m_Expression.f_GetDesc());
-				}
-				else
-					Desc = m_Expression.f_GetDesc();
-
-				if (!m_CustomMessage.f_IsEmpty())
-				{
-					if (m_bOnlyCustom)
-						Desc = m_CustomMessage;
-					else
-					{
-						Desc += " ";
-						Desc += m_CustomMessage;
-					}
-				}
-
-				ETestResultReportFlag ReportFlags = fg_NeedReport(Desc, Result, m_FailureAction, ECheckType_Predicate, m_pFile, m_Line, m_Flags);
-				auto &ResultReporter = fg_GetResultReporter();
-
-				if (ReportFlags)
-				{
-					bool bIsSuccess = Result == ETestResult_Success || ((Result == ETestResult_Fail) && (m_FailureAction == ETest_ExpectFail || m_FailureAction == ETest_ExpectFailAndStop));
-					bool bNeedValues = bPotentianlyNeedValues && (!(m_Flags & ETestFlag_NoValuesOnSuccess) || !bIsSuccess);
-
-					NStr::CStr ExtraData;
-					if constexpr
-					(
-						requires ()
-						{
-							m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
-						}
-					)
-					{
-						ExtraData = m_Expression.f_GetVariable(nullptr, false).f_GetExtraData();
-					}
-
-					if (bNeedValues && !bHasValue)
-						m_Expression.f_Eval(&ValueDesc);
-
-					fg_ReportTestResult(Result, Desc, bNeedValues ? ValueDesc : NStr::CStr(), m_FailureAction, ECheckType_Predicate, m_pFile, m_Line, ExtraData, m_Flags, ReportFlags);
-
-					if constexpr
-					(
-						requires ()
-						{
-							m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
-						}
-					)
-					{
-						m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
-					}
-				}
-				else if (ResultReporter.f_GetReportFlags() & (ETestReportFlag_DetailedPerformance | ETestReportFlag_DetailedMemory))
-				{
-					if constexpr
-					(
-						requires ()
-						{
-							m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
-						}
-					)
-					{
-						m_Expression.f_GetVariable(nullptr, false).f_TestReport(ResultReporter);
-					}
-				}
-
-				return Result != ETestResult_Fail;
-			}
-		}
+		;
 
 	public:
-		TCTestFunctionHelper(ch8 const *_pFile, int32 _Line, t_CExpression &&_Expression)
-			: m_pFile(_pFile)
-			, m_Line(_Line)
-			, m_Expression(fg_Move(_Expression))
-			, m_FailureAction(ETest_Fail)
-			, m_Flags(ETestFlag_None)
-			, m_bValid(false)
-			, m_bOnlyCustom(false)
-		{
-			fg_SetTestLastLocation(_pFile, _Line);
-		}
-
-		TCTestFunctionHelper(TCTestFunctionHelper &&_Right)
-			: m_Expression(fg_Move(_Right.m_Expression))
-			, m_FailureAction(_Right.m_FailureAction)
-			, m_Flags(_Right.m_Flags)
-			, m_pFile(_Right.m_pFile)
-			, m_Line(_Right.m_Line)
-			, m_CustomMessage(fg_Move(_Right.m_CustomMessage))
-			, m_bValid(_Right.m_bValid)
-			, m_bOnlyCustom(_Right.m_bOnlyCustom)
-		{
-		}
-
+		TCTestFunctionHelper(ch8 const *_pFile, int32 _Line, t_CExpression &&_Expression);
+		TCTestFunctionHelper(TCTestFunctionHelper &&_Right);
 		template <bool tf_bFailureOnly, typename tf_CExpression>
-		TCTestFunctionHelper(TCTestFunctionHelper<tf_bFailureOnly, tf_CExpression> &&_Right, t_CExpression const &_NewExpression)
-			: m_Expression(_NewExpression)
-			, m_FailureAction(_Right.m_FailureAction)
-			, m_Flags(_Right.m_Flags)
-			, m_pFile(_Right.m_pFile)
-			, m_Line(_Right.m_Line)
-			, m_CustomMessage(fg_Move(_Right.m_CustomMessage))
-			, m_bValid(true)
-			, m_bOnlyCustom(_Right.m_bOnlyCustom)
-		{
-		}
-
-		~TCTestFunctionHelper()
-		{
-		}
+		TCTestFunctionHelper(TCTestFunctionHelper<tf_bFailureOnly, tf_CExpression> &&_Right, t_CExpression const &_NewExpression);
+		~TCTestFunctionHelper();
 
 		operator bool () const
 #	ifndef DCompiler_MSVC_Workaround
@@ -311,70 +133,17 @@ namespace NMib::NTest::NPrivate
 				fp_Evaluate();
 			}
 #	endif
-		{
-			DMibFastCheck(m_bValid);
-			DMibFastCheck(NMib::NTest::NPrivate::fg_InsideTestSuite());
-			if (m_Flags & ETestFlag_NoExceptionFilter)
-			{
-				NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
-				DMibExceptionFilter(TestExceptionFilter);
-				return fp_Evaluate();
-			}
-			else
-				return fp_Evaluate();
-		}
+		;
 
-		inline_always TCTestFunctionHelper &operator () (ETest _FailureAction)
-		{
-			m_FailureAction = _FailureAction;
-			return *this;
-		}
-
-		inline_always TCTestFunctionHelper &operator () (ETestFlag _Flags)
-		{
-			m_Flags |= _Flags;
-			return *this;
-		}
-
-		inline_always TCTestFunctionHelper &operator () (ch8 const *_pMessage)
-		{
-			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
-			m_CustomMessage = _pMessage;
-			if constexpr (NTraits::cIsSame<t_CExpression, CDummyExpression>)
-				m_bOnlyCustom = true;
-			return *this;
-		}
-
-		inline_always TCTestFunctionHelper &operator () (NStr::CStr const &_Message)
-		{
-			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
-			m_CustomMessage = _Message;
-			if constexpr (NTraits::cIsSame<t_CExpression, CDummyExpression>)
-				m_bOnlyCustom = true;
-			return *this;
-		}
-
-		inline_always TCTestFunctionHelper &operator () (NStr::CStr &&_Message)
-		{
-			DMibFastCheck(m_CustomMessage.f_IsEmpty()); // Custom message already specified
-			m_CustomMessage = fg_Move(_Message);
-			if constexpr (NTraits::cIsSame<t_CExpression, CDummyExpression>)
-				m_bOnlyCustom = true;
-			return *this;
-		}
+		TCTestFunctionHelper &operator () (ETest _FailureAction);
+		TCTestFunctionHelper &operator () (ETestFlag _Flags);
+		TCTestFunctionHelper &operator () (ch8 const *_pMessage);
+		TCTestFunctionHelper &operator () (NStr::CStr const &_Message);
+		TCTestFunctionHelper &operator () (NStr::CStr &&_Message);
 
 		template <typename tf_CExpression>
-		inline TCTestFunctionHelper<t_bFailureOnly, tf_CExpression> operator () (tf_CExpression const &_Expression)
-		{
-			static_assert(NTraits::cIsSame<t_CExpression, CDummyExpression>, "You can only specify expressions once");
-			return TCTestFunctionHelper<t_bFailureOnly, tf_CExpression>(fg_Move(*this), _Expression);
-		}
-
-		inline TCTestFunctionHelper<t_bFailureOnly, bool> operator () (bool _bExpression)
-		{
-			static_assert(NTraits::cIsSame<t_CExpression, CDummyExpression>, "You can only specify expressions once");
-			return TCTestFunctionHelper<t_bFailureOnly, bool>(fg_Move(*this), _bExpression);
-		}
+		TCTestFunctionHelper<t_bFailureOnly, tf_CExpression> operator () (tf_CExpression const &_Expression);
+		TCTestFunctionHelper<t_bFailureOnly, bool> operator () (bool _bExpression);
 
 		ETest m_FailureAction;
 		ETestFlag m_Flags;
@@ -408,13 +177,7 @@ namespace NMib::NTest::NPrivate
 		~CTestCategoryScope();
 
 		template <typename tf_FFunction>
-		void operator % (tf_FFunction &&_fCategory)
-		{
-			if constexpr (NConcurrency::NPrivate::TCIsFuture<NTraits::TCCallableReturnTypeFor<NTraits::TCRemoveReferenceAndQualifiers<tf_FFunction>, void ()>>::mc_Value)
-				f_ProcessAsyncCategory(_fCategory);
-			else
-				f_ProcessCategory(_fCategory);
-		}
+		void operator % (tf_FFunction &&_fCategory);
 
 		void f_ProcessAsyncCategory(NFunction::TCFunctionMovable<NConcurrency::TCFuture<void> ()> &&_fFunction);
 		void f_ProcessCategory(NFunction::TCFunctionMovable<void ()> &&_fFunction);
@@ -434,3 +197,5 @@ namespace NMib::NTest::NPrivate
 	};
 #endif
 }
+
+#include "Malterlib_Test_Private.hpp"

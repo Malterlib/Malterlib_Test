@@ -78,6 +78,18 @@ namespace NMib::NTest
 namespace NMib::NTest::NPrivate
 {
 #if DMibConfig_Tests_Enable
+	CTestExceptionFilter::CTestExceptionFilter()
+		: m_pStackTraceInfo(nullptr)
+	{
+	}
+
+	CTestExceptionFilter::~CTestExceptionFilter()
+	{
+		if (m_pStackTraceInfo)
+			NSys::fg_Debug_ReleaseStackTraceInfo(m_pStackTraceInfo);
+		f_SetDumpFiles(fg_Default());
+	}
+
 	void CTestExceptionFilter::f_SetDumpFiles(NContainer::TCVector<NStr::CStr> const &_Files)
 	{
 		umint nDumpFiles = m_DumpFiles.f_GetLen();

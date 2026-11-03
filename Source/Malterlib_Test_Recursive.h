@@ -14,112 +14,26 @@ namespace NMib::NTest
 	{
 		t_CFunction m_Function;
 
-		TCTestRecursive(t_CFunction const &_Function)
-			: m_Function(_Function)
-		{
-		}
-
-		~TCTestRecursive()
-		{
-		}
+		TCTestRecursive(t_CFunction const &_Function);
+		~TCTestRecursive();
 
 		mutable NStr::CStr m_ReportText;
 		struct CLocalResults : public CTextTestResults
 		{
-			CLocalResults(ETestReportFlag _ReportFlags)
-				: m_bSuccess(true)
-				, CTextTestResults(NCommandLine::EAnsiEncodingFlag_None)
-			{
-				mp_ReportFlags = ETestReportFlag_Fail | ETestReportFlag_FailAndStop | ETestReportFlag_ExpectFailAndStop;
-				if (_ReportFlags & ETestReportFlag_BreakOnFail)
-					mp_ReportFlags |= ETestReportFlag_BreakOnFail;
-			}
+			CLocalResults(ETestReportFlag _ReportFlags);
 
 			bool m_bSuccess;
 			NStr::CStr m_ReportText;
 
-			ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) override
-			{
-				// Only report failures
-				if (_Result == ETestResult_Fail)
-				{
-					if (mp_ReportFlags & ETestReportFlag_BreakOnFail)
-						DMibPDebugBreak;
-					m_bSuccess = false;
-					return ETestNeedReportFlag_AllowDuplicates | ETestNeedReportFlag_Report; // | ETestNeedReportFlag_Abort;
-				}
-				else if (_Result == ETestResult_Success && (_FailureAction == ETest_ExpectFail || _FailureAction == ETest_ExpectFailAndStop))
-				{
-					if (mp_ReportFlags & ETestReportFlag_BreakOnFail)
-						DMibPDebugBreak;
-					m_bSuccess = false;
-					return ETestNeedReportFlag_AllowDuplicates | ETestNeedReportFlag_Report; // | ETestNeedReportFlag_Abort;
-				}
-				return ETestNeedReportFlag_AllowDuplicates;
-			}
+			ETestNeedReportFlag f_NeedReport(ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ETestFlag _Flags) override;
 
 		private:
-			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override
-			{
-				m_ReportText += _Text;
-			}
+			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override;
 		};
 
-		operator bool () const
-		{
-			CLocalResults Results(NPrivate::fg_GetResultReporter().f_GetReportFlags());
-			{
-				NPrivate::CTestReporterScope ResultScope(Results);
+		operator bool () const;
 
-				{
-					NMib::NTest::NPrivate::CTestExceptionFilter TestExceptionFilter;
-					DMibExceptionFilter(TestExceptionFilter);
-					if (fg_TestReportFlags() & ETestReportFlag_CrashOnException)
-					{
-						try
-						{
-							m_Function();
-						}
-						catch (NMib::NTest::NPrivate::CReportTestAbortException const &)
-						{
-						}
-					}
-					else
-					{
-						try
-						{
-							m_Function();
-						}
-						catch (NMib::NTest::NPrivate::CReportTestAbortException const &)
-						{
-						}
-						catch (...)
-						{
-							NMib::NTest::NPrivate::fg_ReportTestException
-								(
-									TestExceptionFilter.f_DetachDumpFiles()
-									, TestExceptionFilter.f_GetFile() ? TestExceptionFilter.f_GetFile() : "Unknown"
-									, TestExceptionFilter.f_GetFile() ? TestExceptionFilter.f_GetLine() : 0
-								)
-							;
-						}
-					}
-				}
-			}
-
-			if (!Results.m_ReportText.f_IsEmpty())
-			{
-				m_ReportText = "Subtests failed:" DMibNewLine;
-				m_ReportText += Results.m_ReportText;
-			}
-
-			return Results.m_bSuccess;
-		}
-
-		NStr::CStr f_GetExtraData() const
-		{
-			return m_ReportText;
-		}
+		NStr::CStr f_GetExtraData() const;
 
 		template <typename tf_CFormatter>
 		int f_GetStringFormatType(tf_CFormatter &_Formatter);
@@ -127,18 +41,11 @@ namespace NMib::NTest
 		template <typename tf_CFormatter>
 		// This crashes GCC
 		// auto f_CreateStringFormatter(tf_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
-		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const
-		{
-			static constexpr ch8 const *c_pData = "";
-			return NStr::fg_CreateStringFormatter(_Formatter, c_pData);
-		}
+		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const;
 	};
 
 	template <typename tf_CFunction>
-	TCTestRecursive<tf_CFunction> fg_TestRecursive(tf_CFunction const &_Function)
-	{
-		return TCTestRecursive<tf_CFunction>(_Function);
-	}
+	TCTestRecursive<tf_CFunction> fg_TestRecursive(tf_CFunction const &_Function);
 
 #define DMibTestRecursive(d_Expression) DMibExpr(fg_TestRecursive([&]{d_Expression;}))
 
@@ -147,5 +54,6 @@ namespace NMib::NTest
 #endif
 }
 
-#endif
+#include "Malterlib_Test_Recursive.hpp"
 
+#endif
