@@ -483,8 +483,8 @@ namespace NMib::NTest
 				else
 					Name = " " + Name;
 
-				for (auto Iter = Result.m_PerformanceCounters.f_GetIterator(); Iter; ++Iter)
-					Counters[Iter.f_GetKey()];
+				for (auto iCounter = Result.m_PerformanceCounters.f_GetIterator(); iCounter; ++iCounter)
+					Counters[iCounter.f_GetKey()];
 
 				NStr::CStr BaseLine;
 				auto IterationsPerSec = (fp64(1.0) / Result.m_Time.m_Min);
@@ -624,18 +624,18 @@ namespace NMib::NTest
 				}
 			}
 
-			for (auto Iter = Counters.f_GetIterator(); Iter; ++Iter)
+			for (auto iCounter = Counters.f_GetIterator(); iCounter; ++iCounter)
 			{
 				fReportCounterRow("Counter", "Name", "Median", "Average", "Min", "Max", "StdDev(%)");
-				fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << *Iter, ETestSeverity_None);
-				for (auto ResultIter = Results.m_Results.f_GetIterator(); ResultIter; ++ResultIter)
+				fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << *iCounter, ETestSeverity_None);
+				for (auto iResult = Results.m_Results.f_GetIterator(); iResult; ++iResult)
 				{
-					CTestPerformanceResult const &Result = *ResultIter;
+					CTestPerformanceResult const &Result = *iResult;
 
-					CTestStats const *pStat = Result.m_PerformanceCounters.f_FindEqual(*Iter);
+					CTestStats const *pStat = Result.m_PerformanceCounters.f_FindEqual(*iCounter);
 
 					CTestStats const *pBaselineStat
-						= (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result) ? pBaseLine->m_PerformanceCounters.f_FindEqual(*Iter) : nullptr
+						= (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result) ? pBaseLine->m_PerformanceCounters.f_FindEqual(*iCounter) : nullptr
 					;
 
 					if (pStat)

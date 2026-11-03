@@ -54,7 +54,7 @@ namespace NMib::NTest
 
 		static NTime::TCCyclesTimeMeasure<false> msp_CyclesCorrection;
 		static NTime::CTimeMeasure msp_TimerCorrection;
-		static bool msp_CalculateCorrection;
+		static bool msp_bCalculateCorrection;
 
 		void fp_CalcRepetition();
 	};

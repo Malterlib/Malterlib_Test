@@ -104,7 +104,7 @@ namespace NMib::NTest::NPrivate
 	;
 	ETestResultReportFlag fg_NeedReport(NStr::CStr const &_Description, ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ch8 const *_pFile, int32 _Line, ETestFlag _Flags);
 	bool fg_ShouldRunSubTest(bool _bLeaf);
-	void fg_StepIntoSuites(bool _Step);
+	void fg_StepIntoSuites(bool _bStep);
 
 	struct CTestReporterScope
 	{
@@ -407,17 +407,17 @@ namespace NMib::NTest::NPrivate
 		CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None);
 		~CTestCategoryScope();
 
-		template <typename tf_CFunction>
-		void operator % (tf_CFunction &&_fCategory)
+		template <typename tf_FFunction>
+		void operator % (tf_FFunction &&_fCategory)
 		{
-			if constexpr (NConcurrency::NPrivate::TCIsFuture<NTraits::TCCallableReturnTypeFor<NTraits::TCRemoveReferenceAndQualifiers<tf_CFunction>, void ()>>::mc_Value)
+			if constexpr (NConcurrency::NPrivate::TCIsFuture<NTraits::TCCallableReturnTypeFor<NTraits::TCRemoveReferenceAndQualifiers<tf_FFunction>, void ()>>::mc_Value)
 				f_ProcessAsyncCategory(_fCategory);
 			else
 				f_ProcessCategory(_fCategory);
 		}
 
-		void f_ProcessAsyncCategory(NFunction::TCFunctionMovable<NConcurrency::TCFuture<void> ()> &&_Function);
-		void f_ProcessCategory(NFunction::TCFunctionMovable<void ()> &&_Function);
+		void f_ProcessAsyncCategory(NFunction::TCFunctionMovable<NConcurrency::TCFuture<void> ()> &&_fFunction);
+		void f_ProcessCategory(NFunction::TCFunctionMovable<void ()> &&_fFunction);
 
 	private:
 		bool fp_ContinueEnumerating() const;

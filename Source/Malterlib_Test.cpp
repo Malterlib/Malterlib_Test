@@ -121,15 +121,15 @@ namespace NMib::NTest
 						{
 							{
 								DMibLock(m_pInherit->m_UniqueTestsLock);
-								for (auto Iter = UniqueTests.f_GetIterator(); Iter; ++Iter)
+								for (auto iUniqueTest = UniqueTests.f_GetIterator(); iUniqueTest; ++iUniqueTest)
 								{
-									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> const &Aggregated = *Iter;
-									auto MapResult = m_pInherit->m_UniqueTests(Iter.f_GetKey());
+									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> const &Aggregated = *iUniqueTest;
+									auto MapResult = m_pInherit->m_UniqueTests(iUniqueTest.f_GetKey());
 									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> &AggregatedNew = *MapResult;
 									AggregatedNew += Aggregated;
 									if (!MapResult.f_WasCreated() && Aggregated.f_IsEmpty())
 									{
-										DMibTrace("Duplicate Test Path: {}" DMibNewLine, Iter.f_GetKey());
+										DMibTrace("Duplicate Test Path: {}" DMibNewLine, iUniqueTest.f_GetKey());
 										DMibPDebugBreak; // The same test run twice is not allowed for reporting reasons
 									}
 								}
@@ -216,10 +216,10 @@ namespace NMib::NTest
 				m_CleanupPaths[_Directory];
 			}
 
-			void f_AddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_ExceptionHandler)
+			void f_AddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_fExceptionHandler)
 			{
 				DMibLock(m_ExceptionInfoGeneratorsLock);
-				m_ExceptionInfoGenerators.f_Insert(fg_Move(_ExceptionHandler));
+				m_ExceptionInfoGenerators.f_Insert(fg_Move(_fExceptionHandler));
 			}
 
 			NStr::CStr f_GetExceptionInfo()
@@ -349,7 +349,7 @@ namespace NMib::NTest
 				NMib::NTest::NPrivate::fg_InsideTestSuite(false);
 		}
 
-		void CTestCategoryScope::f_ProcessAsyncCategory(NFunction::TCFunctionMovable<NConcurrency::TCFuture<void> ()> &&_Function)
+		void CTestCategoryScope::f_ProcessAsyncCategory(NFunction::TCFunctionMovable<NConcurrency::TCFuture<void> ()> &&_fFunction)
 		{
 			f_ProcessCategory
 				(
@@ -383,11 +383,11 @@ namespace NMib::NTest
 #	endif
 
 						if (fg_GroupActive("Performance"))
-							(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_Function)).f_CallSync(pRunLoop);
+							(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_fFunction)).f_CallSync(pRunLoop);
 						else
 						{
 							CTestPathRestoringScope RestorePathScope;
-							(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_Function)).f_CallSync(pRunLoop);
+							(NConcurrency::g_Dispatch(HelperActor) / fg_Move(_fFunction)).f_CallSync(pRunLoop);
 						}
 					}
 				)
@@ -789,51 +789,51 @@ namespace NMib::NTest
 				bIncluded = true;
 
 			{
-				auto Iter = pManager->m_IncludeGroups.f_GetIterator();
-				while (Iter)
+				auto iIncludeGroup = pManager->m_IncludeGroups.f_GetIterator();
+				while (iIncludeGroup)
 				{
-					if (Iter->f_IsEmpty())
+					if (iIncludeGroup->f_IsEmpty())
 					{
 						if (ThreadLocal.m_TestGroups.f_IsEmpty())
 							bIncluded = true;
 					}
-					else if (ThreadLocal.m_TestGroups.f_FindEqual(*Iter))
+					else if (ThreadLocal.m_TestGroups.f_FindEqual(*iIncludeGroup))
 						bIncluded = true;
 
-					++Iter;
+					++iIncludeGroup;
 				}
 			}
 			{
-				auto Iter = pManager->m_ExcludeGroups.f_GetIterator();
-				while (Iter)
+				auto iExcludeGroup = pManager->m_ExcludeGroups.f_GetIterator();
+				while (iExcludeGroup)
 				{
-					if (Iter->f_IsEmpty())
+					if (iExcludeGroup->f_IsEmpty())
 					{
 						if (ThreadLocal.m_TestGroups.f_IsEmpty())
 							bIncluded = false;
 					}
-					else if (ThreadLocal.m_TestGroups.f_FindEqual(*Iter))
+					else if (ThreadLocal.m_TestGroups.f_FindEqual(*iExcludeGroup))
 						bIncluded = false;
-					++Iter;
+					++iExcludeGroup;
 				}
 			}
 
 			return bIncluded;
 		}
 
-		void fg_StepIntoSuites(bool _Step)
+		void fg_StepIntoSuites(bool _bStep)
 		{
 			auto &Manager = CTestManager::fs_GetManager();
-			Manager.m_ThreadLocal->m_bEnumerating = _Step;
+			Manager.m_ThreadLocal->m_bEnumerating = _bStep;
 		}
 
 		uint32 fg_RunTests(CTestResults *_pResults, CRunTestOptions const &_Options)
 		{
 #	ifdef DMibNeedDebugException
-			NFunction::TCFunction<void (NContract::CContractViolation const &_Violation)> OldLogger = NContract::fg_SetContractLoggerThrowExceptions();
+			NFunction::TCFunction<void (NContract::CContractViolation const &_Violation)> fOldLogger = NContract::fg_SetContractLoggerThrowExceptions();
 			auto Cleanup = g_OnScopeExit / [&]
 				{
-					NContract::fg_SetContractLogger(OldLogger);
+					NContract::fg_SetContractLogger(fOldLogger);
 				}
 			;
 #	endif
@@ -940,11 +940,11 @@ namespace NMib::NTest
 
 			if (pTests)
 			{
-				auto Iter = pTests->m_Children.f_GetIterator();
+				auto iChild = pTests->m_Children.f_GetIterator();
 
-				while (Iter)
+				while (iChild)
 				{
-					NMib::CRunTimeObjectInfo *pIter = Iter;
+					NMib::CRunTimeObjectInfo *pIter = iChild;
 
 					NStr::CStr Name = pIter->f_GetName();
 					if (Name.f_EndsWith("_Tests"))
@@ -1022,7 +1022,7 @@ namespace NMib::NTest
 							}
 						}
 					}
-					++Iter;
+					++iChild;
 				}
 			}
 
@@ -1179,11 +1179,11 @@ namespace NMib::NTest
 #endif
 	}
 
-	void fg_TestAddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_ExceptionHandler)
+	void fg_TestAddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_fExceptionHandler)
 	{
 #if DMibConfig_Tests_Enable
 		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
-		pTestManager->f_AddExceptionInfoGenerator(fg_Move(_ExceptionHandler));
+		pTestManager->f_AddExceptionInfoGenerator(fg_Move(_fExceptionHandler));
 #endif
 	}
 

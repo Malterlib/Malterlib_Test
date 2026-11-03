@@ -28,7 +28,7 @@ namespace NMib::NTest::NPrivate
 	{
 	}
 
-	void CTestCategoryScope::f_ProcessCategory(NFunction::TCFunctionMovable<void ()> &&_Function)
+	void CTestCategoryScope::f_ProcessCategory(NFunction::TCFunctionMovable<void ()> &&_fFunction)
 	{
 		bool bLeaf = (mp_Flags & ETestCategoryFlag_Tests) != 0;
 		NContainer::TCSet<NStr::CStr> const &Groups = mp_Category.f_GetGroups();
@@ -48,7 +48,7 @@ namespace NMib::NTest::NPrivate
 					if (bLeaf)
 						fp_LockSuite();
 
-					_Function();
+					_fFunction();
 				}
 
 				if (bLeaf)

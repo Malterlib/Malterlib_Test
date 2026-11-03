@@ -1493,11 +1493,11 @@ private:
 								if (pState->m_fAddLaunches)
 									pState->m_fAddLaunches();
 							}
-							, [pExited, &ToDispatch, &DispatchEvent](NFunction::TCFunction<void ()> const &_Functor)
+							, [pExited, &ToDispatch, &DispatchEvent](NFunction::TCFunction<void ()> const &_fFunctor)
 							{
 								if (*pExited)
 									return;
-								ToDispatch.f_Push(_Functor);
+								ToDispatch.f_Push(_fFunctor);
 								DispatchEvent.f_Signal();
 							}
 						)

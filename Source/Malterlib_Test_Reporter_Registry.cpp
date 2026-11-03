@@ -33,52 +33,52 @@ namespace NMib::NTest
 
 	void CRegistryTestResults::fsp_DecodeMemoryStatistics(NContainer::CRegistry const &_ParentReg, CTestMemoryStats &_Stats)
 	{
-		for (auto Iter = _ParentReg.f_GetChildIterator("Stat"); Iter && Iter->f_GetName() == "Stat"; ++Iter)
+		for (auto iStat = _ParentReg.f_GetChildIterator("Stat"); iStat && iStat->f_GetName() == "Stat"; ++iStat)
 		{
-			if (Iter->f_GetThisValue() == "Num allocations")
-				fsp_DecodeStatistics(*Iter, _Stats.m_nAllocations);
-			else if (Iter->f_GetThisValue() == "Num free")
-				fsp_DecodeStatistics(*Iter, _Stats.m_nFree);
-			else if (Iter->f_GetThisValue() == "Num resize")
-				fsp_DecodeStatistics(*Iter, _Stats.m_nResize);
-			else if (Iter->f_GetThisValue() == "Num realloc")
-				fsp_DecodeStatistics(*Iter, _Stats.m_nRealloc);
-			else if (Iter->f_GetThisValue() == "Num get size")
-				fsp_DecodeStatistics(*Iter, _Stats.m_nGetSize);
-			else if (Iter->f_GetThisValue() == "Num protect")
-				fsp_DecodeStatistics(*Iter, _Stats.m_nProtect);
-			else if (Iter->f_GetThisValue() == "Num commit")
-				fsp_DecodeStatistics(*Iter, _Stats.m_nCommit);
-			else if (Iter->f_GetThisValue() == "Num decommit")
-				fsp_DecodeStatistics(*Iter, _Stats.m_nDecommit);
-			else if (Iter->f_GetThisValue() == "Bytes allocated")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesAlloc);
-			else if (Iter->f_GetThisValue() == "Bytes freed")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesFree);
-			else if (Iter->f_GetThisValue() == "Bytes resized")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesResize);
-			else if (Iter->f_GetThisValue() == "Bytes rellocated")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesRealloc);
-			else if (Iter->f_GetThisValue() == "Bytes protected")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesProtect);
-			else if (Iter->f_GetThisValue() == "Bytes commited")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesCommit);
-			else if (Iter->f_GetThisValue() == "Bytes decommited")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesDecommit);
-			else if (Iter->f_GetThisValue() == "Bytes overhead")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesOverhead);
-			else if (Iter->f_GetThisValue() == "Bytes potential waste")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesOverhead);
-			else if (Iter->f_GetThisValue() == "Bytes allocated max")
-				fsp_DecodeStatistics(*Iter, _Stats.m_BytesMaxAlloc);
-			else if (Iter->f_GetThisValue() == "Bytes overhead at max allocated")
-				fsp_DecodeStatistics(*Iter, _Stats.m_AtBytesMaxAlloc.m_BytesOverhead);
-			else if (Iter->f_GetThisValue() == "Bytes potential waste at max allocated")
-				fsp_DecodeStatistics(*Iter, _Stats.m_AtBytesMaxAlloc.m_BytesOverhead);
-			else if (Iter->f_GetThisValue() == "Num allocations at max allocated")
-				fsp_DecodeStatistics(*Iter, _Stats.m_AtBytesMaxAlloc.m_nAllocations);
+			if (iStat->f_GetThisValue() == "Num allocations")
+				fsp_DecodeStatistics(*iStat, _Stats.m_nAllocations);
+			else if (iStat->f_GetThisValue() == "Num free")
+				fsp_DecodeStatistics(*iStat, _Stats.m_nFree);
+			else if (iStat->f_GetThisValue() == "Num resize")
+				fsp_DecodeStatistics(*iStat, _Stats.m_nResize);
+			else if (iStat->f_GetThisValue() == "Num realloc")
+				fsp_DecodeStatistics(*iStat, _Stats.m_nRealloc);
+			else if (iStat->f_GetThisValue() == "Num get size")
+				fsp_DecodeStatistics(*iStat, _Stats.m_nGetSize);
+			else if (iStat->f_GetThisValue() == "Num protect")
+				fsp_DecodeStatistics(*iStat, _Stats.m_nProtect);
+			else if (iStat->f_GetThisValue() == "Num commit")
+				fsp_DecodeStatistics(*iStat, _Stats.m_nCommit);
+			else if (iStat->f_GetThisValue() == "Num decommit")
+				fsp_DecodeStatistics(*iStat, _Stats.m_nDecommit);
+			else if (iStat->f_GetThisValue() == "Bytes allocated")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesAlloc);
+			else if (iStat->f_GetThisValue() == "Bytes freed")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesFree);
+			else if (iStat->f_GetThisValue() == "Bytes resized")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesResize);
+			else if (iStat->f_GetThisValue() == "Bytes rellocated")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesRealloc);
+			else if (iStat->f_GetThisValue() == "Bytes protected")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesProtect);
+			else if (iStat->f_GetThisValue() == "Bytes commited")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesCommit);
+			else if (iStat->f_GetThisValue() == "Bytes decommited")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesDecommit);
+			else if (iStat->f_GetThisValue() == "Bytes overhead")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesOverhead);
+			else if (iStat->f_GetThisValue() == "Bytes potential waste")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesOverhead);
+			else if (iStat->f_GetThisValue() == "Bytes allocated max")
+				fsp_DecodeStatistics(*iStat, _Stats.m_BytesMaxAlloc);
+			else if (iStat->f_GetThisValue() == "Bytes overhead at max allocated")
+				fsp_DecodeStatistics(*iStat, _Stats.m_AtBytesMaxAlloc.m_BytesOverhead);
+			else if (iStat->f_GetThisValue() == "Bytes potential waste at max allocated")
+				fsp_DecodeStatistics(*iStat, _Stats.m_AtBytesMaxAlloc.m_BytesOverhead);
+			else if (iStat->f_GetThisValue() == "Num allocations at max allocated")
+				fsp_DecodeStatistics(*iStat, _Stats.m_AtBytesMaxAlloc.m_nAllocations);
 			else
-				DMibNeverGetHere(Iter->f_GetThisValue());
+				DMibNeverGetHere(iStat->f_GetThisValue());
 		}
 	}
 
@@ -480,23 +480,23 @@ namespace NMib::NTest
 	{
 		_Results.m_Tolerance = _Registry.f_GetValueNoPath("Tolerance").f_ToFloat(fp64(1.0));
 
-		for (auto Iter = _Registry.f_GetChildIterator("Result"); Iter && Iter->f_GetName() == "Result"; ++Iter)
+		for (auto iResult = _Registry.f_GetChildIterator("Result"); iResult && iResult->f_GetName() == "Result"; ++iResult)
 		{
 			auto &Result = _Results.m_Results.f_Insert();
-			Result.m_Name = Iter->f_GetThisValue();
-			Result.m_MeasureType = fs_MeasureTypeFromStr(Iter->f_GetValueNoPath("MeasureType"));
-			Result.m_nIterations = Iter->f_GetValueNoPath("NumIterations").f_ToInt(Result.m_nIterations);
-			Result.m_nRepetitions = Iter->f_GetValueNoPath("NumRepetitions").f_ToInt(Result.m_nRepetitions);
-			Result.m_nContributingThreads = Iter->f_GetValueNoPath("NumContributingThreads").f_ToInt(Result.m_nContributingThreads);
+			Result.m_Name = iResult->f_GetThisValue();
+			Result.m_MeasureType = fs_MeasureTypeFromStr(iResult->f_GetValueNoPath("MeasureType"));
+			Result.m_nIterations = iResult->f_GetValueNoPath("NumIterations").f_ToInt(Result.m_nIterations);
+			Result.m_nRepetitions = iResult->f_GetValueNoPath("NumRepetitions").f_ToInt(Result.m_nRepetitions);
+			Result.m_nContributingThreads = iResult->f_GetValueNoPath("NumContributingThreads").f_ToInt(Result.m_nContributingThreads);
 
-			for (auto StatIter = Iter->f_GetChildNoPath("PerformanceStats")->f_GetChildIterator("Stat"); StatIter && StatIter->f_GetName() == "Stat"; ++StatIter)
+			for (auto iStat = iResult->f_GetChildNoPath("PerformanceStats")->f_GetChildIterator("Stat"); iStat && iStat->f_GetName() == "Stat"; ++iStat)
 			{
-				if (StatIter->f_GetThisValue() == "Time")
-					fsp_DecodeStatistics(*StatIter, Result.m_Time);
-				else if (StatIter->f_GetThisValue() == "Cycles")
-					fsp_DecodeStatistics(*StatIter, Result.m_Cycles);
+				if (iStat->f_GetThisValue() == "Time")
+					fsp_DecodeStatistics(*iStat, Result.m_Time);
+				else if (iStat->f_GetThisValue() == "Cycles")
+					fsp_DecodeStatistics(*iStat, Result.m_Cycles);
 				else
-					fsp_DecodeStatistics(*StatIter, Result.m_PerformanceCounters[StatIter->f_GetThisValue()]);
+					fsp_DecodeStatistics(*iStat, Result.m_PerformanceCounters[iStat->f_GetThisValue()]);
 			}
 		}
 	}
@@ -525,8 +525,8 @@ namespace NMib::NTest
 			fsp_AddStatistics(pPerfReg, "Time", Result.m_Time);
 			fsp_AddStatistics(pPerfReg, "Cycles", Result.m_Cycles);
 
-			for (auto Iter = Result.m_PerformanceCounters.f_GetIterator(); Iter; ++Iter)
-				fsp_AddStatistics(pPerfReg, Iter.f_GetKey(), *Iter);
+			for (auto iCounter = Result.m_PerformanceCounters.f_GetIterator(); iCounter; ++iCounter)
+				fsp_AddStatistics(pPerfReg, iCounter.f_GetKey(), *iCounter);
 		}
 
 		DMibConOut("{}", Registry.f_GenerateStr());
@@ -536,20 +536,20 @@ namespace NMib::NTest
 	{
 		_Results.m_Tolerance = _Registry.f_GetValueNoPath("Tolerance").f_ToFloat(fp64(1.0));
 
-		for (auto Iter = _Registry.f_GetChildIterator("Result"); Iter && Iter->f_GetName() == "Result"; ++Iter)
+		for (auto iResult = _Registry.f_GetChildIterator("Result"); iResult && iResult->f_GetName() == "Result"; ++iResult)
 		{
 			auto &Result = _Results.m_Results.f_Insert();
-			Result.m_Name = Iter->f_GetThisValue();
-			Result.m_MeasureType = fs_MeasureTypeFromStr(Iter->f_GetValueNoPath("MeasureType"));
-			Result.m_nIterations = Iter->f_GetValueNoPath("NumIterations").f_ToInt(Result.m_nIterations);
-			Result.m_nRepetitions = Iter->f_GetValueNoPath("NumRepetitions").f_ToInt(Result.m_nRepetitions);
+			Result.m_Name = iResult->f_GetThisValue();
+			Result.m_MeasureType = fs_MeasureTypeFromStr(iResult->f_GetValueNoPath("MeasureType"));
+			Result.m_nIterations = iResult->f_GetValueNoPath("NumIterations").f_ToInt(Result.m_nIterations);
+			Result.m_nRepetitions = iResult->f_GetValueNoPath("NumRepetitions").f_ToInt(Result.m_nRepetitions);
 
-			for (auto StatIter = Iter->f_GetChildNoPath("MemoryStats")->f_GetChildIterator("AllocationType"); StatIter && StatIter->f_GetName() == "AllocationType"; ++StatIter)
+			for (auto iStat = iResult->f_GetChildNoPath("MemoryStats")->f_GetChildIterator("AllocationType"); iStat && iStat->f_GetName() == "AllocationType"; ++iStat)
 			{
-				if (StatIter->f_GetThisValue() == "All")
-					fsp_DecodeMemoryStatistics(*StatIter, Result.m_AllAllocations);
+				if (iStat->f_GetThisValue() == "All")
+					fsp_DecodeMemoryStatistics(*iStat, Result.m_AllAllocations);
 				else
-					fsp_DecodeMemoryStatistics(*StatIter, Result.m_PerAllocationType[StatIter->f_GetThisValue()]);
+					fsp_DecodeMemoryStatistics(*iStat, Result.m_PerAllocationType[iStat->f_GetThisValue()]);
 			}
 		}
 	}
@@ -575,8 +575,8 @@ namespace NMib::NTest
 			NContainer::CRegistry *pPerfReg = pResultReg->f_CreateChild("MemoryStats", true);
 			fsp_AddMemoryStatistics(pPerfReg, "All", Result.m_AllAllocations);
 
-			for (auto Iter = Result.m_PerAllocationType.f_GetIterator(); Iter; ++Iter)
-				fsp_AddMemoryStatistics(pPerfReg, Iter.f_GetKey(), *Iter);
+			for (auto iAllocationType = Result.m_PerAllocationType.f_GetIterator(); iAllocationType; ++iAllocationType)
+				fsp_AddMemoryStatistics(pPerfReg, iAllocationType.f_GetKey(), *iAllocationType);
 		}
 
 		DMibConOut("{}", Registry.f_GenerateStr());

@@ -417,7 +417,7 @@ namespace NMib::NTest
 	NStr::CStr fg_TestGetExtraData();
 	NContainer::TCSet<NStr::CStr> fg_TestGetCurrentGroups();
 
-	void fg_TestAddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_ExceptionHandler);
+	void fg_TestAddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_fExceptionHandler);
 	NStr::CStr fg_TestGetExceptionInfo();
 	void fg_TestAddCleanupPath(NStr::CStr const &_Directory);
 

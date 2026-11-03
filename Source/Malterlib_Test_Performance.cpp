@@ -15,7 +15,7 @@ namespace NMib::NTest
 
 	NTime::TCCyclesTimeMeasure<false> CTestPerformanceMeasure::msp_CyclesCorrection(0);
 	NTime::CTimeMeasure CTestPerformanceMeasure::msp_TimerCorrection(0);
-	bool CTestPerformanceMeasure::msp_CalculateCorrection = true;
+	bool CTestPerformanceMeasure::msp_bCalculateCorrection = true;
 
 	CTestPerformanceMeasure::CTestPerformanceMeasure(NStr::CStr const &_Name)
 		: mp_MinCycles(fp64::fs_Inf())
@@ -32,9 +32,9 @@ namespace NMib::NTest
 		, mp_nIterations(0)
 		, mp_nContributingThreads(0)
 	{
-		if (msp_CalculateCorrection)
+		if (msp_bCalculateCorrection)
 		{
-			msp_CalculateCorrection = false;
+			msp_bCalculateCorrection = false;
 			CTestPerformanceMeasure Timer("");
 			uint64 nIter = 1;
 			for (umint iSample = 0; iSample < 100; ++iSample)
