@@ -134,6 +134,7 @@ namespace NMib::NTest::NPrivate
 	{
 		t_CExpression m_Expression;
 
+	private:
 		bool fp_Evaluate() const
 #	ifndef DCompiler_MSVC_Workaround
 			requires NTraits::cIsSame<t_CExpression, bool> || requires ()
@@ -419,8 +420,8 @@ namespace NMib::NTest::NPrivate
 		void f_ProcessCategory(NFunction::TCFunctionMovable<void ()> &&_Function);
 
 	private:
-		bool f_ContinueEnumerating() const;
-		void f_ReportLeafCategory();
+		bool fp_ContinueEnumerating() const;
+		void fp_ReportLeafCategory();
 		void fp_LockSuite();
 
 		DMibThreadLocalScopeDebugMember;

@@ -687,7 +687,7 @@ namespace NMib::NTest
 				throw CReportTestAbortException();
 		}
 
-		bool CTestCategoryScope::f_ContinueEnumerating() const
+		bool CTestCategoryScope::fp_ContinueEnumerating() const
 		{
 			auto &Manager = CTestManager::fs_GetManager();
 			return !Manager.m_ThreadLocal->m_bEnumerating || !(mp_Flags & ETestCategoryFlag_Tests);
@@ -733,7 +733,7 @@ namespace NMib::NTest
 			Manager.m_SuiteLocks[Suite] = fg_Move(pLock);
 		}
 
-		void CTestCategoryScope::f_ReportLeafCategory()
+		void CTestCategoryScope::fp_ReportLeafCategory()
 		{
 			auto &Manager = CTestManager::fs_GetManager();
 			Manager.f_GetResults(*Manager.m_ThreadLocal)->f_ReportSuite(Manager.m_ThreadLocal->m_TestPath, Manager.m_ThreadLocal->m_TestGroups, CTestLocation(mp_pFile, mp_Line));

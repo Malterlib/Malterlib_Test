@@ -43,7 +43,7 @@ namespace NMib::NTest::NPrivate
 				if (!fg_ShouldRunSubTest(bLeaf))
 					return;
 
-				if (f_ContinueEnumerating())
+				if (fp_ContinueEnumerating())
 				{
 					if (bLeaf)
 						fp_LockSuite();
@@ -52,7 +52,7 @@ namespace NMib::NTest::NPrivate
 				}
 
 				if (bLeaf)
-					f_ReportLeafCategory();
+					fp_ReportLeafCategory();
 			}
 		;
 
