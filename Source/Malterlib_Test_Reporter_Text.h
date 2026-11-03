@@ -17,9 +17,8 @@ namespace NMib::NTest
 		, ETestSeverity_Error
 	};
 
-	class CTextTestResults : public CTestResults
+	struct CTextTestResults : public CTestResults
 	{
-	public:
 		CTextTestResults(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags);
 
 		ETestReportFlag f_GetReportFlags() override
@@ -72,9 +71,8 @@ namespace NMib::NTest
 		ETestReportFlag mp_ReportFlags;
 	};
 
-	class CTextTestResultsBrief : public CTextTestResults
+	struct CTextTestResultsBrief : public CTextTestResults
 	{
-	public:
 		CTextTestResultsBrief(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags);
 
 		void fp_AddReport

@@ -90,9 +90,9 @@ namespace NMib::NTest::NExpression
 		NStr::CStr fg_LineBreakDescRight(NStr::CStr const &_Desc);
 	}
 	template <typename t_CLeft, typename t_CRight, COperatorUnderlying _Operator>
-	class TCExpressionWithOperator;
+	struct TCExpressionWithOperator;
 	template <typename t_CType, CLambdaUnderlying t_bLambda, typename t_CLambdaReturn>
-	class TCExpression;
+	struct TCExpression;
 
 #define DImplementExpressionInterfaceNoEval(d_ThisType) \
 	public:\
@@ -380,8 +380,9 @@ namespace NMib::NTest::NExpression
 	DImplementExpressionInterfaceNoEval(d_ThisType)
 #define DMibTemp_ImplementBinaryOperator(d_OperatorType, d_OperatorDesc, d_OperatorCpp)\
 	template <typename t_CLeft, typename t_CRight>\
-	class TCExpressionWithOperator<t_CLeft, t_CRight, d_OperatorType>\
+	struct TCExpressionWithOperator<t_CLeft, t_CRight, d_OperatorType>\
 	{\
+	private:\
 		static const t_CLeft &fsp_GetLeft();\
 		static const t_CRight &fsp_GetRight();\
 	public:\
@@ -426,8 +427,9 @@ namespace NMib::NTest::NExpression
 
 #define DMibTemp_ImplementUnaryOperator(d_OperatorType, d_OperatorDesc, d_OperatorCpp)\
 	template <typename t_CLeft, typename t_CRight>\
-	class TCExpressionWithOperator<t_CLeft, t_CRight, d_OperatorType>\
+	struct TCExpressionWithOperator<t_CLeft, t_CRight, d_OperatorType>\
 	{\
+	private:\
 		static const t_CLeft &fsp_GetLeft();\
 	public:\
 		const t_CLeft &m_Left;\
@@ -453,8 +455,9 @@ namespace NMib::NTest::NExpression
 
 #define DMibTemp_ImplementUnaryPostfixOperator(d_OperatorType, d_OperatorDesc, d_OperatorCpp)\
 	template <typename t_CLeft, typename t_CRight>\
-	class TCExpressionWithOperator<t_CLeft, t_CRight, d_OperatorType>\
+	struct TCExpressionWithOperator<t_CLeft, t_CRight, d_OperatorType>\
 	{\
+	private:\
 		static const t_CLeft &fsp_GetLeft();\
 	public:\
 		const t_CLeft &m_Left;\
@@ -479,8 +482,9 @@ namespace NMib::NTest::NExpression
 	};
 
 	template <typename t_CLeft, typename t_CRight>
-	class TCExpressionWithOperator<t_CLeft, t_CRight, EOperator_Logical_And>
+	struct TCExpressionWithOperator<t_CLeft, t_CRight, EOperator_Logical_And>
 	{
+	private:
 		static t_CLeft const &fsp_GetLeft();
 		static t_CRight const &fsp_GetRight();
 
@@ -553,8 +557,9 @@ namespace NMib::NTest::NExpression
 	};
 
 	template <typename t_CLeft, typename t_CRight>
-	class TCExpressionWithOperator<t_CLeft, t_CRight, EOperator_Logical_Or>
+	struct TCExpressionWithOperator<t_CLeft, t_CRight, EOperator_Logical_Or>
 	{
+	private:
 		static t_CLeft const &fsp_GetLeft();
 		static t_CRight const &fsp_GetRight();
 
@@ -658,12 +663,8 @@ namespace NMib::NTest::NExpression
 	DMibTemp_ImplementUnaryPostfixOperator(EOperator_Unary_PostfixDecrement, "--", --);
 
 	template <typename t_CType, CLambdaUnderlying t_bLambda, typename t_CLambdaReturn = void>
-	class TCExpression
+	struct TCExpression
 	{
-		t_CType m_Lambda;
-		ch8 const *m_pDescription;
-
-	public:
 		bool f_Eval(NStr::CStr *o_pValueDesc) const
 		{
 			DMibFastCheck(o_pValueDesc); // Should only be called once
@@ -730,15 +731,15 @@ namespace NMib::NTest::NExpression
 		{
 		}
 		DImplementExpressionInterfaceNoEval(TCExpression);
+
+	private:
+		t_CType m_Lambda;
+		ch8 const *m_pDescription;
 	};
 
 	template <typename t_CType, typename t_CLambdaReturn>
-	class TCExpression<t_CType, ELambda_NoEval, t_CLambdaReturn>
+	struct TCExpression<t_CType, ELambda_NoEval, t_CLambdaReturn>
 	{
-		t_CType m_Lambda;
-		ch8 const *m_pDescription;
-
-	public:
 		bool f_Eval(NStr::CStr *o_pValueDesc) const
 		{
 			return false;
@@ -772,15 +773,15 @@ namespace NMib::NTest::NExpression
 		{
 		}
 		DImplementExpressionInterfaceNoEval(TCExpression);
+
+	private:
+		t_CType m_Lambda;
+		ch8 const *m_pDescription;
 	};
 
 	template <typename t_CType, typename t_CLambdaReturn>
-	class TCExpression<t_CType, ELambda_None, t_CLambdaReturn>
+	struct TCExpression<t_CType, ELambda_None, t_CLambdaReturn>
 	{
-		t_CType m_Variable;
-		ch8 const *m_pDescription;
-
-	public:
 		NStr::CStr f_GetDesc() const
 		{
 			return m_pDescription;
@@ -811,6 +812,10 @@ namespace NMib::NTest::NExpression
 		}
 
 		DMibTemp_ImplementExpressionInterface(TCExpression);
+
+	private:
+		t_CType m_Variable;
+		ch8 const *m_pDescription;
 	};
 
 #undef DMibTemp_ImplementExpressionInterface
@@ -818,62 +823,8 @@ namespace NMib::NTest::NExpression
 #undef DMibTemp_ImplementUnaryOperator
 #undef DMibTemp_RequiresCheck
 
-	class CExpression
+	struct CExpression
 	{
-		class CExpressionInternal
-		{
-		public:
-			virtual ~CExpressionInternal()
-			{
-			}
-
-			virtual bool f_Eval(NStr::CStr *o_pValueDesc) const = 0;
-			virtual NStr::CStr f_GetDesc() const = 0;
-			virtual NStr::CStr f_GetDescRecursive() const = 0;
-			virtual NStr::CStr f_GetValueDescRecursive() const = 0;
-			virtual bool f_OnlyEvalOnce() const = 0;
-		};
-
-		template <typename t_CImpl>
-		class TCExpressionImpl : public CExpressionInternal
-		{
-			t_CImpl const &m_Impl;
-
-		public:
-			TCExpressionImpl(t_CImpl const &_Impl)
-				: m_Impl(_Impl)
-			{
-			}
-
-			bool f_Eval(NStr::CStr *o_pValueDesc) const override
-			{
-				return m_Impl.f_Eval(o_pValueDesc);
-			}
-
-			bool f_OnlyEvalOnce() const override
-			{
-				return m_Impl.f_OnlyEvalOnce();
-			}
-
-			NStr::CStr f_GetDesc() const override
-			{
-				return m_Impl.f_GetDesc();
-			}
-
-			NStr::CStr f_GetDescRecursive() const override
-			{
-				return m_Impl.f_GetDescRecursive();
-			}
-
-			NStr::CStr f_GetValueDescRecursive() const override
-			{
-				return m_Impl.f_GetValueDescRecursive();
-			}
-		};
-
-		CExpressionInternal *m_pExpression;
-
-	public:
 		template <typename t_CType, CLambdaUnderlying t_bLambda>
 		CExpression(TCExpression<t_CType, t_bLambda> const &_Expression)
 		{
@@ -915,6 +866,59 @@ namespace NMib::NTest::NExpression
 		{
 			return m_pExpression->f_OnlyEvalOnce();
 		}
+
+	private:
+		struct CExpressionInternal
+		{
+			virtual ~CExpressionInternal()
+			{
+			}
+
+			virtual bool f_Eval(NStr::CStr *o_pValueDesc) const = 0;
+			virtual NStr::CStr f_GetDesc() const = 0;
+			virtual NStr::CStr f_GetDescRecursive() const = 0;
+			virtual NStr::CStr f_GetValueDescRecursive() const = 0;
+			virtual bool f_OnlyEvalOnce() const = 0;
+		};
+
+		template <typename t_CImpl>
+		struct TCExpressionImpl : public CExpressionInternal
+		{
+			TCExpressionImpl(t_CImpl const &_Impl)
+				: m_Impl(_Impl)
+			{
+			}
+
+			bool f_Eval(NStr::CStr *o_pValueDesc) const override
+			{
+				return m_Impl.f_Eval(o_pValueDesc);
+			}
+
+			bool f_OnlyEvalOnce() const override
+			{
+				return m_Impl.f_OnlyEvalOnce();
+			}
+
+			NStr::CStr f_GetDesc() const override
+			{
+				return m_Impl.f_GetDesc();
+			}
+
+			NStr::CStr f_GetDescRecursive() const override
+			{
+				return m_Impl.f_GetDescRecursive();
+			}
+
+			NStr::CStr f_GetValueDescRecursive() const override
+			{
+				return m_Impl.f_GetValueDescRecursive();
+			}
+
+		private:
+			t_CImpl const &m_Impl;
+		};
+
+		CExpressionInternal *m_pExpression;
 	};
 
 	template <typename t_CType>

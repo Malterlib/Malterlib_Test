@@ -8,11 +8,8 @@
 namespace NMib::NTest::NPrivate
 {
 #if DMibConfig_Tests_Enable
-	class CReportTestAbortException
+	struct CReportTestAbortException
 	{
-		static uint32 const mcp_Magic = 0xF538CB10;
-
-	public:
 		uint32 m_Magic = mcp_Magic;
 		CReportTestAbortException()
 		{
@@ -22,11 +19,13 @@ namespace NMib::NTest::NPrivate
 		{
 			return m_Magic == mcp_Magic;
 		}
+
+	private:
+		static uint32 const mcp_Magic = 0xF538CB10;
 	};
 
-	class CTestExceptionFilter : public NException::CExceptionFilter
+	struct CTestExceptionFilter : public NException::CExceptionFilter
 	{
-	public:
 		CTestExceptionFilter()
 			: m_pStackTraceInfo(nullptr)
 		{
@@ -49,9 +48,8 @@ namespace NMib::NTest::NPrivate
 		int32 f_GetLine();
 	};
 
-	class CTestExceptionNoFilter : public NException::CExceptionFilter
+	struct CTestExceptionNoFilter : public NException::CExceptionFilter
 	{
-	public:
 		~CTestExceptionNoFilter()
 		{
 		}
@@ -108,9 +106,8 @@ namespace NMib::NTest::NPrivate
 	bool fg_ShouldRunSubTest(bool _bLeaf);
 	void fg_StepIntoSuites(bool _Step);
 
-	class CTestReporterScope
+	struct CTestReporterScope
 	{
-	public:
 		CTestReporterScope(CTestResults &_NewResults)
 		{
 			m_pOldResults = fg_SetResultReporter(&_NewResults);
@@ -126,7 +123,7 @@ namespace NMib::NTest::NPrivate
 		CTestResults *m_pOldResults;
 	};
 
-	class CTest;
+	struct CTest;
 
 	struct CDummyExpression
 	{
@@ -387,9 +384,8 @@ namespace NMib::NTest::NPrivate
 		bool m_bOnlyCustom;
 	};
 
-	class CTestPathScope : public CCoroutineThreadLocalHandler
+	struct CTestPathScope : public CCoroutineThreadLocalHandler
 	{
-	public:
 		CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line);
 		~CTestPathScope();
 
@@ -405,13 +401,8 @@ namespace NMib::NTest::NPrivate
 
 	NStr::CStr fg_GetSuiteLockPath(NStr::CStr const &_Suite);
 
-	class CTestCategoryScope
+	struct CTestCategoryScope
 	{
-		bool f_ContinueEnumerating() const;
-		void f_ReportLeafCategory();
-		void fp_LockSuite();
-
-	public:
 		CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None);
 		~CTestCategoryScope();
 
@@ -428,6 +419,10 @@ namespace NMib::NTest::NPrivate
 		void f_ProcessCategory(NFunction::TCFunctionMovable<void ()> &&_Function);
 
 	private:
+		bool f_ContinueEnumerating() const;
+		void f_ReportLeafCategory();
+		void fp_LockSuite();
+
 		DMibThreadLocalScopeDebugMember;
 		CTestCategory mp_Category;
 		bool mp_bOldEnableValues;

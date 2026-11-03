@@ -7,12 +7,8 @@
 
 namespace NMib::NTest
 {
-	class CTestResultParser
+	struct CTestResultParser
 	{
-		NStr::CStr m_TextBuffer;
-		void fp_HandleRecord(NStr::CStr const &_Text);
-
-	public:
 		virtual void f_HandleHeader(NContainer::CRegistry const &_Reg) = 0;
 		virtual void f_HandleFooter(NContainer::CRegistry const &_Reg) = 0;
 		virtual void f_HandleCategory(NContainer::CRegistry const &_Reg) = 0;
@@ -37,5 +33,9 @@ namespace NMib::NTest
 		static void fs_DecodeMemoryResults(NContainer::CRegistry const &_Registry, CTestMemoryResults &_Results);
 		static void fs_DecodePerformanceResults(NContainer::CRegistry const &_Registry, CTestPerformanceResults &_Results);
 		static void fs_DecodeResult(NContainer::CRegistry const &_Registry, CTestResult &_Results);
+
+	private:
+		NStr::CStr m_TextBuffer;
+		void fp_HandleRecord(NStr::CStr const &_Text);
 	};
 }

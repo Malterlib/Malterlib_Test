@@ -10,9 +10,8 @@
 namespace NMib::NTest
 {
 	template <typename t_CFunction>
-	class TCTestRecursive
+	struct TCTestRecursive
 	{
-	public:
 		t_CFunction m_Function;
 
 		TCTestRecursive(t_CFunction const &_Function)
@@ -25,14 +24,8 @@ namespace NMib::NTest
 		}
 
 		mutable NStr::CStr m_ReportText;
-		class CLocalResults : public CTextTestResults
+		struct CLocalResults : public CTextTestResults
 		{
-			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override
-			{
-				m_ReportText += _Text;
-			}
-
-		public:
 			CLocalResults(ETestReportFlag _ReportFlags)
 				: m_bSuccess(true)
 				, CTextTestResults(NCommandLine::EAnsiEncodingFlag_None)
@@ -63,6 +56,12 @@ namespace NMib::NTest
 					return ETestNeedReportFlag_AllowDuplicates | ETestNeedReportFlag_Report; // | ETestNeedReportFlag_Abort;
 				}
 				return ETestNeedReportFlag_AllowDuplicates;
+			}
+
+		private:
+			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override
+			{
+				m_ReportText += _Text;
 			}
 		};
 

@@ -8,8 +8,30 @@
 
 namespace NMib::NTest
 {
-	class CTestPerformanceMeasure
+	struct CTestPerformanceMeasure
 	{
+		CTestPerformanceMeasure(NStr::CStr const &_Name);
+
+		void f_AddThreadResult(CTestPerformanceMeasure const &_Right);
+		inline_never void f_Start();
+		inline_never void f_Stop(uint64 _nIterations, uint32 _nContributingThreads = 1);
+		inline_never void f_NewRepetition();
+		NStr::CStr const &f_Name();
+		uint64 f_Iterations();
+		uint64 f_Repetitions();
+		uint32 f_ContributingThreads();
+		fp64 f_CyclesMin();
+		fp64 f_CyclesMax();
+		fp64 f_CyclesAverage();
+		fp64 f_CyclesMedian();
+		fp64 f_CyclesStdDev();
+		fp64 f_TimeMin();
+		fp64 f_TimeMax();
+		fp64 f_TimeAverage();
+		fp64 f_TimeMedian();
+		fp64 f_TimeStdDev();
+
+	private:
 		NTime::TCCyclesTimeMeasure<false> m_Cycles;
 		NTime::CTimeMeasure m_Timer;
 		uint64 m_nIterations;
@@ -35,34 +57,11 @@ namespace NMib::NTest
 		static bool ms_CalculateCorrection;
 
 		void fp_CalcRepetition();
-
-	public:
-		CTestPerformanceMeasure(NStr::CStr const &_Name);
-
-		void f_AddThreadResult(CTestPerformanceMeasure const &_Right);
-		inline_never void f_Start();
-		inline_never void f_Stop(uint64 _nIterations, uint32 _nContributingThreads = 1);
-		inline_never void f_NewRepetition();
-		NStr::CStr const &f_Name();
-		uint64 f_Iterations();
-		uint64 f_Repetitions();
-		uint32 f_ContributingThreads();
-		fp64 f_CyclesMin();
-		fp64 f_CyclesMax();
-		fp64 f_CyclesAverage();
-		fp64 f_CyclesMedian();
-		fp64 f_CyclesStdDev();
-		fp64 f_TimeMin();
-		fp64 f_TimeMax();
-		fp64 f_TimeAverage();
-		fp64 f_TimeMedian();
-		fp64 f_TimeStdDev();
 	};
 
 	template <typename t_CTimer, typename t_CIterations>
-	class TCTestMeasureScope
+	struct TCTestMeasureScope
 	{
-	public:
 		t_CTimer &m_Timer;
 		t_CIterations const &m_Iterations;
 
@@ -80,9 +79,8 @@ namespace NMib::NTest
 	};
 
 	template <typename t_CTimer, typename t_CIterations>
-	class TCTestMeasureScopeWithThread
+	struct TCTestMeasureScopeWithThread
 	{
-	public:
 		t_CTimer &m_Timer;
 		t_CIterations const &m_Iterations;
 		umint m_nThreads;
@@ -110,15 +108,8 @@ namespace NMib::NTest
 #	define DTestScopeMeasureThreads DMibTestScopeMeasureThreads
 #endif
 
-	class CTestPerformance
+	struct CTestPerformance
 	{
-		CTestPerformanceResults m_Results;
-		NContainer::TCMap<fp64, umint> m_References;
-		bool m_bModifyDescription;
-		CTestPerformanceResult &fp_Add(CTestPerformanceMeasure &_Timer);
-		NStr::CStr fp_GetOutput() const;
-
-	public:
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
 		bool f_IsIgnored() const;
 #endif
@@ -142,5 +133,12 @@ namespace NMib::NTest
 		{
 			return NStr::fg_CreateStringFormatter(_Formatter, fg_ByValue(fp_GetOutput()));
 		}
+
+	private:
+		CTestPerformanceResults m_Results;
+		NContainer::TCMap<fp64, umint> m_References;
+		bool m_bModifyDescription;
+		CTestPerformanceResult &fp_Add(CTestPerformanceMeasure &_Timer);
+		NStr::CStr fp_GetOutput() const;
 	};
 }

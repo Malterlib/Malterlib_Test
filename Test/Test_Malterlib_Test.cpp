@@ -10,18 +10,16 @@ namespace
 {
 	using namespace NMib::NStr;
 
-	class CTest_Tests : public NMib::NTest::CTest
+	struct CTest_Tests : public NMib::NTest::CTest
 	{
-	public:
 		int m_Test;
 		CTest_Tests()
 		{
 			m_Test = 0;
 		}
 
-		class CObject
+		struct CObject
 		{
-		public:
 			void f_Test0()
 			{
 				throw int32(2);

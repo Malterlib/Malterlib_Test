@@ -128,7 +128,6 @@ namespace NMib::NTest
 	template <bool t_bOuter, typename t_CException, typename ...tp_CExceptions>
 	struct TCThrowsExceptionImpl<t_bOuter, t_CException, tp_CExceptions...> : public TCThrowsExceptionImpl<false, tp_CExceptions...>
 	{
-	public:
 		template <typename t_FFunctor>
 		bool operator == (t_FFunctor const &_fFunctor) const
 		{
@@ -299,7 +298,6 @@ namespace NMib::NTest
 	template <bool t_bOuter, typename t_CException, typename ...tp_CExceptions>
 	struct TCThrowsExceptionExactImpl<t_bOuter, t_CException, tp_CExceptions...> : private TCThrowsExceptionExactImpl<false, tp_CExceptions...>
 	{
-	public:
 		TCThrowsExceptionExactImpl(t_CException const &_Exception, tp_CExceptions const & ...p_Exceptions)
 			: TCThrowsExceptionExactImpl<false, tp_CExceptions...>(p_Exceptions...)
 			, m_Exception(_Exception)

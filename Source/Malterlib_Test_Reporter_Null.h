@@ -7,7 +7,7 @@
 
 namespace NMib::NTest::NPrivate
 {
-	class CNullTestResults : public CTestResults
+	struct CNullTestResults : public CTestResults
 	{
 	protected:
 		ETestReportFlag mp_ReportFlags;

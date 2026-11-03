@@ -7,20 +7,8 @@
 
 namespace NMib::NTest
 {
-	class CRegistryTestResults : public CTestResults
+	struct CRegistryTestResults : public CTestResults
 	{
-		ETestReportFlag mp_ReportFlags;
-
-		NAtomic::TCAtomic<int32> m_NextID;
-		NThread::TCThreadLocal<uint32> m_CurrentID;
-
-		static NContainer::CRegistry *fsp_AddStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestStats const &_Stats);
-		static NContainer::CRegistry *fsp_AddMemoryStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestMemoryStats const &_Stats);
-
-		static void fsp_DecodeStatistics(NContainer::CRegistry const &_ParentReg, CTestStats &_Stats);
-		static void fsp_DecodeMemoryStatistics(NContainer::CRegistry const &_ParentReg, CTestMemoryStats &_Stats);
-
-	public:
 		static NStr::CStr fs_MeasureTypeToStr(ETestMeasureType _MeasureType);
 		static ETestMeasureType fs_MeasureTypeFromStr(NStr::CStr const &_MeasureType);
 		static NStr::CStr fs_ReportFlagsToStr(ETestReportFlag _Flags);
@@ -57,5 +45,17 @@ namespace NMib::NTest
 		void f_ReportSuite(NStr::CStr const &_TestPath, NContainer::TCSet<NStr::CStr> const &_TestGroups, CTestLocation const &_Location) override;
 		void f_PerformanceResults(CTestPerformanceResults const &_Results) override;
 		void f_MemoryResults(CTestMemoryResults const &_Results) override;
+
+	private:
+		ETestReportFlag mp_ReportFlags;
+
+		NAtomic::TCAtomic<int32> m_NextID;
+		NThread::TCThreadLocal<uint32> m_CurrentID;
+
+		static NContainer::CRegistry *fsp_AddStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestStats const &_Stats);
+		static NContainer::CRegistry *fsp_AddMemoryStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestMemoryStats const &_Stats);
+
+		static void fsp_DecodeStatistics(NContainer::CRegistry const &_ParentReg, CTestStats &_Stats);
+		static void fsp_DecodeMemoryStatistics(NContainer::CRegistry const &_ParentReg, CTestMemoryStats &_Stats);
 	};
 }

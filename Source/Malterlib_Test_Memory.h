@@ -17,8 +17,17 @@ namespace NMib::NTest
 		, EStatAffectFlag_Median = DMibBit(4)
 	};
 
-	class CTestMemoryMeasure : NMemory::CReportMemory
+	struct CTestMemoryMeasure : private NMemory::CReportMemory
 	{
+		CTestMemoryMeasure(NStr::CStr const &_Name);
+		inline_never void f_Start();
+		inline_never void f_Stop(uint32 _nIterations);
+		NStr::CStr const &f_Name();
+		uint32 f_Iterations();
+		uint32 f_Repetitions();
+		void f_GetResults(CTestMemoryResult &_Result);
+
+	private:
 		uint64 mp_nIterationsSum;
 		uint32 mp_nRepetitions;
 		NStr::CStr mp_Name;
@@ -227,28 +236,11 @@ namespace NMib::NTest
 		void f_Commit(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size) override;
 		void f_Decommit(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size) override;
 		void f_AllocatorDelete(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth) override;
-
-	public:
-		CTestMemoryMeasure(NStr::CStr const &_Name);
-		inline_never void f_Start();
-		inline_never void f_Stop(uint32 _nIterations);
-		NStr::CStr const &f_Name();
-		uint32 f_Iterations();
-		uint32 f_Repetitions();
-		void f_GetResults(CTestMemoryResult &_Result);
 	};
 
 	// Todo: allow to specify a flag field for what stats should be better in the test
-	class CTestMemory
+	struct CTestMemory
 	{
-		CTestMemoryResults mp_Results;
-		bool mp_bCompareNumAllocations;
-
-		CTestMemoryResult &fp_Add(CTestMemoryMeasure &_Measure);
-		NStr::CStr fp_GetOutput() const;
-		void fp_GetBest(CTestMemoryResult const * &_pBestRef, CTestMemoryResult const * &_pBest) const;
-
-	public:
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
 		bool f_IsIgnored() const;
 #endif
@@ -275,20 +267,26 @@ namespace NMib::NTest
 		{
 			return NStr::fg_CreateStringFormatter(_Formatter, fg_ByValue(fp_GetOutput()));
 		}
+
+	private:
+		CTestMemoryResults mp_Results;
+		bool mp_bCompareNumAllocations;
+
+		CTestMemoryResult &fp_Add(CTestMemoryMeasure &_Measure);
+		NStr::CStr fp_GetOutput() const;
+		void fp_GetBest(CTestMemoryResult const * &_pBestRef, CTestMemoryResult const * &_pBest) const;
 	};
 
-	class CTestMemoryMaxAllocatedBytes : public CTestMemory
+	struct CTestMemoryMaxAllocatedBytes : public CTestMemory
 	{
-	public:
 		CTestMemoryMaxAllocatedBytes(fp64 const &_Tolerance)
 			: CTestMemory(_Tolerance, false)
 		{
 		}
 	};
 
-	class CTestMemoryNumAllocations : public CTestMemory
+	struct CTestMemoryNumAllocations : public CTestMemory
 	{
-	public:
 		CTestMemoryNumAllocations(fp64 const &_Tolerance)
 			: CTestMemory(_Tolerance, true)
 		{

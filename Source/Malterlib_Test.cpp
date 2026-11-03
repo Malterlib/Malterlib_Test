@@ -24,9 +24,8 @@ namespace NMib::NTest
 #if DMibConfig_Tests_Enable
 		struct CTestPathRestoringScope;
 
-		class CTestManager
+		struct CTestManager
 		{
-		public:
 			NThread::CMutual m_Lock;
 
 			CTestResults *m_pResults;
@@ -66,9 +65,8 @@ namespace NMib::NTest
 
 			static CTestManager &fs_GetManager();
 
-			class CUniqueTest
+			struct CUniqueTest
 			{
-			public:
 				ch8 const *m_pFile;
 				int32 m_Line;
 				COrdering_Strong operator <=> (CUniqueTest const &_Other) const noexcept
@@ -86,9 +84,8 @@ namespace NMib::NTest
 				CTestPathRestoringScope *m_pCurrentScope = nullptr;
 			};
 
-			class CThreadLocal
+			struct CThreadLocal
 			{
-			public:
 				CThreadLocal() = default;
 				CThreadLocal(CThreadLocal const &_Inherit)
 				{
@@ -1047,9 +1044,8 @@ namespace NMib::NTest
 		}
 #endif // DMibConfig_Tests_Enable
 
-		class CDefaultTestResults : public CTextTestResults
+		struct CDefaultTestResults : public CTextTestResults
 		{
-		public:
 			CDefaultTestResults(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags)
 				: CTextTestResults(_AnsiEncodingFlags)
 			{
@@ -1061,9 +1057,8 @@ namespace NMib::NTest
 			}
 		};
 
-		class CDefaultTestResultsBrief : public CTextTestResultsBrief
+		struct CDefaultTestResultsBrief : public CTextTestResultsBrief
 		{
-		public:
 			CDefaultTestResultsBrief(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags)
 				: CTextTestResultsBrief(_AnsiEncodingFlags)
 			{

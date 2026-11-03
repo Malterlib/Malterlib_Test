@@ -5,9 +5,8 @@
 #include <Mib/Core/Application>
 #include <Mib/Test/Test>
 
-class CTestApplication : public NMib::CApplication
+struct CTestApplication : public NMib::CApplication
 {
-public:
 	CTestApplication()
 	{
 	}

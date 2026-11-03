@@ -91,9 +91,8 @@ namespace NMib::NTest
 		, ETestMeasureType_Debug     // Used for debug, just to compare results with for example less features enabled
 	};
 
-	class CTest : public NConcurrency::CAllowUnsafeThis
+	struct CTest : public NConcurrency::CAllowUnsafeThis
 	{
-	public:
 		virtual ~CTest()
 		{
 		}
@@ -274,16 +273,13 @@ namespace NMib::NTest
 		NContainer::TCVector<CTestMemoryResult> m_Results;
 	};
 
-	class CTestCategory;
-	class CTestGroup;
+	struct CTestCategory;
+	struct CTestGroup;
 
 	CTestCategory operator << (NStr::CStr const &_CategoryName, CTestGroup const &_Group);
 
-	class CTestGroup
+	struct CTestGroup
 	{
-		NStr::CStr mp_Group;
-
-	public:
 		CTestGroup(NStr::CStr const &_Group)
 			: mp_Group(_Group)
 		{
@@ -300,14 +296,13 @@ namespace NMib::NTest
 		}
 
 		friend CTestCategory operator << (NStr::CStr const &_CategoryName, CTestGroup const &_Group);
+
+	private:
+		NStr::CStr mp_Group;
 	};
 
-	class CTestCategory
+	struct CTestCategory
 	{
-		NStr::CStr m_Category;
-		NContainer::TCSet<NStr::CStr> m_Groups;
-
-	public:
 		CTestCategory(ch8 const *_pCategory)
 			: m_Category(_pCategory)
 		{
@@ -338,6 +333,10 @@ namespace NMib::NTest
 		{
 			return m_Groups;
 		}
+
+	private:
+		NStr::CStr m_Category;
+		NContainer::TCSet<NStr::CStr> m_Groups;
 	};
 
 	enum ETestNeedReportFlag
@@ -365,9 +364,8 @@ namespace NMib::NTest
 		int32 m_Line = -1;
 	};
 
-	class CTestResults
+	struct CTestResults
 	{
-	public:
 		virtual ETestReportFlag f_GetReportFlags()
 		{
 			return ETestReportFlag_None;
@@ -451,9 +449,8 @@ namespace NMib::NTest
 	using CTestFunctionHelper = NPrivate::TCTestFunctionHelper<false>;
 	using CTestFunctionHelperOnlyFailure = NPrivate::TCTestFunctionHelper<true>;
 #else
-	class CTestCategoryScope
+	struct CTestCategoryScope
 	{
-	public:
 		CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None)
 		{
 		}
@@ -468,9 +465,8 @@ namespace NMib::NTest
 		}
 	};
 
-	class CTestPathScope
+	struct CTestPathScope
 	{
-	public:
 		CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
 		{
 		}
