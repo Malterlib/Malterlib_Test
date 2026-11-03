@@ -877,9 +877,9 @@ namespace NMib::NTest
 		fp64 BestRef = fp64::fs_LimitMax();
 		fp64 Best = fp64::fs_LimitMax();
 		umint nResults = mp_Results.m_Results.f_GetLen();
-		for (umint i = 0; i < nResults; ++i)
+		for (umint iResult = 0; iResult < nResults; ++iResult)
 		{
-			CTestMemoryResult const &Result = mp_Results.m_Results[i];
+			CTestMemoryResult const &Result = mp_Results.m_Results[iResult];
 			fp64 ThisValue;
 			if (mp_bCompareNumAllocations)
 				ThisValue = Result.m_AllAllocations.m_nAllocations.m_Average + Result.m_AllAllocations.m_nResize.m_Average + Result.m_AllAllocations.m_nRealloc.m_Average;

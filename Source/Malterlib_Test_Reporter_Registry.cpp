@@ -435,8 +435,8 @@ namespace NMib::NTest
 			, NStr::CStr const &_ExtraMultiLineReportData
 		)
 	{
-		uint32 &CurrentID = *m_CurrentID;
-		CurrentID = m_NextID.f_FetchAdd(1);
+		uint32 &CurrentID = *mp_CurrentID;
+		CurrentID = mp_NextID.f_FetchAdd(1);
 		NContainer::CRegistry Registry;
 		NContainer::CRegistry *pReg = Registry.f_CreateChild("Result");
 		pReg->f_SetThisValue(NStr::CStr::fs_ToStr(CurrentID));
@@ -503,7 +503,7 @@ namespace NMib::NTest
 
 	void CRegistryTestResults::f_PerformanceResults(CTestPerformanceResults const &_Results)
 	{
-		uint32 const &CurrentID = *m_CurrentID;
+		uint32 const &CurrentID = *mp_CurrentID;
 
 		NContainer::CRegistry Registry;
 		NContainer::CRegistry *pReg = Registry.f_CreateChild("ResultsPerformance");
@@ -511,9 +511,9 @@ namespace NMib::NTest
 		pReg->f_SetValue("Tolerance", NStr::CStr::fs_ToStr(_Results.m_Tolerance));
 
 		umint nResults = _Results.m_Results.f_GetLen();
-		for (umint i = 0; i < nResults; ++i)
+		for (umint iResult = 0; iResult < nResults; ++iResult)
 		{
-			CTestPerformanceResult const &Result = _Results.m_Results[i];
+			CTestPerformanceResult const &Result = _Results.m_Results[iResult];
 			NContainer::CRegistry *pResultReg = pReg->f_CreateChild("Result", true);
 			pResultReg->f_SetThisValue(Result.m_Name);
 			pResultReg->f_SetValue("MeasureType", fs_MeasureTypeToStr(Result.m_MeasureType));
@@ -556,7 +556,7 @@ namespace NMib::NTest
 
 	void CRegistryTestResults::f_MemoryResults(CTestMemoryResults const &_Results)
 	{
-		uint32 const &CurrentID = *m_CurrentID;
+		uint32 const &CurrentID = *mp_CurrentID;
 
 		NContainer::CRegistry Registry;
 		NContainer::CRegistry *pReg = Registry.f_CreateChild("ResultsMemory");
@@ -564,9 +564,9 @@ namespace NMib::NTest
 		pReg->f_SetValue("Tolerance", NStr::CStr::fs_ToStr(_Results.m_Tolerance));
 
 		umint nResults = _Results.m_Results.f_GetLen();
-		for (umint i = 0; i < nResults; ++i)
+		for (umint iResult = 0; iResult < nResults; ++iResult)
 		{
-			CTestMemoryResult const &Result = _Results.m_Results[i];
+			CTestMemoryResult const &Result = _Results.m_Results[iResult];
 			NContainer::CRegistry *pResultReg = pReg->f_CreateChild("Result", true);
 			pResultReg->f_SetThisValue(Result.m_Name);
 			pResultReg->f_SetValue("MeasureType", fs_MeasureTypeToStr(Result.m_MeasureType));

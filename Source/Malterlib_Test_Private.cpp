@@ -7,17 +7,17 @@ namespace NMib::NTest::NPrivate
 {
 #if DMibConfig_Tests_Enable
 	CTestPathScope::CTestPathScope(NStr::CStr const &_Path, ch8 const *_pFile, uint32 _Line)
-		: m_Path(_Path)
-		, m_pFile(_pFile)
-		, m_Line(_Line)
+		: mp_Path(_Path)
+		, mp_pFile(_pFile)
+		, mp_Line(_Line)
 	{
 		fg_SetTestLastLocation(_pFile, _Line);
-		m_PreviousPath = NMib::NTest::NPrivate::fg_PushCategory(_Path);
+		mp_PreviousPath = NMib::NTest::NPrivate::fg_PushCategory(_Path);
 	}
 
 	CTestPathScope::~CTestPathScope()
 	{
-		NMib::NTest::NPrivate::fg_PopCategory(m_PreviousPath);
+		NMib::NTest::NPrivate::fg_PopCategory(mp_PreviousPath);
 	}
 
 	void CTestPathScope::f_Suspend() noexcept

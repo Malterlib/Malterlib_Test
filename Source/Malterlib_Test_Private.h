@@ -21,7 +21,7 @@ namespace NMib::NTest::NPrivate
 		}
 
 	private:
-		static uint32 const mcp_Magic = 0xF538CB10;
+		static constexpr uint32 mcp_Magic = 0xF538CB10;
 	};
 
 	struct CTestExceptionFilter : public NException::CExceptionFilter
@@ -110,17 +110,17 @@ namespace NMib::NTest::NPrivate
 	{
 		CTestReporterScope(CTestResults &_NewResults)
 		{
-			m_pOldResults = fg_SetResultReporter(&_NewResults);
+			mp_pOldResults = fg_SetResultReporter(&_NewResults);
 		}
 
 		~CTestReporterScope()
 		{
-			fg_SetResultReporter(m_pOldResults);
+			fg_SetResultReporter(mp_pOldResults);
 		}
 
 	private:
 		DMibThreadLocalScopeDebugMember;
-		CTestResults *m_pOldResults;
+		CTestResults *mp_pOldResults;
 	};
 
 	struct CTest;
@@ -394,10 +394,10 @@ namespace NMib::NTest::NPrivate
 		void f_ResumeNoExcept() noexcept override;
 
 	private:
-		NStr::CStr m_PreviousPath;
-		NStr::CStr m_Path;
-		ch8 const *m_pFile;
-		uint32 m_Line;
+		NStr::CStr mp_PreviousPath;
+		NStr::CStr mp_Path;
+		ch8 const *mp_pFile;
+		uint32 mp_Line;
 	};
 
 	NStr::CStr fg_GetSuiteLockPath(NStr::CStr const &_Suite);

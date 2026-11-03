@@ -32,29 +32,29 @@ namespace NMib::NTest
 		fp64 f_TimeStdDev();
 
 	private:
-		NTime::TCCyclesTimeMeasure<false> m_Cycles;
-		NTime::CTimeMeasure m_Timer;
-		uint64 m_nIterations;
+		NTime::TCCyclesTimeMeasure<false> mp_Cycles;
+		NTime::CTimeMeasure mp_Timer;
+		uint64 mp_nIterations;
 
-		NContainer::TCVector<fp64> m_CyclesHistory;
-		fp64 m_CyclesSum;
-		fp64 m_MinCycles;
-		fp64 m_MaxCycles;
+		NContainer::TCVector<fp64> mp_CyclesHistory;
+		fp64 mp_CyclesSum;
+		fp64 mp_MinCycles;
+		fp64 mp_MaxCycles;
 
-		NContainer::TCVector<fp64> m_TimerHistory;
-		fp64 m_TimerSum;
-		fp64 m_MinTimer;
-		fp64 m_MaxTimer;
+		NContainer::TCVector<fp64> mp_TimerHistory;
+		fp64 mp_TimerSum;
+		fp64 mp_MinTimer;
+		fp64 mp_MaxTimer;
 
-		uint64 m_nIterationsSum;
-		uint64 m_nRepetitions;
-		NStr::CStr m_Name;
+		uint64 mp_nIterationsSum;
+		uint64 mp_nRepetitions;
+		NStr::CStr mp_Name;
 
-		uint32 m_nContributingThreads;
+		uint32 mp_nContributingThreads;
 
-		static NTime::TCCyclesTimeMeasure<false> ms_CyclesCorrection;
-		static NTime::CTimeMeasure ms_TimerCorrection;
-		static bool ms_CalculateCorrection;
+		static NTime::TCCyclesTimeMeasure<false> msp_CyclesCorrection;
+		static NTime::CTimeMeasure msp_TimerCorrection;
+		static bool msp_CalculateCorrection;
 
 		void fp_CalcRepetition();
 	};
@@ -135,9 +135,9 @@ namespace NMib::NTest
 		}
 
 	private:
-		CTestPerformanceResults m_Results;
-		NContainer::TCMap<fp64, umint> m_References;
-		bool m_bModifyDescription;
+		CTestPerformanceResults mp_Results;
+		NContainer::TCMap<fp64, umint> mp_References;
+		bool mp_bModifyDescription;
 		CTestPerformanceResult &fp_Add(CTestPerformanceMeasure &_Timer);
 		NStr::CStr fp_GetOutput() const;
 	};

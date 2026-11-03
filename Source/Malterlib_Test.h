@@ -304,39 +304,39 @@ namespace NMib::NTest
 	struct CTestCategory
 	{
 		CTestCategory(ch8 const *_pCategory)
-			: m_Category(_pCategory)
+			: mp_Category(_pCategory)
 		{
 		}
 
 		CTestCategory(NStr::CStr const &_Category)
-			: m_Category(_Category)
+			: mp_Category(_Category)
 		{
 		}
 
 		CTestCategory(NStr::CStr::CFormat const &_Category)
-			: m_Category(_Category)
+			: mp_Category(_Category)
 		{
 		}
 
 		CTestCategory &operator << (CTestGroup const &_Group)
 		{
-			m_Groups[_Group.f_GetGroup()];
+			mp_Groups[_Group.f_GetGroup()];
 			return *this;
 		}
 
 		NStr::CStr const &f_GetCategory() const
 		{
-			return m_Category;
+			return mp_Category;
 		}
 
 		NContainer::TCSet<NStr::CStr> const &f_GetGroups() const
 		{
-			return m_Groups;
+			return mp_Groups;
 		}
 
 	private:
-		NStr::CStr m_Category;
-		NContainer::TCSet<NStr::CStr> m_Groups;
+		NStr::CStr mp_Category;
+		NContainer::TCSet<NStr::CStr> mp_Groups;
 	};
 
 	enum ETestNeedReportFlag

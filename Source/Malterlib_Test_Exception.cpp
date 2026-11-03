@@ -82,11 +82,11 @@ namespace NMib::NTest::NPrivate
 	{
 		umint nDumpFiles = m_DumpFiles.f_GetLen();
 
-		for (umint i = 0; i < nDumpFiles; ++i)
+		for (umint iDumpFile = 0; iDumpFile < nDumpFiles; ++iDumpFile)
 		{
 			try
 			{
-				NFile::CFile::fs_DeleteFile(m_DumpFiles[i]);
+				NFile::CFile::fs_DeleteFile(m_DumpFiles[iDumpFile]);
 			}
 			catch (NException::CException)
 			{
@@ -138,9 +138,9 @@ namespace NMib::NTest::NPrivate
 
 		CMibCodeAddress Stack[64];
 		umint nStack = NSys::fg_System_GetStackTrace(Stack, 64);
-		for (umint i = 0; i < nStack; ++i)
+		for (umint iFrame = 0; iFrame < nStack; ++iFrame)
 		{
-			CStackTraceInfo *pInfo = NSys::fg_Debug_AquireStackTraceInfo(Stack[i]);
+			CStackTraceInfo *pInfo = NSys::fg_Debug_AquireStackTraceInfo(Stack[iFrame]);
 			if (pInfo)
 			{
 				if
@@ -189,8 +189,8 @@ namespace NMib::NTest::NPrivate
 		if (nLogs != 0)
 		{
 			ExtraReportData += "The following crash dump files were generated:" DMibNewLine;
-			for (umint i = 0; i < nLogs; ++i)
-				ExtraReportData += "{}{\n}"_f << _DumpFiles[i];
+			for (umint iLog = 0; iLog < nLogs; ++iLog)
+				ExtraReportData += "{}{\n}"_f << _DumpFiles[iLog];
 		}
 
 		if (ExtraReportData.f_Trim())

@@ -109,23 +109,23 @@ namespace
 				DMibTestSuite("Expressions")
 				{
 #ifdef DMibDebug
-					static umint const nLoops = 10000;
-					static umint const nTests = 2;
+					static constexpr umint c_nLoops = 10000;
+					static constexpr umint c_nTests = 2;
 #else
-					static umint const nLoops = 100000;
-					static umint const nTests = 10;
+					static constexpr umint c_nLoops = 100000;
+					static constexpr umint c_nTests = 10;
 #endif
 
 					NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
-					for (umint i = 0; i < nTests; ++i)
+					for (umint iTest = 0; iTest < c_nTests; ++iTest)
 					{
 						TestTimer.f_Start();
-						for (umint i = 0; i < nLoops; ++i)
-							DMibTest(DMibExpr(i) < DMibExpr(nLoops))(ETestFlag_Aggregated);
+						for (umint iLoop = 0; iLoop < c_nLoops; ++iLoop)
+							DMibTest(DMibExpr(iLoop) < DMibExpr(c_nLoops))(ETestFlag_Aggregated);
 						TestTimer.f_Stop();
 					}
 
-					TestTimer /= nLoops;
+					TestTimer /= c_nLoops;
 
 					umint ExpectedCycles = 1000;
 #ifdef DMibDebug
@@ -137,23 +137,23 @@ namespace
 				DMibTestSuite("Raw")
 				{
 #ifdef DMibDebug
-					static umint const nLoops = 10000;
-					static umint const nTests = 2;
+					static constexpr umint c_nLoops = 10000;
+					static constexpr umint c_nTests = 2;
 #else
-					static umint const nLoops = 100000;
-					static umint const nTests = 10;
+					static constexpr umint c_nLoops = 100000;
+					static constexpr umint c_nTests = 10;
 #endif
 
 					NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
-					for (umint i = 0; i < nTests; ++i)
+					for (umint iTest = 0; iTest < c_nTests; ++iTest)
 					{
 						TestTimer.f_Start();
-						for (umint i = 0; i < nLoops; ++i)
-							DMibTest(i < nLoops)("Loop test")(ETestFlag_Aggregated);
+						for (umint iLoop = 0; iLoop < c_nLoops; ++iLoop)
+							DMibTest(iLoop < c_nLoops)("Loop test")(ETestFlag_Aggregated);
 						TestTimer.f_Stop();
 					}
 
-					TestTimer /= nLoops;
+					TestTimer /= c_nLoops;
 
 					umint ExpectedCycles = 1000;
 #ifdef DMibDebug

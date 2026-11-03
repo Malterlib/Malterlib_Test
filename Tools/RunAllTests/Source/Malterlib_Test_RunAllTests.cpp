@@ -1074,9 +1074,9 @@ private:
 
 				TCVector<CDeferredOutput> OutputDeferredOutput;
 				umint MaxTestLen = 0;
-				for (umint i = 0; i < g_nAllTests; ++i)
+				for (umint iTest = 0; iTest < g_nAllTests; ++iTest)
 				{
-					CStr Test = g_AllTests[i];
+					CStr Test = g_AllTests[iTest];
 					MaxTestLen = fg_Max(MaxTestLen, (umint)Test.f_GetLen());
 				}
 
@@ -1109,9 +1109,9 @@ private:
 						}
 					;
 
-					for (umint i = 0; i < g_nAllTests; ++i)
+					for (umint iTest = 0; iTest < g_nAllTests; ++iTest)
 					{
-						CStr ExecutableName = g_AllTests[i];
+						CStr ExecutableName = g_AllTests[iTest];
 
 						LaunchHandler.f_BlockOnExit(0.0, nMaxRunning - 1);
 
@@ -1180,7 +1180,7 @@ private:
 					{
 						auto &ExecutableName = pTestState->m_Executables.fs_GetKey(Result);
 						bool bFailedThisTest = false;
-						for (umint i = 0; i < c_MaxFlakyTries; ++i)
+						for (umint iTry = 0; iTry < c_MaxFlakyTries; ++iTry)
 						{
 							if (Result.m_ExitResult == 0)
 							{
@@ -1203,7 +1203,7 @@ private:
 							if (!bFlaky)
 								break;
 
-							DMibConErrOut(" {sz*,a-}  Test suite list is flaky, rescheduling {}/{}{\n}", ExecutableName, MaxTestLen, i, c_MaxFlakyTries);
+							DMibConErrOut(" {sz*,a-}  Test suite list is flaky, rescheduling {}/{}{\n}", ExecutableName, MaxTestLen, iTry, c_MaxFlakyTries);
 
 							Result.m_Output.f_Clear();
 							Result.m_OutputWithErrors.f_Clear();
@@ -1237,8 +1237,8 @@ private:
 				}
 				else
 				{
-					for (umint i = 0; i < g_nAllTests; ++i)
-						TestSuites.f_Insert({g_AllTests[i], ""});
+					for (umint iTest = 0; iTest < g_nAllTests; ++iTest)
+						TestSuites.f_Insert({g_AllTests[iTest], ""});
 				}
 
 				if (!_Settings.m_bList && !_Settings.m_bQuietStats)

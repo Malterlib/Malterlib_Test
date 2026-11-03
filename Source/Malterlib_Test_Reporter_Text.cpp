@@ -346,7 +346,7 @@ namespace NMib::NTest
 		if (mp_ReportFlags & ETestReportFlag_DetailedPerformance)
 		{
 			CTestPerformanceResults Results = _Results;
-			auto fl_ReportRow0 = [&]
+			auto fReportRow0 = [&]
 				(
 					NStr::CStr const &_Name
 					, NStr::CStr const &_Iterations
@@ -381,7 +381,7 @@ namespace NMib::NTest
 				}
 			;
 
-			auto fl_ReportRow1 = [&]
+			auto fReportRow1 = [&]
 				(
 					NStr::CStr const &_Name
 					, NStr::CStr const &_TimeMedian
@@ -400,7 +400,7 @@ namespace NMib::NTest
 				}
 			;
 
-			auto fl_ReportCounterRow = [&]
+			auto fReportCounterRow = [&]
 				(
 					NStr::CStr const &_Counter
 					, NStr::CStr const &_Name
@@ -427,7 +427,7 @@ namespace NMib::NTest
 				}
 			;
 
-			fl_ReportRow0
+			fReportRow0
 				(
 					"Name(*=ref)"
 					, "Iterations"
@@ -461,18 +461,18 @@ namespace NMib::NTest
 				)
 			;
 
-			for (umint i = 0; i < nResults; ++i)
+			for (umint iResult = 0; iResult < nResults; ++iResult)
 			{
-				CTestPerformanceResult const &Result = Results.m_Results[i];
+				CTestPerformanceResult const &Result = Results.m_Results[iResult];
 				if (Result.m_MeasureType == ETestMeasureType_Baseline)
 				{
 					pBaseLine = &Result;
 					break;
 				}
 			}
-			for (umint i = 0; i < nResults; ++i)
+			for (umint iResult = 0; iResult < nResults; ++iResult)
 			{
-				CTestPerformanceResult const &Result = Results.m_Results[i];
+				CTestPerformanceResult const &Result = Results.m_Results[iResult];
 				NStr::CStr Name = Result.m_Name;
 				if (Result.m_MeasureType == ETestMeasureType_Reference)
 					Name = "*" + Name;
@@ -493,7 +493,7 @@ namespace NMib::NTest
 					BaseLine = NStr::CStr::CFormat("{fe2,fn2}") << (pBaseLine->m_Cycles.m_Min / Result.m_Cycles.m_Min) * 100.0;
 				if (pBaseLine && (mp_ReportFlags & ETestReportFlag_CompareToBaseline) && pBaseLine != &Result)
 				{
-					fl_ReportRow0
+					fReportRow0
 						(
 							Name
 							, NStr::CStr::CFormat("{}") << Result.m_nIterations
@@ -511,7 +511,7 @@ namespace NMib::NTest
 				}
 				else
 				{
-					fl_ReportRow0
+					fReportRow0
 						(
 							Name
 							, NStr::CStr::CFormat("{}") << Result.m_nIterations
@@ -530,9 +530,9 @@ namespace NMib::NTest
 			}
 
 			fp64 SmallestAverage = fp64::fs_Inf();
-			for (umint i = 0; i < nResults; ++i)
+			for (umint iResult = 0; iResult < nResults; ++iResult)
 			{
-				CTestPerformanceResult const &Result = Results.m_Results[i];
+				CTestPerformanceResult const &Result = Results.m_Results[iResult];
 				if (Result.m_MeasureType == ETestMeasureType_Baseline && nResults != 1)
 					continue; // Baseline is normally much smaller
 				if (Result.m_Time.m_Min < SmallestAverage)
@@ -573,7 +573,7 @@ namespace NMib::NTest
 				TimeScale = 1.0;
 			}
 
-			fl_ReportRow1
+			fReportRow1
 				(
 					"Name(*=ref)"
 					, NStr::CStr::CFormat("Median({})") << TimeUnit
@@ -583,9 +583,9 @@ namespace NMib::NTest
 					, "StdDev(%)"
 				)
 			;
-			for (umint i = 0; i < nResults; ++i)
+			for (umint iResult = 0; iResult < nResults; ++iResult)
 			{
-				CTestPerformanceResult const &Result = Results.m_Results[i];
+				CTestPerformanceResult const &Result = Results.m_Results[iResult];
 				NStr::CStr Name = Result.m_Name;
 				if (Result.m_MeasureType == ETestMeasureType_Reference)
 					Name = "*" + Name;
@@ -598,7 +598,7 @@ namespace NMib::NTest
 
 				if ((pBaseLine && pBaseLine != &Result && (mp_ReportFlags & ETestReportFlag_CompareToBaseline)))
 				{
-					fl_ReportRow1
+					fReportRow1
 						(
 							Name
 							, NStr::CStr::CFormat("+ {fd3,fm3}") << (Result.m_Time.m_Median - pBaseLine->m_Time.m_Median) * TimeScale
@@ -611,7 +611,7 @@ namespace NMib::NTest
 				}
 				else
 				{
-					fl_ReportRow1
+					fReportRow1
 						(
 							Name
 							, NStr::CStr::CFormat("{fd3,fm3}") << Result.m_Time.m_Median * TimeScale
@@ -626,7 +626,7 @@ namespace NMib::NTest
 
 			for (auto Iter = Counters.f_GetIterator(); Iter; ++Iter)
 			{
-				fl_ReportCounterRow("Counter", "Name", "Median", "Average", "Min", "Max", "StdDev(%)");
+				fReportCounterRow("Counter", "Name", "Median", "Average", "Min", "Max", "StdDev(%)");
 				fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << *Iter, ETestSeverity_None);
 				for (auto ResultIter = Results.m_Results.f_GetIterator(); ResultIter; ++ResultIter)
 				{
@@ -652,7 +652,7 @@ namespace NMib::NTest
 
 						if (pBaselineStat)
 						{
-							fl_ReportCounterRow
+							fReportCounterRow
 								(
 									""
 									, Name
@@ -666,7 +666,7 @@ namespace NMib::NTest
 						}
 						else
 						{
-							fl_ReportCounterRow
+							fReportCounterRow
 								(
 									""
 									, Name
@@ -688,7 +688,7 @@ namespace NMib::NTest
 	{
 		if (mp_ReportFlags & ETestReportFlag_DetailedMemory)
 		{
-			auto fl_ReportRow = [&]
+			auto fReportRow = [&]
 				(
 					NStr::CStr const &_Allocator
 					, NStr::CStr const &_Name
@@ -755,7 +755,7 @@ namespace NMib::NTest
 				}
 			;
 
-			fl_ReportRow
+			fReportRow
 				(
 					"Allocator"
 					, "Name(*=ref)"
@@ -788,9 +788,9 @@ namespace NMib::NTest
 			NContainer::TCSet<NStr::CStr> Allocators;
 			Allocators["All"];
 			umint nResults = _Results.m_Results.f_GetLen();
-			for (umint i = 0; i < nResults; ++i)
+			for (umint iResult = 0; iResult < nResults; ++iResult)
 			{
-				CTestMemoryResult const &Result = _Results.m_Results[i];
+				CTestMemoryResult const &Result = _Results.m_Results[iResult];
 
 				NMisc::fg_ForEach
 					(
@@ -812,9 +812,9 @@ namespace NMib::NTest
 					{
 						fp_ReportText(NStr::CStr::CFormat("{}" DMibNewLine) << _Allocator, ETestSeverity_None);
 						umint nResults = _Results.m_Results.f_GetLen();
-						for (umint i = 0; i < nResults; ++i)
+						for (umint iResult = 0; iResult < nResults; ++iResult)
 						{
-							CTestMemoryResult const &Result = _Results.m_Results[i];
+							CTestMemoryResult const &Result = _Results.m_Results[iResult];
 							NStr::CStr Name = Result.m_Name;
 							if (Result.m_MeasureType == ETestMeasureType_Reference)
 								Name = "*" + Name;
@@ -835,7 +835,7 @@ namespace NMib::NTest
 									pStats = &EmptyStats;
 							}
 
-							fl_ReportRow
+							fReportRow
 								(
 									""
 									, Name

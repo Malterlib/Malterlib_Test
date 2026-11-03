@@ -235,11 +235,11 @@ namespace NMib::NTest
 			}
 		};
 
-		constinit static NStorage::TCAggregate<CTestManager, 256> g_Tests = {DAggregateInit};
+		constinit static NStorage::TCAggregate<CTestManager, 256> gs_Tests = {DAggregateInit};
 
 		CTestManager &CTestManager::fs_GetManager()
 		{
-			return *g_Tests;
+			return *gs_Tests;
 		}
 
 		struct CTestPathRestoringScope final : public CCrossActorCallStateScope
@@ -247,7 +247,7 @@ namespace NMib::NTest
 			CTestPathRestoringScope()
 				: CCrossActorCallStateScope(false)
 			{
-				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+				auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
 				auto &CoroutineState = ThreadLocal.m_CoroutineState;
 				m_pOldScope = CoroutineState.m_pCurrentScope;
 				CoroutineState.m_pCurrentScope = this;
@@ -255,14 +255,14 @@ namespace NMib::NTest
 
 			~CTestPathRestoringScope()
 			{
-				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+				auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
 				auto &CoroutineState = ThreadLocal.m_CoroutineState;
 				CoroutineState.m_pCurrentScope = m_pOldScope;
 			}
 
 			void f_InitialSuspend() override
 			{
-				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+				auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
 				auto &CoroutineState = ThreadLocal.m_CoroutineState;
 				if (CoroutineState.m_pCurrentScope != this)
 					return;
@@ -273,7 +273,7 @@ namespace NMib::NTest
 
 			NFunction::TCFunctionMovable<void () noexcept> f_StoreState(bool _bFromSuspend) override
 			{
-				auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+				auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
 				auto &CoroutineState = ThreadLocal.m_CoroutineState;
 				if (CoroutineState.m_pCurrentScope != this)
 					return {};
@@ -291,7 +291,7 @@ namespace NMib::NTest
 
 				return [Path, pFile, Line, pForwardingScope = NStorage::TCSharedPointer<CTestPathRestoringScope>{}]() mutable noexcept
 					{
-						auto &ThreadLocal = *g_Tests->m_ThreadLocal;
+						auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
 						auto &CoroutineState = ThreadLocal.m_CoroutineState;
 
 						CoroutineState.m_Path = Path;
@@ -396,13 +396,13 @@ namespace NMib::NTest
 
 		void fg_RegisterDynamicValue(NStr::CStr *_pValue)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			pTestManager->m_ThreadLocal->m_pDynamicValue = _pValue;
 		}
 
 		void fg_SetDynamicValue(NStr::CStr &&_Value)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			auto &pDynamicValue = pTestManager->m_ThreadLocal->m_pDynamicValue;
 			if (!pDynamicValue)
 				return;
@@ -412,7 +412,7 @@ namespace NMib::NTest
 
 		bool fg_SetEnableValues(bool _bEnableValues)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			bool bReturn = pTestManager->m_ThreadLocal->m_bEnableValues;
 			pTestManager->m_ThreadLocal->m_bEnableValues = _bEnableValues;
@@ -421,13 +421,13 @@ namespace NMib::NTest
 
 		bool fg_GetEnableValues()
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			return pTestManager->m_ThreadLocal->m_bEnableValues;
 		}
 
 		bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			bool bReturn = pTestManager->m_ThreadLocal->m_bEnableExceptionFilter;
 			pTestManager->m_ThreadLocal->m_bEnableExceptionFilter = _bEnableExceptionFilter;
@@ -436,26 +436,26 @@ namespace NMib::NTest
 
 		bool fg_GetEnableExceptionFilter()
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			return pTestManager->m_ThreadLocal->m_bEnableExceptionFilter;
 		}
 
 		bool fg_InsideTestSuite()
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			return pTestManager->m_ThreadLocal->m_bInsideTestSuite;
 		}
 
 		void fg_InsideTestSuite(bool _bInsideTestSuite)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			pTestManager->m_ThreadLocal->m_bInsideTestSuite = _bInsideTestSuite;
 		}
 
 		NStr::CStr fg_PushCategory(NStr::CStr const &_Category)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 			DMibLock(ThreadLocal.m_TestPathLock);
 			NStr::CStr PreviousPath = ThreadLocal.m_TestPath;
@@ -465,7 +465,7 @@ namespace NMib::NTest
 
 		void fg_SetTestLastLocation(ch8 const *_pFile, int32 _Line)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 			DMibLock(pTestManager->m_ThreadLocal->m_PropertiesLock);
 			ThreadLocal.m_pLastTestFile = _pFile;
@@ -474,7 +474,7 @@ namespace NMib::NTest
 
 		void fg_GetTestLastLocation(ch8 const * &o_pFile, int32 &o_Line)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 			o_pFile = ThreadLocal.m_pLastTestFile;
 			o_Line = ThreadLocal.m_LastTestLine;
@@ -482,7 +482,7 @@ namespace NMib::NTest
 
 		NStr::CStr fg_GetExceptionCategoryPath()
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
 			DMibLock(ThreadLocal.m_TestPathLock);
 			if (ThreadLocal.m_ExceptionTestPath)
@@ -495,7 +495,7 @@ namespace NMib::NTest
 			// Exception state can initialize TLS, whose context lock also protects inheritance of test paths.
 			bool bUnwinding = NException::fg_UncaughtExceptions() > 0;
 
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
 			DMibLock(ThreadLocal.m_TestPathLock);
 			if (!ThreadLocal.m_ExceptionTestPath && bUnwinding)
@@ -505,7 +505,7 @@ namespace NMib::NTest
 
 		NContainer::TCSet<NStr::CStr> fg_SetGroups(NContainer::TCSet<NStr::CStr> const &_Groups)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			NContainer::TCSet<NStr::CStr> Ret = fg_Move(pTestManager->m_ThreadLocal->m_TestGroups);
 			pTestManager->m_ThreadLocal->m_TestGroups = _Groups;
 
@@ -514,7 +514,7 @@ namespace NMib::NTest
 
 		NContainer::TCSet<NStr::CStr> fg_GetGroups()
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			NContainer::TCSet<NStr::CStr> Ret = pTestManager->m_ThreadLocal->m_TestGroups;
 
 			return Ret;
@@ -549,7 +549,7 @@ namespace NMib::NTest
 		auto fg_NeedReport(NStr::CStr const &_Description, ETestResult _Result, ETest _FailureAction, ECheckType _CheckType, ch8 const *_pFile, int32 _Line, ETestFlag _Flags)
 			-> ETestResultReportFlag
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 
 			CTestResults *pResults = pTestManager->f_GetResults(ThreadLocal);
@@ -621,7 +621,7 @@ namespace NMib::NTest
 
 		CTestResults *fg_SetResultReporter(CTestResults *_pNewReporter)
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
 			CTestResults *pOld = ThreadLocal.m_pResults;
 			ThreadLocal.m_pResults = _pNewReporter;
@@ -630,7 +630,7 @@ namespace NMib::NTest
 
 		CTestResults &fg_GetResultReporter()
 		{
-			CTestManager *pTestManager = g_Tests;
+			CTestManager *pTestManager = gs_Tests;
 			return *pTestManager->f_GetResults(*pTestManager->m_ThreadLocal);
 		}
 
@@ -663,7 +663,7 @@ namespace NMib::NTest
 				)
 			)
 			{
-				CTestManager *pTestManager = g_Tests;
+				CTestManager *pTestManager = gs_Tests;
 				auto &ThreadLocal = *pTestManager->m_ThreadLocal;
 
 				if (!TestPath)
@@ -754,14 +754,14 @@ namespace NMib::NTest
 
 		bool fg_GroupActive(NStr::CStr const &_Group)
 		{
-			CTestManager *pManager = g_Tests;
+			CTestManager *pManager = gs_Tests;
 
 			return pManager->m_IncludeGroups.f_FindEqual(_Group) && !pManager->m_ExcludeGroups.f_FindEqual(_Group);
 		}
 
 		bool fg_ShouldRunSubTest(bool _bLeaf)
 		{
-			CTestManager *pManager = g_Tests;
+			CTestManager *pManager = gs_Tests;
 
 			CTestManager::CThreadLocal &ThreadLocal = *pManager->m_ThreadLocal;
 
@@ -902,7 +902,7 @@ namespace NMib::NTest
 				CleanupLogs.f_Clear();
 #	endif
 
-			CTestManager *pManager = g_Tests;
+			CTestManager *pManager = gs_Tests;
 
 			pManager->m_ReportFlags = _Options.m_ReportFlags;
 			pManager->m_AnsiEncodingFlags = _Options.m_AnsiEncodingFlags;
@@ -921,17 +921,17 @@ namespace NMib::NTest
 			pManager->m_ExcludePatterns = _Options.m_ExcludePatterns;
 			{
 				umint nGroups = _Options.m_IncludeGroups.f_GetLen();
-				for (umint i = 0; i < nGroups; ++i)
+				for (umint iGroup = 0; iGroup < nGroups; ++iGroup)
 				{
-					NStr::CStr Group = _Options.m_IncludeGroups[i];
+					NStr::CStr Group = _Options.m_IncludeGroups[iGroup];
 					pManager->m_IncludeGroups[Group];
 				}
 			}
 			{
 				umint nGroups = _Options.m_ExcludeGroups.f_GetLen();
-				for (umint i = 0; i < nGroups; ++i)
+				for (umint iGroup = 0; iGroup < nGroups; ++iGroup)
 				{
-					NStr::CStr Group = _Options.m_ExcludeGroups[i];
+					NStr::CStr Group = _Options.m_ExcludeGroups[iGroup];
 					pManager->m_ExcludeGroups[Group];
 				}
 			}
@@ -1074,7 +1074,7 @@ namespace NMib::NTest
 	void fg_TestSetReturnValue(uint32 _RetValue)
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pManager = NPrivate::gs_Tests;
 		pManager->m_ReturnValue = _RetValue;
 #endif
 	}
@@ -1104,7 +1104,7 @@ namespace NMib::NTest
 	NStr::CStr fg_TestGetExtraData()
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		return pTestManager->m_ExtraData;
 #else
 		return NStr::CStr();
@@ -1114,7 +1114,7 @@ namespace NMib::NTest
 	NStr::CStr fg_TestGetCurrentPath()
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		NPrivate::CTestManager::CThreadLocal &ThreadLocal = *pTestManager->m_ThreadLocal;
 		return ThreadLocal.m_TestPath;
 #else
@@ -1134,7 +1134,7 @@ namespace NMib::NTest
 	ETestReportFlag fg_TestReportFlags()
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		return pTestManager->m_ReportFlags;
 #else
 		return ETestReportFlag_None;
@@ -1144,7 +1144,7 @@ namespace NMib::NTest
 	NCommandLine::EAnsiEncodingFlag fg_TestAnsiEncodingFlags()
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		return pTestManager->m_AnsiEncodingFlags;
 #else
 		return NCommandLine::EAnsiEncodingFlag_AllFeatures;
@@ -1154,7 +1154,7 @@ namespace NMib::NTest
 	uint32 fg_TestTerminalWidth()
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		return pTestManager->m_TerminalWidth;
 #else
 		return 80;
@@ -1164,7 +1164,7 @@ namespace NMib::NTest
 	uint32 fg_TestTerminalHeight()
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		return pTestManager->m_TerminalHeight;
 #else
 		return 40;
@@ -1174,7 +1174,7 @@ namespace NMib::NTest
 	void fg_TestAddCleanupPath(NStr::CStr const &_Directory)
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		pTestManager->f_AddCleanupPath(_Directory);
 #endif
 	}
@@ -1182,7 +1182,7 @@ namespace NMib::NTest
 	void fg_TestAddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_ExceptionHandler)
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		pTestManager->f_AddExceptionInfoGenerator(fg_Move(_ExceptionHandler));
 #endif
 	}
@@ -1190,7 +1190,7 @@ namespace NMib::NTest
 	NStr::CStr fg_TestGetExceptionInfo()
 	{
 #if DMibConfig_Tests_Enable
-		NPrivate::CTestManager *pTestManager = NPrivate::g_Tests;
+		NPrivate::CTestManager *pTestManager = NPrivate::gs_Tests;
 		return pTestManager->f_GetExceptionInfo();
 #else
 		return {};

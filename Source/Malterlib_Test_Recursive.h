@@ -129,8 +129,8 @@ namespace NMib::NTest
 		// auto f_CreateStringFormatter(tf_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
 		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const
 		{
-			static ch8 const * const pData = "";
-			return NStr::fg_CreateStringFormatter(_Formatter, pData);
+			static constexpr ch8 const *c_pData = "";
+			return NStr::fg_CreateStringFormatter(_Formatter, c_pData);
 		}
 	};
 

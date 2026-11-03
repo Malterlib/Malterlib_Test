@@ -669,7 +669,7 @@ namespace NMib::NTest::NExpression
 		{
 			DMibFastCheck(o_pValueDesc); // Should only be called once
 
-			using CReturnType = decltype (m_Lambda());
+			using CReturnType = decltype (mp_Lambda());
 
 			if constexpr (NTraits::cIsVoid<CReturnType>)
 			{
@@ -678,7 +678,7 @@ namespace NMib::NTest::NExpression
 			}
 			else
 			{
-				auto Value = m_Lambda();
+				auto Value = mp_Lambda();
 				*o_pValueDesc = NStr::CStr::fs_ToStr(Value);
 				return NPrivate::fg_ConvertToBool(Value);
 			}
@@ -686,12 +686,12 @@ namespace NMib::NTest::NExpression
 
 		NStr::CStr f_GetDesc() const
 		{
-			return m_pDescription;
+			return mp_pDescription;
 		}
 
 		NStr::CStr f_GetDescRecursive() const
 		{
-			return m_pDescription;
+			return mp_pDescription;
 		}
 
 		bool f_OnlyEvalOnce() const
@@ -701,16 +701,16 @@ namespace NMib::NTest::NExpression
 
 		NStr::CStr f_GetValueDescRecursive() const
 		{
-			using CReturnType = decltype (m_Lambda());
+			using CReturnType = decltype (mp_Lambda());
 
-			return fs_ValueDesc<CReturnType>(m_Lambda);
+			return fs_ValueDesc<CReturnType>(mp_Lambda);
 		}
 
 		t_CLambdaReturn f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
 		{
 			DMibFastCheck(o_pValueDesc);
 
-			using CReturnType = decltype (m_Lambda());
+			using CReturnType = decltype (mp_Lambda());
 
 			if constexpr (NTraits::cIsVoid<CReturnType>)
 			{
@@ -719,22 +719,22 @@ namespace NMib::NTest::NExpression
 			}
 			else
 			{
-				auto Return = m_Lambda();
+				auto Return = mp_Lambda();
 				*o_pValueDesc = NStr::CStr::fs_ToStr(Return);
 				return Return;
 			}
 		}
 
 		TCExpression(t_CType _Lambda, ch8 const *_pDescription)
-			: m_pDescription(_pDescription)
-			, m_Lambda(_Lambda)
+			: mp_pDescription(_pDescription)
+			, mp_Lambda(_Lambda)
 		{
 		}
 		DImplementExpressionInterfaceNoEval(TCExpression);
 
 	private:
-		t_CType m_Lambda;
-		ch8 const *m_pDescription;
+		t_CType mp_Lambda;
+		ch8 const *mp_pDescription;
 	};
 
 	template <typename t_CType, typename t_CLambdaReturn>
@@ -747,12 +747,12 @@ namespace NMib::NTest::NExpression
 
 		NStr::CStr f_GetDesc() const
 		{
-			return m_pDescription;
+			return mp_pDescription;
 		}
 
 		NStr::CStr f_GetDescRecursive() const
 		{
-			return m_pDescription;
+			return mp_pDescription;
 		}
 
 		bool f_OnlyEvalOnce() const
@@ -764,19 +764,19 @@ namespace NMib::NTest::NExpression
 		{
 			DMibFastCheck(o_pValueDesc);
 			NTest::NPrivate::fg_RegisterDynamicValue(o_pValueDesc);
-			return m_Lambda;
+			return mp_Lambda;
 		}
 
 		TCExpression(t_CType _Lambda, ch8 const *_pDescription)
-			: m_pDescription(_pDescription)
-			, m_Lambda(_Lambda)
+			: mp_pDescription(_pDescription)
+			, mp_Lambda(_Lambda)
 		{
 		}
 		DImplementExpressionInterfaceNoEval(TCExpression);
 
 	private:
-		t_CType m_Lambda;
-		ch8 const *m_pDescription;
+		t_CType mp_Lambda;
+		ch8 const *mp_pDescription;
 	};
 
 	template <typename t_CType, typename t_CLambdaReturn>
@@ -784,12 +784,12 @@ namespace NMib::NTest::NExpression
 	{
 		NStr::CStr f_GetDesc() const
 		{
-			return m_pDescription;
+			return mp_pDescription;
 		}
 
 		NStr::CStr f_GetDescRecursive() const
 		{
-			return m_pDescription;
+			return mp_pDescription;
 		}
 
 		bool f_OnlyEvalOnce() const
@@ -800,22 +800,22 @@ namespace NMib::NTest::NExpression
 		t_CType const &f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
 		{
 			if (o_pValueDesc)
-				*o_pValueDesc = NStr::CStr::fs_ToStr(m_Variable);
-			return m_Variable;
+				*o_pValueDesc = NStr::CStr::fs_ToStr(mp_Variable);
+			return mp_Variable;
 		}
 
 		template <typename tf_CType>
 		TCExpression(tf_CType &&_Variable, ch8 const *_pDescription)
-			: m_pDescription(_pDescription)
-			, m_Variable(fg_Forward<tf_CType>(_Variable))
+			: mp_pDescription(_pDescription)
+			, mp_Variable(fg_Forward<tf_CType>(_Variable))
 		{
 		}
 
 		DMibTemp_ImplementExpressionInterface(TCExpression);
 
 	private:
-		t_CType m_Variable;
-		ch8 const *m_pDescription;
+		t_CType mp_Variable;
+		ch8 const *mp_pDescription;
 	};
 
 #undef DMibTemp_ImplementExpressionInterface
@@ -828,43 +828,43 @@ namespace NMib::NTest::NExpression
 		template <typename tf_CType, CLambdaUnderlying tf_bLambda>
 		CExpression(TCExpression<tf_CType, tf_bLambda> const &_Expression)
 		{
-			m_pExpression = fg_ConstructObject<TCExpressionImpl<TCExpression<tf_CType, tf_bLambda>>>(NMemory::CDefaultAllocator(), _Expression);
+			mp_pExpression = fg_ConstructObject<TCExpressionImpl<TCExpression<tf_CType, tf_bLambda>>>(NMemory::CDefaultAllocator(), _Expression);
 		}
 
 		template <typename tf_CLeft, typename tf_CRight, COperatorUnderlying tf_Operator>
 		CExpression(TCExpressionWithOperator<tf_CLeft, tf_CRight, tf_Operator> const &_Expression)
 		{
-			m_pExpression = fg_ConstructObject<TCExpressionImpl<TCExpressionWithOperator<tf_CLeft, tf_CRight, tf_Operator>>>(NMemory::CDefaultAllocator(), _Expression);
+			mp_pExpression = fg_ConstructObject<TCExpressionImpl<TCExpressionWithOperator<tf_CLeft, tf_CRight, tf_Operator>>>(NMemory::CDefaultAllocator(), _Expression);
 		}
 
 		~CExpression()
 		{
-			fg_Delete(m_pExpression);
+			fg_Delete(mp_pExpression);
 		}
 
 		NStr::CStr f_GetDesc() const
 		{
-			return m_pExpression->f_GetDesc();
+			return mp_pExpression->f_GetDesc();
 		}
 
 		NStr::CStr f_GetDescRecursive() const
 		{
-			return m_pExpression->f_GetDescRecursive();
+			return mp_pExpression->f_GetDescRecursive();
 		}
 
 		NStr::CStr f_GetValueDescRecursive() const
 		{
-			return m_pExpression->f_GetValueDescRecursive();
+			return mp_pExpression->f_GetValueDescRecursive();
 		}
 
 		bool f_Eval(NStr::CStr *o_pValueDesc) const
 		{
-			return m_pExpression->f_Eval(o_pValueDesc);
+			return mp_pExpression->f_Eval(o_pValueDesc);
 		}
 
 		bool f_OnlyEvalOnce() const
 		{
-			return m_pExpression->f_OnlyEvalOnce();
+			return mp_pExpression->f_OnlyEvalOnce();
 		}
 
 	private:
@@ -885,40 +885,40 @@ namespace NMib::NTest::NExpression
 		struct TCExpressionImpl : public CExpressionInternal
 		{
 			TCExpressionImpl(t_CImpl const &_Impl)
-				: m_Impl(_Impl)
+				: mp_Impl(_Impl)
 			{
 			}
 
 			bool f_Eval(NStr::CStr *o_pValueDesc) const override
 			{
-				return m_Impl.f_Eval(o_pValueDesc);
+				return mp_Impl.f_Eval(o_pValueDesc);
 			}
 
 			bool f_OnlyEvalOnce() const override
 			{
-				return m_Impl.f_OnlyEvalOnce();
+				return mp_Impl.f_OnlyEvalOnce();
 			}
 
 			NStr::CStr f_GetDesc() const override
 			{
-				return m_Impl.f_GetDesc();
+				return mp_Impl.f_GetDesc();
 			}
 
 			NStr::CStr f_GetDescRecursive() const override
 			{
-				return m_Impl.f_GetDescRecursive();
+				return mp_Impl.f_GetDescRecursive();
 			}
 
 			NStr::CStr f_GetValueDescRecursive() const override
 			{
-				return m_Impl.f_GetValueDescRecursive();
+				return mp_Impl.f_GetValueDescRecursive();
 			}
 
 		private:
-			t_CImpl const &m_Impl;
+			t_CImpl const &mp_Impl;
 		};
 
-		CExpressionInternal *m_pExpression;
+		CExpressionInternal *mp_pExpression;
 	};
 
 	template <typename tf_CType>

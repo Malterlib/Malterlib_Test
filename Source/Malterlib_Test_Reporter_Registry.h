@@ -49,8 +49,8 @@ namespace NMib::NTest
 	private:
 		ETestReportFlag mp_ReportFlags;
 
-		NAtomic::TCAtomic<int32> m_NextID;
-		NThread::TCThreadLocal<uint32> m_CurrentID;
+		NAtomic::TCAtomic<int32> mp_NextID;
+		NThread::TCThreadLocal<uint32> mp_CurrentID;
 
 		static NContainer::CRegistry *fsp_AddStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestStats const &_Stats);
 		static NContainer::CRegistry *fsp_AddMemoryStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestMemoryStats const &_Stats);

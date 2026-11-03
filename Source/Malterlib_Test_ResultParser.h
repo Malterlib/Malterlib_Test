@@ -35,7 +35,7 @@ namespace NMib::NTest
 		static void fs_DecodeResult(NContainer::CRegistry const &_Registry, CTestResult &_Results);
 
 	private:
-		NStr::CStr m_TextBuffer;
+		NStr::CStr mp_TextBuffer;
 		void fp_HandleRecord(NStr::CStr const &_Text);
 	};
 }

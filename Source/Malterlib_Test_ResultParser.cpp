@@ -31,10 +31,10 @@ namespace NMib::NTest
 
 	void CTestResultParser::f_FeedText(NStr::CStr const &_Text)
 	{
-		m_TextBuffer += _Text;
+		mp_TextBuffer += _Text;
 		while (1)
 		{
-			ch8 const *pParse = m_TextBuffer;
+			ch8 const *pParse = mp_TextBuffer;
 			ch8 const *pParseStart = pParse;
 			bool bFound = false;
 			while (*pParse)
@@ -42,10 +42,10 @@ namespace NMib::NTest
 				if (*pParse == '}')
 				{
 					++pParse;
-					NStr::CStr FoundText = m_TextBuffer.f_Left(pParse - pParseStart);
+					NStr::CStr FoundText = mp_TextBuffer.f_Left(pParse - pParseStart);
 					NStr::fg_ParseToEndOfLine(pParse);
 					NStr::fg_ParseEndOfLine(pParse);
-					m_TextBuffer = m_TextBuffer.f_Extract(pParse - pParseStart);
+					mp_TextBuffer = mp_TextBuffer.f_Extract(pParse - pParseStart);
 					bFound = true;
 					fp_HandleRecord(FoundText);
 					break;
