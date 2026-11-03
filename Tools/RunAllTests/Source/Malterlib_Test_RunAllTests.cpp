@@ -523,7 +523,7 @@ private:
 
 	struct CTestSuite
 	{
-		auto operator <=> (CTestSuite const &) const noexcept = default;
+		auto operator <=> (CTestSuite const &_Right) const noexcept = default;
 
 		template <typename tf_CStr>
 		void f_Format(tf_CStr &o_Str) const
@@ -619,7 +619,7 @@ private:
 			TCSharedPointer<CCapture> pCapture = fg_Construct();
 
 			CProcessLaunchParams Params;
-			Params.m_fOnStateChange = [pCapture](CProcessLaunchStateChangeVariant const &_State, fp64)
+			Params.m_fOnStateChange = [pCapture](CProcessLaunchStateChangeVariant const &_State, fp64 _TimeSinceStart)
 				{
 					DMibLock(pCapture->m_Lock);
 					if (_State.f_GetTypeID() == EProcessLaunchState_Launched)
@@ -642,7 +642,7 @@ private:
 			Params.m_Target = Debugger.m_Executable;
 			Params.m_Parameters = CProcessLaunchParams::fs_GetParams(Debugger.m_Params);
 			Params.m_bSeparateStdErr = false;
-			Params.m_fOnOutput = [pCapture](EProcessLaunchOutputType, CStr const &_Output)
+			Params.m_fOnOutput = [pCapture](EProcessLaunchOutputType _OutputType, CStr const &_Output)
 				{
 					DMibLock(pCapture->m_Lock);
 					pCapture->m_Output += _Output;

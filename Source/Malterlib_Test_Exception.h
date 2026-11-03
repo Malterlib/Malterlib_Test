@@ -13,8 +13,8 @@ namespace NMib::NTest
 	template <bool t_bOuter>
 	struct TCThrowsExceptionImpl<t_bOuter>
 	{
-		template <typename t_FFunctor>
-		bool operator == (t_FFunctor const &_fFunctor) const
+		template <typename tf_FFunctor>
+		bool operator == (tf_FFunctor const &_fFunctor) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
@@ -55,8 +55,8 @@ namespace NMib::NTest
 	template <bool t_bOuter, typename t_CException>
 	struct TCThrowsExceptionImpl<t_bOuter, t_CException>
 	{
-		template <typename t_FFunctor>
-		bool operator == (t_FFunctor const &_fFunctor) const
+		template <typename tf_FFunctor>
+		bool operator == (tf_FFunctor const &_fFunctor) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
@@ -128,8 +128,8 @@ namespace NMib::NTest
 	template <bool t_bOuter, typename t_CException, typename ...tp_CExceptions>
 	struct TCThrowsExceptionImpl<t_bOuter, t_CException, tp_CExceptions...> : public TCThrowsExceptionImpl<false, tp_CExceptions...>
 	{
-		template <typename t_FFunctor>
-		bool operator == (t_FFunctor const &_fFunctor) const
+		template <typename tf_FFunctor>
+		bool operator == (tf_FFunctor const &_fFunctor) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
@@ -216,8 +216,8 @@ namespace NMib::NTest
 		{
 		}
 
-		template <typename t_FFunctor>
-		bool operator == (t_FFunctor const &_fFunctor) const
+		template <typename tf_FFunctor>
+		bool operator == (tf_FFunctor const &_fFunctor) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;
@@ -304,8 +304,8 @@ namespace NMib::NTest
 		{
 		}
 
-		template <typename t_FFunctor>
-		bool operator == (t_FFunctor const &_fFunctor) const
+		template <typename tf_FFunctor>
+		bool operator == (tf_FFunctor const &_fFunctor) const
 		{
 #if DMibConfig_Tests_Enable
 			NMib::NTest::NPrivate::CTestExceptionNoFilter TestExceptionFilter;

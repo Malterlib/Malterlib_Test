@@ -692,29 +692,29 @@ namespace NMib::NTest
 				(
 					NStr::CStr const &_Allocator
 					, NStr::CStr const &_Name
-					, NStr::CStr const &_0
-					, NStr::CStr const &_1
-					, NStr::CStr const &_2
-					, NStr::CStr const &_3
-					, NStr::CStr const &_4
-					, NStr::CStr const &_5
-					, NStr::CStr const &_6
-					, NStr::CStr const &_7
-					, NStr::CStr const &_8
-					, NStr::CStr const &_9
-					, NStr::CStr const &_10
-					, NStr::CStr const &_11
-					, NStr::CStr const &_12
-					, NStr::CStr const &_13
-					, NStr::CStr const &_14
-					, NStr::CStr const &_15
-					, NStr::CStr const &_16
-					, NStr::CStr const &_17
-					, NStr::CStr const &_18
-					, NStr::CStr const &_19
-					, NStr::CStr const &_20
-					, NStr::CStr const &_21
-					, NStr::CStr const &_22
+					, NStr::CStr const &_Iterations
+					, NStr::CStr const &_Repetitions
+					, NStr::CStr const &_BytesMaxAlloc
+					, NStr::CStr const &_Allocations
+					, NStr::CStr const &_Frees
+					, NStr::CStr const &_Resizes
+					, NStr::CStr const &_Reallocs
+					, NStr::CStr const &_GetSizes
+					, NStr::CStr const &_Protects
+					, NStr::CStr const &_Commits
+					, NStr::CStr const &_Decommits
+					, NStr::CStr const &_BytesAlloc
+					, NStr::CStr const &_BytesFree
+					, NStr::CStr const &_BytesResize
+					, NStr::CStr const &_BytesRealloc
+					, NStr::CStr const &_BytesProtect
+					, NStr::CStr const &_BytesCommit
+					, NStr::CStr const &_BytesDecommit
+					, NStr::CStr const &_BytesOverhead
+					, NStr::CStr const &_BytesWaste
+					, NStr::CStr const &_OverheadAtMax
+					, NStr::CStr const &_WasteAtMax
+					, NStr::CStr const &_AllocationsAtMax
 				)
 				{
 					fp_ReportText
@@ -726,29 +726,29 @@ namespace NMib::NTest
 							)
 							<< _Allocator
 							<< _Name
-							<< _0
-							<< _1
-							<< _2
-							<< _3
-							<< _4
-							<< _5
-							<< _6
-							<< _7
-							<< _8
-							<< _9
-							<< _10
-							<< _11
-							<< _12
-							<< _13
-							<< _14
-							<< _15
-							<< _16
-							<< _17
-							<< _18
-							<< _19
-							<< _20
-							<< _21
-							<< _22
+							<< _Iterations
+							<< _Repetitions
+							<< _BytesMaxAlloc
+							<< _Allocations
+							<< _Frees
+							<< _Resizes
+							<< _Reallocs
+							<< _GetSizes
+							<< _Protects
+							<< _Commits
+							<< _Decommits
+							<< _BytesAlloc
+							<< _BytesFree
+							<< _BytesResize
+							<< _BytesRealloc
+							<< _BytesProtect
+							<< _BytesCommit
+							<< _BytesDecommit
+							<< _BytesOverhead
+							<< _BytesWaste
+							<< _OverheadAtMax
+							<< _WasteAtMax
+							<< _AllocationsAtMax
 							, ETestSeverity_None
 						)
 					;

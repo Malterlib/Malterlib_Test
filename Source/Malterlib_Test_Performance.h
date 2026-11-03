@@ -124,12 +124,12 @@ namespace NMib::NTest
 		void f_TestReport(CTestResults &_Results) const;
 		operator bool () const;
 		NStr::CStr f_ModifyDescription(NStr::CStr const &_Description);
-		template <typename t_CFormatter>
-		int f_GetStringFormatType(t_CFormatter &_Formatter);
-		template <typename t_CFormatter>
+		template <typename tf_CFormatter>
+		int f_GetStringFormatType(tf_CFormatter &_Formatter);
+		template <typename tf_CFormatter>
 		// This crashes GCC
-		// auto f_CreateStringFormatter(t_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
-		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(t_CFormatter &_Formatter) const
+		// auto f_CreateStringFormatter(tf_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
+		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const
 		{
 			return NStr::fg_CreateStringFormatter(_Formatter, fg_ByValue(fp_GetOutput()));
 		}

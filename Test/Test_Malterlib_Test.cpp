@@ -31,7 +31,7 @@ namespace
 				return 1;
 			}
 
-			int f_Test2(int)
+			int f_Test2(int _Value)
 			{
 				throw fp64(4.0);
 				return 2;

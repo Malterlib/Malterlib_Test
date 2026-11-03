@@ -121,13 +121,13 @@ namespace NMib::NTest
 			return m_ReportText;
 		}
 
-		template <typename t_CFormatter>
-		int f_GetStringFormatType(t_CFormatter &_Formatter);
+		template <typename tf_CFormatter>
+		int f_GetStringFormatType(tf_CFormatter &_Formatter);
 
-		template <typename t_CFormatter>
+		template <typename tf_CFormatter>
 		// This crashes GCC
-		// auto f_CreateStringFormatter(t_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
-		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(t_CFormatter &_Formatter) const
+		// auto f_CreateStringFormatter(tf_CFormatter &_Formatter) const -> decltype(NStr::fg_CreateStringFormatter(_Formatter, ""))
+		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const
 		{
 			static ch8 const * const pData = "";
 			return NStr::fg_CreateStringFormatter(_Formatter, pData);

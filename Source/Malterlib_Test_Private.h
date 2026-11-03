@@ -80,7 +80,7 @@ namespace NMib::NTest::NPrivate
 	void fg_SetDynamicValue(NStr::CStr &&_Value);
 	bool fg_SetEnableExceptionFilter(bool _bEnableExceptionFilter);
 	bool fg_GetEnableExceptionFilter();
-	void fg_PopCategory(NStr::CStr const &PreviousPath);
+	void fg_PopCategory(NStr::CStr const &_PreviousPath);
 	NStr::CStr fg_GetExceptionCategoryPath();
 	NContainer::TCSet<NStr::CStr> fg_SetGroups(NContainer::TCSet<NStr::CStr> const &_Groups);
 	NContainer::TCSet<NStr::CStr> fg_GetGroups();

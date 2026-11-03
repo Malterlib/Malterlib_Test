@@ -490,7 +490,7 @@ namespace NMib::NTest
 			return {};
 		}
 
-		void fg_PopCategory(NStr::CStr const &PreviousPath)
+		void fg_PopCategory(NStr::CStr const &_PreviousPath)
 		{
 			// Exception state can initialize TLS, whose context lock also protects inheritance of test paths.
 			bool bUnwinding = NException::fg_UncaughtExceptions() > 0;
@@ -500,7 +500,7 @@ namespace NMib::NTest
 			DMibLock(ThreadLocal.m_TestPathLock);
 			if (!ThreadLocal.m_ExceptionTestPath && bUnwinding)
 				ThreadLocal.m_ExceptionTestPath = ThreadLocal.m_TestPath;
-			ThreadLocal.m_TestPath = PreviousPath;
+			ThreadLocal.m_TestPath = _PreviousPath;
 		}
 
 		NContainer::TCSet<NStr::CStr> fg_SetGroups(NContainer::TCSet<NStr::CStr> const &_Groups)
@@ -830,7 +830,7 @@ namespace NMib::NTest
 		uint32 fg_RunTests(CTestResults *_pResults, CRunTestOptions const &_Options)
 		{
 #	ifdef DMibNeedDebugException
-			NFunction::TCFunction<void (NContract::CContractViolation const &)> OldLogger = NContract::fg_SetContractLoggerThrowExceptions();
+			NFunction::TCFunction<void (NContract::CContractViolation const &_Violation)> OldLogger = NContract::fg_SetContractLoggerThrowExceptions();
 			auto Cleanup = g_OnScopeExit / [&]
 				{
 					NContract::fg_SetContractLogger(OldLogger);
