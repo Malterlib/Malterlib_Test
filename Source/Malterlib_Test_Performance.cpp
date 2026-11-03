@@ -309,9 +309,9 @@ namespace NMib::NTest
 		fp64 Reference = mp_References.fs_GetKey(mp_References.f_FindSmallest());
 		umint nResults = mp_Results.m_Results.f_GetLen();
 		fp64 BestValue = 0;
-		for (umint i = 0; i < nResults; ++i)
+		for (umint iResult = 0; iResult < nResults; ++iResult)
 		{
-			CTestPerformanceResult const &Result = mp_Results.m_Results[i];
+			CTestPerformanceResult const &Result = mp_Results.m_Results[iResult];
 			if (Result.m_MeasureType == ETestMeasureType_Normal)
 			{
 				fp64 ThisValue = Reference / Result.m_Cycles.m_Average;
