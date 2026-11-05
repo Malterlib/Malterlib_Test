@@ -16,8 +16,8 @@ namespace NMib::NTest
 	}
 
 #if !DMibConfig_Tests_Enable
-	template <typename t_CFunctionType>
-	void CTestCategoryScope::operator % (t_CFunctionType const &_Function)
+	template <typename tf_CFunctionType>
+	void CTestCategoryScope::operator % (tf_CFunctionType const &_Function)
 	{
 	}
 #endif

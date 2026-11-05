@@ -355,8 +355,8 @@ namespace NMib::NTest
 		CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags = ETestCategoryFlag_None);
 		~CTestCategoryScope();
 
-		template <typename t_CFunctionType>
-		void operator % (t_CFunctionType const &_Function);
+		template <typename tf_CFunctionType>
+		void operator % (tf_CFunctionType const &_Function);
 	};
 
 	struct CTestPathScope
@@ -378,11 +378,13 @@ namespace NMib::NTest
 #	define DMibTestOnlyFail false ? false : ::NMib::NTest::CTestFunctionHelperOnlyFailure(DMibPFile, DMibPLine, ::NMib::NTest::NPrivate::CDummyExpression())
 #	define DMibTestMark ::NMib::NTest::NPrivate::fg_SetTestLastLocation(DMibPFile, DMibPLine)
 #else
+	// NOLINTBEGIN(malterlib-type-naming): the enumerators end the chain of the DMibTestHelperExpression_ macros, which expand to each other's names
 	enum
 	{
 		DMibTestHelperExpression_A
 		, DMibTestHelperExpression_B
 	};
+	// NOLINTEND(malterlib-type-naming)
 
 #	define DMibTestHelperExpression_B(d_Expression) DMibTestHelperExpression_OP(d_Expression, A)
 #	define DMibTestHelperExpression_A(d_Expression) DMibTestHelperExpression_OP(d_Expression, B)
