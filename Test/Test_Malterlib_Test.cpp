@@ -12,238 +12,251 @@ namespace
 
 	struct CTest_Tests : public NMib::NTest::CTest
 	{
-		int m_Test;
-		CTest_Tests()
-		{
-			m_Test = 0;
-		}
-
 		struct CObject
 		{
-			void f_Test0()
-			{
-				throw int32(2);
-			}
-
-			int f_Test1()
-			{
-				throw fp32(3.0);
-				return 1;
-			}
-
-			int f_Test2(int _Value)
-			{
-				throw fp64(4.0);
-				return 2;
-			}
-
-			int f_Contract(int _Value)
-			{
-				DMibRequire(_Value < 100);
-				return _Value;
-			}
-
-			int f_Contract2(int _Value)
-			{
-				DMibRequire(_Value < 100)("Should be");
-				return _Value;
-			}
-
-			int f_Assert(int _Value)
-			{
-				DMibSafeCheck(_Value < 100, "");
-				return _Value;
-			}
-
-			int f_Assert2(int _Value)
-			{
-				DMibSafeCheck(_Value < 100, "Should be");
-				return _Value;
-			}
+			void f_Test0();
+			int f_Test1();
+			int f_Test2(int _Value);
+			int f_Contract(int _Value);
+			int f_Contract2(int _Value);
+			int f_Assert(int _Value);
+			int f_Assert2(int _Value);
 		};
 
-		void f_DoTests()
-		{
-			DMibTestSuite("General")
-			{
-				DMibTest(DMibExpr(true));
-				DMibTest(DMibExpr(0) == DMibExpr(0));
-			};
-			DMibTestSuite("LambdasExpr")
-			{
-				DMibTest(DMibELExpr(1.0) == DMibExpr(1));
-			};
-			DMibTestSuite("Exceptions")
-			{
-				CObject Object;
-				(void)Object;
-				DMibTest(DMibExpr(NMib::NTest::TCThrowsException<int32>()) == DMibLExpr(Object.f_Test0()));
-				DMibTest(DMibExpr(NMib::NTest::TCThrowsException<fp32>()) == DMibLExpr(Object.f_Test1()));
-				DMibTest(DMibExpr(NMib::NTest::TCThrowsException<fp64>()) == DMibLExpr(Object.f_Test2(2)));
-				DMibTest(DMibExpr((NMib::NTest::TCThrowsException<int32, fp32, fp64>())) == DMibLExpr(Object.f_Test0()));
-				DMibTest(DMibExpr((NMib::NTest::TCThrowsException<int32, fp32, fp64>())) == DMibLExpr(Object.f_Test1()));
-				DMibTest(DMibExpr((NMib::NTest::TCThrowsException<int32, fp32, fp64>())) == DMibLExpr(Object.f_Test2(2)));
+		CTest_Tests();
 
-				DMibExpectException(Object.f_Test0(), int32(2));
-				DMibExpectException(Object.f_Test1(), fp32(3.0));
-				DMibExpectException(Object.f_Test2(2), fp64(4.0));
-				DMibExpectException(Object.f_Test0(), int32(2), fp32(3.0), fp64(4.0));
-				DMibExpectException(Object.f_Test1(), int32(2), fp32(3.0), fp64(4.0));
-				DMibExpectException(Object.f_Test2(2), int32(2), fp32(3.0), fp64(4.0));
-			};
-			DMibTestSuite("Contracts")
-			{
-				CObject Object;
-				(void)Object;
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire()) == DMibLExpr(Object.f_Contract(200)));
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100")) == DMibLExpr(Object.f_Contract(200)));
+		void f_DoTests();
 
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100 where:{\n}    note: 'Should be'"_f.f_GetStr())) == DMibLExpr(Object.f_Contract2(200)));
-
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck()) == DMibLExpr(Object.f_Assert(200)));
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck("_Value < 100")) == DMibLExpr(Object.f_Assert(200)));
-				DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck("_Value < 100 'Should be'")) == DMibLExpr(Object.f_Assert2(200)));
-			};
-			DMibTestCategory("Performance")
-			{
-				DMibTestSuite("Expressions")
-				{
-#ifdef DMibDebug
-					static constexpr umint c_nLoops = 10000;
-					static constexpr umint c_nTests = 2;
-#else
-					static constexpr umint c_nLoops = 100000;
-					static constexpr umint c_nTests = 10;
-#endif
-
-					NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
-					for (umint iTest = 0; iTest < c_nTests; ++iTest)
-					{
-						TestTimer.f_Start();
-						for (umint iLoop = 0; iLoop < c_nLoops; ++iLoop)
-							DMibTest(DMibExpr(iLoop) < DMibExpr(c_nLoops))(ETestFlag_Aggregated);
-						TestTimer.f_Stop();
-					}
-
-					TestTimer /= c_nLoops;
-
-					umint ExpectedCycles = 1000;
-#ifdef DMibDebug
-					ExpectedCycles = 5000;
-#endif
-					if (NMib::NTest::fg_GroupActive("Performance"))
-						DMibTest(DMibExpr(TestTimer.f_GetCycles()) < DMibExpr(ExpectedCycles));
-				};
-				DMibTestSuite("Raw")
-				{
-#ifdef DMibDebug
-					static constexpr umint c_nLoops = 10000;
-					static constexpr umint c_nTests = 2;
-#else
-					static constexpr umint c_nLoops = 100000;
-					static constexpr umint c_nTests = 10;
-#endif
-
-					NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
-					for (umint iTest = 0; iTest < c_nTests; ++iTest)
-					{
-						TestTimer.f_Start();
-						for (umint iLoop = 0; iLoop < c_nLoops; ++iLoop)
-							DMibTest(iLoop < c_nLoops)("Loop test")(ETestFlag_Aggregated);
-						TestTimer.f_Stop();
-					}
-
-					TestTimer /= c_nLoops;
-
-					umint ExpectedCycles = 1000;
-#ifdef DMibDebug
-					ExpectedCycles = 5000;
-#endif
-					if (NMib::NTest::fg_GroupActive("Performance"))
-						DMibTest(DMibExpr(TestTimer.f_GetCycles()) < DMibExpr(ExpectedCycles));
-				};
-			};
-			DMibTestCategory("Conditional")
-			{
-				DMibTestSuite("SuccessConditions")
-				{
-					int bARun = 0, bBRun = 0;
-
-					if (DMibTest(DMibExpr(bARun = 1) == DMibExpr(1)))
-						DMibTest(DMibExpr(bBRun = 1) == DMibExpr(1));
-
-					DMibTest(DMibExpr(bARun) == DMibExpr(1));
-					DMibTest(DMibExpr(bBRun) == DMibExpr(1));
-				};
-				DMibTestSuite("FailureConditions")
-				{
-					int bARun = 0, bBRun = 0;
-
-					if (DMibTest(DMibExpr(bARun = 1) != DMibExpr(1))(ETest_ExpectFail))
-						DMibTest(DMibExpr(bBRun = 1) == DMibExpr(1));
-
-					DMibTest(DMibExpr(bARun) == DMibExpr(1));
-					DMibTest(DMibExpr(bBRun) == DMibExpr(0));
-				};
-			};
-			DMibTestSuite("DMibTestExpr")
-			{
-				bool bTrue = true;
-				DMibTestExpr(bTrue);
-				bTrue = false;
-				DMibTestExpr(bTrue)("Second")(ETest_ExpectFail);
-			};
-			DMibTestSuite("Recursive tests")
-			{
-				auto fTest = []
-					{
-						bool bShouldNotBeVisible = true;
-						DMibTestExpr(bShouldNotBeVisible);
-					}
-				;
-				DMibTest
-					(
-						DMibExpr
-						(
-							fg_TestRecursive
-							(
-								[&]
-								{
-									fTest();
-								}
-							)
-						)
-					)
-				;
-				auto fTestFail = []
-					{
-						bool bShouldNotBeVisible = false;
-						DMibTestExpr(bShouldNotBeVisible);
-						DMibTestExpr(bShouldNotBeVisible && 2);
-						DMibTestExpr(bShouldNotBeVisible && 3);
-						DMibTestExpr(bShouldNotBeVisible && 4);
-						DMibTestExpr(bShouldNotBeVisible && 5);
-						DMibTestExpr(bShouldNotBeVisible && 6);
-					}
-				;
-				DMibTest
-					(
-						DMibExpr
-						(
-							fg_TestRecursive
-							(
-								[&]
-								{
-									fTestFail();
-								}
-							)
-						)
-					)
-					(ETest_ExpectFail)
-				;
-			};
-		}
+		int m_Test;
 	};
+
+	void CTest_Tests::CObject::f_Test0()
+	{
+		throw int32(2);
+	}
+
+	int CTest_Tests::CObject::f_Test1()
+	{
+		throw fp32(3.0);
+		return 1;
+	}
+
+	int CTest_Tests::CObject::f_Test2(int _Value)
+	{
+		throw fp64(4.0);
+		return 2;
+	}
+
+	int CTest_Tests::CObject::f_Contract(int _Value)
+	{
+		DMibRequire(_Value < 100);
+		return _Value;
+	}
+
+	int CTest_Tests::CObject::f_Contract2(int _Value)
+	{
+		DMibRequire(_Value < 100)("Should be");
+		return _Value;
+	}
+
+	int CTest_Tests::CObject::f_Assert(int _Value)
+	{
+		DMibSafeCheck(_Value < 100, "");
+		return _Value;
+	}
+
+	int CTest_Tests::CObject::f_Assert2(int _Value)
+	{
+		DMibSafeCheck(_Value < 100, "Should be");
+		return _Value;
+	}
+
+	CTest_Tests::CTest_Tests()
+	{
+		m_Test = 0;
+	}
+
+	void CTest_Tests::f_DoTests()
+	{
+		DMibTestSuite("General")
+		{
+			DMibTest(DMibExpr(true));
+			DMibTest(DMibExpr(0) == DMibExpr(0));
+		};
+		DMibTestSuite("LambdasExpr")
+		{
+			DMibTest(DMibELExpr(1.0) == DMibExpr(1));
+		};
+		DMibTestSuite("Exceptions")
+		{
+			CObject Object;
+			(void)Object;
+			DMibTest(DMibExpr(NMib::NTest::TCThrowsException<int32>()) == DMibLExpr(Object.f_Test0()));
+			DMibTest(DMibExpr(NMib::NTest::TCThrowsException<fp32>()) == DMibLExpr(Object.f_Test1()));
+			DMibTest(DMibExpr(NMib::NTest::TCThrowsException<fp64>()) == DMibLExpr(Object.f_Test2(2)));
+			DMibTest(DMibExpr((NMib::NTest::TCThrowsException<int32, fp32, fp64>())) == DMibLExpr(Object.f_Test0()));
+			DMibTest(DMibExpr((NMib::NTest::TCThrowsException<int32, fp32, fp64>())) == DMibLExpr(Object.f_Test1()));
+			DMibTest(DMibExpr((NMib::NTest::TCThrowsException<int32, fp32, fp64>())) == DMibLExpr(Object.f_Test2(2)));
+
+			DMibExpectException(Object.f_Test0(), int32(2));
+			DMibExpectException(Object.f_Test1(), fp32(3.0));
+			DMibExpectException(Object.f_Test2(2), fp64(4.0));
+			DMibExpectException(Object.f_Test0(), int32(2), fp32(3.0), fp64(4.0));
+			DMibExpectException(Object.f_Test1(), int32(2), fp32(3.0), fp64(4.0));
+			DMibExpectException(Object.f_Test2(2), int32(2), fp32(3.0), fp64(4.0));
+		};
+		DMibTestSuite("Contracts")
+		{
+			CObject Object;
+			(void)Object;
+			DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire()) == DMibLExpr(Object.f_Contract(200)));
+			DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100")) == DMibLExpr(Object.f_Contract(200)));
+
+			DMibTest(DMibExpr(NMib::NTest::fg_ViolatesRequire("_Value < 100 where:{\n}    note: 'Should be'"_f.f_GetStr())) == DMibLExpr(Object.f_Contract2(200)));
+
+			DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck()) == DMibLExpr(Object.f_Assert(200)));
+			DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck("_Value < 100")) == DMibLExpr(Object.f_Assert(200)));
+			DMibTest(DMibExpr(NMib::NTest::fg_ViolatesSafeCheck("_Value < 100 'Should be'")) == DMibLExpr(Object.f_Assert2(200)));
+		};
+		DMibTestCategory("Performance")
+		{
+			DMibTestSuite("Expressions")
+			{
+#ifdef DMibDebug
+				static constexpr umint c_nLoops = 10000;
+				static constexpr umint c_nTests = 2;
+#else
+				static constexpr umint c_nLoops = 100000;
+				static constexpr umint c_nTests = 10;
+#endif
+
+				NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
+				for (umint iTest = 0; iTest < c_nTests; ++iTest)
+				{
+					TestTimer.f_Start();
+					for (umint iLoop = 0; iLoop < c_nLoops; ++iLoop)
+						DMibTest(DMibExpr(iLoop) < DMibExpr(c_nLoops))(ETestFlag_Aggregated);
+					TestTimer.f_Stop();
+				}
+
+				TestTimer /= c_nLoops;
+
+				umint ExpectedCycles = 1000;
+#ifdef DMibDebug
+				ExpectedCycles = 5000;
+#endif
+				if (NMib::NTest::fg_GroupActive("Performance"))
+					DMibTest(DMibExpr(TestTimer.f_GetCycles()) < DMibExpr(ExpectedCycles));
+			};
+			DMibTestSuite("Raw")
+			{
+#ifdef DMibDebug
+				static constexpr umint c_nLoops = 10000;
+				static constexpr umint c_nTests = 2;
+#else
+				static constexpr umint c_nLoops = 100000;
+				static constexpr umint c_nTests = 10;
+#endif
+
+				NMib::NTime::CPrefCyclesTimeMeasureMin TestTimer;
+				for (umint iTest = 0; iTest < c_nTests; ++iTest)
+				{
+					TestTimer.f_Start();
+					for (umint iLoop = 0; iLoop < c_nLoops; ++iLoop)
+						DMibTest(iLoop < c_nLoops)("Loop test")(ETestFlag_Aggregated);
+					TestTimer.f_Stop();
+				}
+
+				TestTimer /= c_nLoops;
+
+				umint ExpectedCycles = 1000;
+#ifdef DMibDebug
+				ExpectedCycles = 5000;
+#endif
+				if (NMib::NTest::fg_GroupActive("Performance"))
+					DMibTest(DMibExpr(TestTimer.f_GetCycles()) < DMibExpr(ExpectedCycles));
+			};
+		};
+		DMibTestCategory("Conditional")
+		{
+			DMibTestSuite("SuccessConditions")
+			{
+				int bARun = 0, bBRun = 0;
+
+				if (DMibTest(DMibExpr(bARun = 1) == DMibExpr(1)))
+					DMibTest(DMibExpr(bBRun = 1) == DMibExpr(1));
+
+				DMibTest(DMibExpr(bARun) == DMibExpr(1));
+				DMibTest(DMibExpr(bBRun) == DMibExpr(1));
+			};
+			DMibTestSuite("FailureConditions")
+			{
+				int bARun = 0, bBRun = 0;
+
+				if (DMibTest(DMibExpr(bARun = 1) != DMibExpr(1))(ETest_ExpectFail))
+					DMibTest(DMibExpr(bBRun = 1) == DMibExpr(1));
+
+				DMibTest(DMibExpr(bARun) == DMibExpr(1));
+				DMibTest(DMibExpr(bBRun) == DMibExpr(0));
+			};
+		};
+		DMibTestSuite("DMibTestExpr")
+		{
+			bool bTrue = true;
+			DMibTestExpr(bTrue);
+			bTrue = false;
+			DMibTestExpr(bTrue)("Second")(ETest_ExpectFail);
+		};
+		DMibTestSuite("Recursive tests")
+		{
+			auto fTest = []
+				{
+					bool bShouldNotBeVisible = true;
+					DMibTestExpr(bShouldNotBeVisible);
+				}
+			;
+			DMibTest
+				(
+					DMibExpr
+					(
+						fg_TestRecursive
+						(
+							[&]
+							{
+								fTest();
+							}
+						)
+					)
+				)
+			;
+			auto fTestFail = []
+				{
+					bool bShouldNotBeVisible = false;
+					DMibTestExpr(bShouldNotBeVisible);
+					DMibTestExpr(bShouldNotBeVisible && 2);
+					DMibTestExpr(bShouldNotBeVisible && 3);
+					DMibTestExpr(bShouldNotBeVisible && 4);
+					DMibTestExpr(bShouldNotBeVisible && 5);
+					DMibTestExpr(bShouldNotBeVisible && 6);
+				}
+			;
+			DMibTest
+				(
+					DMibExpr
+					(
+						fg_TestRecursive
+						(
+							[&]
+							{
+								fTestFail();
+							}
+						)
+					)
+				)
+				(ETest_ExpectFail)
+			;
+		};
+	}
 
 	DMibTestRegister(CTest_Tests, Malterlib::Test);
 }

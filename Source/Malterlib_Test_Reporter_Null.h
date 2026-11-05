@@ -9,10 +9,6 @@ namespace NMib::NTest::NPrivate
 {
 	struct CNullTestResults : public CTestResults
 	{
-	protected:
-		ETestReportFlag mp_ReportFlags;
-
-	public:
 		ETestReportFlag f_GetReportFlags() override;
 		void f_ReportHeader(ETestReportFlag _ReportFlags) override;
 		void f_ReportFooter(umint _nTestsTotal, umint _nSuccessful, umint _nSuccessUnexpected, umint _nFailed, umint _nExpectFailed, umint _nWarnings, umint _nIgnored) override;
@@ -35,5 +31,8 @@ namespace NMib::NTest::NPrivate
 		void f_ReportSuite(NStr::CStr const &_TestPath, NContainer::TCSet<NStr::CStr> const &_TestGroups, CTestLocation const &_Location) override;
 		void f_PerformanceResults(CTestPerformanceResults const &_Results) override;
 		void f_MemoryResults(CTestMemoryResults const &_Results) override;
+
+	protected:
+		ETestReportFlag mp_ReportFlags;
 	};
 }

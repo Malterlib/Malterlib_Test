@@ -157,6 +157,13 @@ namespace NMib::NTest
 
 	struct CTestMemoryStats
 	{
+		struct CAtMaxAlloc
+		{
+			CTestStats m_BytesOverhead;
+			CTestStats m_BytesPotentialWaste;
+			CTestStats m_nAllocations;
+		};
+
 		CTestStats m_nAllocations;
 		CTestStats m_nFree;
 		CTestStats m_nResize;
@@ -178,13 +185,6 @@ namespace NMib::NTest
 		CTestStats m_BytesPotentialWaste;
 
 		CTestStats m_BytesMaxAlloc;
-		struct CAtMaxAlloc
-		{
-			CTestStats m_BytesOverhead;
-			CTestStats m_BytesPotentialWaste;
-			CTestStats m_nAllocations;
-		};
-
 		CAtMaxAlloc m_AtBytesMaxAlloc;
 	};
 
@@ -228,9 +228,9 @@ namespace NMib::NTest
 
 		NStr::CStr const &f_GetGroup() const;
 
+	private:
 		friend CTestCategory operator << (NStr::CStr const &_CategoryName, CTestGroup const &_Group);
 
-	private:
 		NStr::CStr mp_Group;
 	};
 
@@ -384,6 +384,7 @@ namespace NMib::NTest
 		DMibTestHelperExpression_A
 		, DMibTestHelperExpression_B
 	};
+
 	// NOLINTEND(malterlib-type-naming)
 
 #	define DMibTestHelperExpression_B(d_Expression) DMibTestHelperExpression_OP(d_Expression, A)

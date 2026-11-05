@@ -47,15 +47,15 @@ namespace NMib::NTest
 		void f_MemoryResults(CTestMemoryResults const &_Results) override;
 
 	private:
-		ETestReportFlag mp_ReportFlags;
-
-		NAtomic::TCAtomic<int32> mp_NextID;
-		NThread::TCThreadLocal<uint32> mp_CurrentID;
-
 		static NContainer::CRegistry *fsp_AddStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestStats const &_Stats);
 		static NContainer::CRegistry *fsp_AddMemoryStatistics(NContainer::CRegistry *_pParentReg, NStr::CStr const &_Name, CTestMemoryStats const &_Stats);
 
 		static void fsp_DecodeStatistics(NContainer::CRegistry const &_ParentReg, CTestStats &_Stats);
 		static void fsp_DecodeMemoryStatistics(NContainer::CRegistry const &_ParentReg, CTestMemoryStats &_Stats);
+
+		ETestReportFlag mp_ReportFlags;
+
+		NAtomic::TCAtomic<int32> mp_NextID;
+		NThread::TCThreadLocal<uint32> mp_CurrentID;
 	};
 }

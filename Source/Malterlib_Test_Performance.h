@@ -32,6 +32,8 @@ namespace NMib::NTest
 		fp64 f_TimeStdDev();
 
 	private:
+		void fp_CalcRepetition();
+
 		NTime::TCCyclesTimeMeasure<false> mp_Cycles;
 		NTime::CTimeMeasure mp_Timer;
 		uint64 mp_nIterations;
@@ -55,29 +57,27 @@ namespace NMib::NTest
 		static NTime::TCCyclesTimeMeasure<false> msp_CyclesCorrection;
 		static NTime::CTimeMeasure msp_TimerCorrection;
 		static bool msp_bCalculateCorrection;
-
-		void fp_CalcRepetition();
 	};
 
 	template <typename t_CTimer, typename t_CIterations>
 	struct TCTestMeasureScope
 	{
-		t_CTimer &m_Timer;
-		t_CIterations const &m_Iterations;
-
 		TCTestMeasureScope(t_CTimer &_Timer, t_CIterations const &_Iterations);
 		~TCTestMeasureScope();
+
+		t_CTimer &m_Timer;
+		t_CIterations const &m_Iterations;
 	};
 
 	template <typename t_CTimer, typename t_CIterations>
 	struct TCTestMeasureScopeWithThread
 	{
+		TCTestMeasureScopeWithThread(t_CTimer &_Timer, t_CIterations const &_Iterations, umint _nThreads);
+		~TCTestMeasureScopeWithThread();
+
 		t_CTimer &m_Timer;
 		t_CIterations const &m_Iterations;
 		umint m_nThreads;
-
-		TCTestMeasureScopeWithThread(t_CTimer &_Timer, t_CIterations const &_Iterations, umint _nThreads);
-		~TCTestMeasureScopeWithThread();
 	};
 
 #define DMibTestScopeMeasure(d_Measure, d_nIterations) NMib::NTest::TCTestMeasureScope<decltype(d_Measure), decltype(d_nIterations)> TimerScope(d_Measure, d_nIterations)
@@ -91,10 +91,11 @@ namespace NMib::NTest
 
 	struct CTestPerformance
 	{
+		CTestPerformance(fp64 const &_Tolerance, bool _bModifyDescription = true);
+
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
 		bool f_IsIgnored() const;
 #endif
-		CTestPerformance(fp64 const &_Tolerance, bool _bModifyDescription = true);
 		void f_AddBaseline(CTestPerformanceMeasure &_Timer);
 		void f_AddReference(CTestPerformanceMeasure &_Timer);
 		void f_AddDebug(CTestPerformanceMeasure &_Timer);
@@ -112,11 +113,12 @@ namespace NMib::NTest
 		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const;
 
 	private:
+		CTestPerformanceResult &fp_Add(CTestPerformanceMeasure &_Timer);
+		NStr::CStr fp_GetOutput() const;
+
 		CTestPerformanceResults mp_Results;
 		NContainer::TCMap<fp64, umint> mp_References;
 		bool mp_bModifyDescription;
-		CTestPerformanceResult &fp_Add(CTestPerformanceMeasure &_Timer);
-		NStr::CStr fp_GetOutput() const;
 	};
 }
 

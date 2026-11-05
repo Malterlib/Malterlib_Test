@@ -11,7 +11,7 @@ namespace NMib::NTest::NPrivate
 #	ifndef DCompiler_MSVC_Workaround
 		requires NTraits::cIsSame<t_CExpression, bool> || requires ()
 		{
-			this->m_Expression.f_Eval(nullptr);
+			fg_GetType<t_CExpression const &>().f_Eval(nullptr);
 		}
 #	endif
 	{
@@ -182,9 +182,9 @@ namespace NMib::NTest::NPrivate
 	template <bool t_bFailureOnly, typename t_CExpression>
 	TCTestFunctionHelper<t_bFailureOnly, t_CExpression>::operator bool () const
 #	ifndef DCompiler_MSVC_Workaround
-		requires requires ()
+		requires NTraits::cIsSame<t_CExpression, bool> || requires ()
 		{
-			fp_Evaluate();
+			fg_GetType<t_CExpression const &>().f_Eval(nullptr);
 		}
 #	endif
 	{

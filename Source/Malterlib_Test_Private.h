@@ -10,10 +10,11 @@ namespace NMib::NTest::NPrivate
 #if DMibConfig_Tests_Enable
 	struct CReportTestAbortException
 	{
-		uint32 m_Magic = mcp_Magic;
 		CReportTestAbortException();
 
 		bool f_IsValid() const;
+
+		uint32 m_Magic = mcp_Magic;
 
 	private:
 		static constexpr uint32 mcp_Magic = 0xF538CB10;
@@ -24,14 +25,14 @@ namespace NMib::NTest::NPrivate
 		CTestExceptionFilter();
 		~CTestExceptionFilter();
 
-		NContainer::TCVector<NStr::CStr> m_DumpFiles;
-		CStackTraceInfo *m_pStackTraceInfo;
-
 		void f_Exception(void *_pExceptionData);
 		void f_SetDumpFiles(NContainer::TCVector<NStr::CStr> const &_Files);
 		NContainer::TCVector<NStr::CStr> f_DetachDumpFiles();
 		ch8 const *f_GetFile();
 		int32 f_GetLine();
+
+		NContainer::TCVector<NStr::CStr> m_DumpFiles;
+		CStackTraceInfo *m_pStackTraceInfo;
 	};
 
 	struct CTestExceptionNoFilter : public NException::CExceptionFilter
@@ -107,19 +108,6 @@ namespace NMib::NTest::NPrivate
 	template <bool t_bFailureOnly, typename t_CExpression = CDummyExpression>
 	struct TCTestFunctionHelper
 	{
-		t_CExpression m_Expression;
-
-	private:
-		bool fp_Evaluate() const
-#	ifndef DCompiler_MSVC_Workaround
-			requires NTraits::cIsSame<t_CExpression, bool> || requires ()
-			{
-				this->m_Expression.f_Eval(nullptr);
-			}
-#	endif
-		;
-
-	public:
 		TCTestFunctionHelper(ch8 const *_pFile, int32 _Line, t_CExpression &&_Expression);
 		TCTestFunctionHelper(TCTestFunctionHelper &&_Right);
 		template <bool tf_bFailureOnly, typename tf_CExpression>
@@ -128,9 +116,9 @@ namespace NMib::NTest::NPrivate
 
 		operator bool () const
 #	ifndef DCompiler_MSVC_Workaround
-			requires requires ()
+			requires NTraits::cIsSame<t_CExpression, bool> || requires ()
 			{
-				fp_Evaluate();
+				fg_GetType<t_CExpression const &>().f_Eval(nullptr);
 			}
 #	endif
 		;
@@ -145,6 +133,7 @@ namespace NMib::NTest::NPrivate
 		TCTestFunctionHelper<t_bFailureOnly, tf_CExpression> operator () (tf_CExpression const &_Expression);
 		TCTestFunctionHelper<t_bFailureOnly, bool> operator () (bool _bExpression);
 
+		t_CExpression m_Expression;
 		ETest m_FailureAction;
 		ETestFlag m_Flags;
 		ch8 const *m_pFile;
@@ -152,6 +141,16 @@ namespace NMib::NTest::NPrivate
 		NStr::CStr m_CustomMessage;
 		bool m_bValid;
 		bool m_bOnlyCustom;
+
+	private:
+		bool fp_Evaluate() const
+#	ifndef DCompiler_MSVC_Workaround
+			requires NTraits::cIsSame<t_CExpression, bool> || requires ()
+			{
+				fg_GetType<t_CExpression const &>().f_Eval(nullptr);
+			}
+#	endif
+		;
 	};
 
 	struct CTestPathScope : public CCoroutineThreadLocalHandler
