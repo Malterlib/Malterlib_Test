@@ -434,14 +434,6 @@ namespace NMib::NTest::NExpression
 	template <typename t_CLeft, typename t_CRight>
 	struct TCExpressionWithOperator<t_CLeft, t_CRight, EOperator_Logical_And>
 	{
-	private:
-		// Declared before the public section, whose return type uses them.
-		static t_CLeft const &fsp_GetLeft();
-		static t_CRight const &fsp_GetRight();
-
-	public:
-		t_CLeft const &m_Left;
-		t_CRight const &m_Right;
 		TCExpressionWithOperator(t_CLeft const &_Left, t_CRight const &_Right);
 
 		NStr::CStr f_GetDesc() const;
@@ -449,12 +441,15 @@ namespace NMib::NTest::NExpression
 		bool f_OnlyEvalOnce() const;
 
 		auto f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
-			-> decltype(fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) && fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive))
+			-> decltype(fg_GetType<t_CLeft const &>().f_GetVariable(o_pValueDesc, _bRecursive) && fg_GetType<t_CRight const &>().f_GetVariable(o_pValueDesc, _bRecursive))
 			requires requires ()
 			{
-				DMibTemp_RequiresCheck(this->fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) && this->fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive));
+				DMibTemp_RequiresCheck(fg_GetType<t_CLeft const &>().f_GetVariable(o_pValueDesc, _bRecursive) && fg_GetType<t_CRight const &>().f_GetVariable(o_pValueDesc, _bRecursive));
 			}
 		;
+
+		t_CLeft const &m_Left;
+		t_CRight const &m_Right;
 
 		DMibTemp_ImplementExpressionInterface(TCExpressionWithOperator);
 	};
@@ -462,14 +457,6 @@ namespace NMib::NTest::NExpression
 	template <typename t_CLeft, typename t_CRight>
 	struct TCExpressionWithOperator<t_CLeft, t_CRight, EOperator_Logical_Or>
 	{
-	private:
-		// Declared before the public section, whose return type uses them.
-		static t_CLeft const &fsp_GetLeft();
-		static t_CRight const &fsp_GetRight();
-
-	public:
-		t_CLeft const &m_Left;
-		t_CRight const &m_Right;
 		TCExpressionWithOperator(t_CLeft const &_Left, t_CRight const &_Right);
 
 		NStr::CStr f_GetDesc() const;
@@ -477,12 +464,16 @@ namespace NMib::NTest::NExpression
 		bool f_OnlyEvalOnce() const;
 
 		auto f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
-			-> decltype(fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) || fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive))
+			-> decltype(fg_GetType<t_CLeft const &>().f_GetVariable(o_pValueDesc, _bRecursive) || fg_GetType<t_CRight const &>().f_GetVariable(o_pValueDesc, _bRecursive))
 			requires requires ()
 			{
-				DMibTemp_RequiresCheck(this->fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) || this->fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive));
+				DMibTemp_RequiresCheck(fg_GetType<t_CLeft const &>().f_GetVariable(o_pValueDesc, _bRecursive) || fg_GetType<t_CRight const &>().f_GetVariable(o_pValueDesc, _bRecursive));
 			}
 		;
+
+		t_CLeft const &m_Left;
+		t_CRight const &m_Right;
+
 		DMibTemp_ImplementExpressionInterface(TCExpressionWithOperator);
 	};
 
@@ -521,6 +512,8 @@ namespace NMib::NTest::NExpression
 	template <typename t_CType, CLambdaUnderlying t_bLambda, typename t_CLambdaReturn = void>
 	struct TCExpression
 	{
+		TCExpression(t_CType _Lambda, ch8 const *_pDescription);
+
 		bool f_Eval(NStr::CStr *o_pValueDesc) const;
 		NStr::CStr f_GetDesc() const;
 		NStr::CStr f_GetDescRecursive() const;
@@ -528,7 +521,6 @@ namespace NMib::NTest::NExpression
 		NStr::CStr f_GetValueDescRecursive() const;
 		t_CLambdaReturn f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const;
 
-		TCExpression(t_CType _Lambda, ch8 const *_pDescription);
 		DImplementExpressionInterfaceNoEval(TCExpression);
 
 	private:
@@ -539,13 +531,14 @@ namespace NMib::NTest::NExpression
 	template <typename t_CType, typename t_CLambdaReturn>
 	struct TCExpression<t_CType, ELambda_NoEval, t_CLambdaReturn>
 	{
+		TCExpression(t_CType _Lambda, ch8 const *_pDescription);
+
 		bool f_Eval(NStr::CStr *o_pValueDesc) const;
 		NStr::CStr f_GetDesc() const;
 		NStr::CStr f_GetDescRecursive() const;
 		bool f_OnlyEvalOnce() const;
 		t_CType f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const;
 
-		TCExpression(t_CType _Lambda, ch8 const *_pDescription);
 		DImplementExpressionInterfaceNoEval(TCExpression);
 
 	private:
@@ -556,13 +549,13 @@ namespace NMib::NTest::NExpression
 	template <typename t_CType, typename t_CLambdaReturn>
 	struct TCExpression<t_CType, ELambda_None, t_CLambdaReturn>
 	{
+		template <typename tf_CType>
+		TCExpression(tf_CType &&_Variable, ch8 const *_pDescription);
+
 		NStr::CStr f_GetDesc() const;
 		NStr::CStr f_GetDescRecursive() const;
 		bool f_OnlyEvalOnce() const;
 		t_CType const &f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const;
-
-		template <typename tf_CType>
-		TCExpression(tf_CType &&_Variable, ch8 const *_pDescription);
 
 		DMibTemp_ImplementExpressionInterface(TCExpression);
 

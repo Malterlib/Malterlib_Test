@@ -10,10 +10,11 @@ namespace NMib::NTest::NPrivate
 #if DMibConfig_Tests_Enable
 	struct CReportTestAbortException
 	{
-		uint32 m_Magic = mcp_Magic;
 		CReportTestAbortException();
 
 		bool f_IsValid() const;
+
+		uint32 m_Magic = mcp_Magic;
 
 	private:
 		static constexpr uint32 mcp_Magic = 0xF538CB10;
@@ -24,14 +25,14 @@ namespace NMib::NTest::NPrivate
 		CTestExceptionFilter();
 		~CTestExceptionFilter();
 
-		NContainer::TCVector<NStr::CStr> m_DumpFiles;
-		CStackTraceInfo *m_pStackTraceInfo;
-
 		void f_Exception(void *_pExceptionData);
 		void f_SetDumpFiles(NContainer::TCVector<NStr::CStr> const &_Files);
 		NContainer::TCVector<NStr::CStr> f_DetachDumpFiles();
 		ch8 const *f_GetFile();
 		int32 f_GetLine();
+
+		NContainer::TCVector<NStr::CStr> m_DumpFiles;
+		CStackTraceInfo *m_pStackTraceInfo;
 	};
 
 	struct CTestExceptionNoFilter : public NException::CExceptionFilter
@@ -119,7 +120,7 @@ namespace NMib::NTest::NPrivate
 #	endif
 		;
 
-	public:
+	public: // NOLINT(malterlib-member-order): operator bool's requires clause uses the private fp_Evaluate, and fp_Evaluate's uses m_Expression
 		TCTestFunctionHelper(ch8 const *_pFile, int32 _Line, t_CExpression &&_Expression);
 		TCTestFunctionHelper(TCTestFunctionHelper &&_Right);
 		template <bool tf_bFailureOnly, typename tf_CExpression>

@@ -28,15 +28,27 @@ namespace NMib::NTest
 		void f_GetResults(CTestMemoryResult &_Result);
 
 	private:
-		uint64 mp_nIterationsSum;
-		uint32 mp_nRepetitions;
-		NStr::CStr mp_Name;
-		CReportMemory *mp_pOldReporter;
-
-		NThread::CMutual mp_Lock;
-
 		struct CAllocatorStats
 		{
+			CAllocatorStats();
+
+			CAllocatorStats &operator += (CAllocatorStats const &_Right);
+
+			template <CStatAffectFlagUnderlying tf_Flags>
+			void f_TransferToStats(CTestMemoryStats &_Stats) const;
+
+			void f_Clear();
+
+			void f_Alloc(uint64 _Size, uint64 _Overhead, uint64 _Waste);
+			void f_Resize(uint64 _Size, uint64 _Overhead, uint64 _Waste);
+			void f_Realloc(uint64 _Size, uint64 _Overhead, uint64 _Waste);
+			void f_Free(uint64 _Size, uint64 _Overhead, uint64 _Waste);
+			void f_ResizeReallocFree(uint64 _Size, uint64 _Overhead, uint64 _Waste);
+			void f_GetSize();
+			void f_Protect(uint64 _Size);
+			void f_Commit(uint64 _Size);
+			void f_Decommit(uint64 _Size);
+
 			uint64 m_nAllocations;
 			uint64 m_nFree;
 			uint64 m_nResize;
@@ -66,25 +78,6 @@ namespace NMib::NTest
 			uint64 m_BytesPotentialWasteAtMaxAlloc;
 			uint64 m_nAllocationsAtMaxAlloc;
 
-			CAllocatorStats &operator += (CAllocatorStats const &_Right);
-
-			template <CStatAffectFlagUnderlying tf_Flags>
-			void f_TransferToStats(CTestMemoryStats &_Stats) const;
-
-			void f_Clear();
-
-			void f_Alloc(uint64 _Size, uint64 _Overhead, uint64 _Waste);
-			void f_Resize(uint64 _Size, uint64 _Overhead, uint64 _Waste);
-			void f_Realloc(uint64 _Size, uint64 _Overhead, uint64 _Waste);
-			void f_Free(uint64 _Size, uint64 _Overhead, uint64 _Waste);
-			void f_ResizeReallocFree(uint64 _Size, uint64 _Overhead, uint64 _Waste);
-			void f_GetSize();
-			void f_Protect(uint64 _Size);
-			void f_Commit(uint64 _Size);
-			void f_Decommit(uint64 _Size);
-
-			CAllocatorStats();
-
 		private:
 			template <CStatAffectFlagUnderlying tf_Flags>
 			static void fsp_TransferStat(CTestStats &_Stat, fp64 _Value);
@@ -94,9 +87,10 @@ namespace NMib::NTest
 
 		struct CAllocationKey
 		{
+			auto operator <=> (CAllocationKey const &_Right) const noexcept = default;
+
 			umint m_MemoryAllocator;
 			umint m_Address;
-			auto operator <=> (CAllocationKey const &_Right) const noexcept = default;
 		};
 
 		struct CAllocation
@@ -105,15 +99,6 @@ namespace NMib::NTest
 			umint m_Overhead;
 			umint m_PotentialWaste;
 		};
-
-		NContainer::TCMap<umint, CAllocatorStats *, NMib::CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_ActiveAllocators;
-		NContainer::TCMap<CAllocationKey, CAllocation, CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_Allocations;
-		NContainer::TCMap<NStr::CStrNonTracked, CAllocatorStats, CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_Allocators;
-		CAllocatorStats mp_AllAllocations;
-
-		NContainer::TCMap<NStr::CStrNonTracked, NContainer::TCVector<CAllocatorStats, NMemory::CAllocator_NonTrackedHeap>, NMib::CSort_Default, NMemory::CAllocator_NonTrackedHeap>
-			mp_AllocatorHistory
-		;
 
 		CAllocatorStats *fp_GetActiveStats(umint _Heap);
 		CAllocatorStats &fp_GetActiveStats(umint _Heap, ch8 const *_pHeapName);
@@ -172,15 +157,32 @@ namespace NMib::NTest
 		void f_Commit(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size) override;
 		void f_Decommit(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth, umint _Address, umint _Size) override;
 		void f_AllocatorDelete(umint _MemoryAllocator, ch8 const *_pAllocatorName, umint _AllocatorDepth) override;
+
+		uint64 mp_nIterationsSum;
+		uint32 mp_nRepetitions;
+		NStr::CStr mp_Name;
+		CReportMemory *mp_pOldReporter;
+
+		NThread::CMutual mp_Lock;
+
+		NContainer::TCMap<umint, CAllocatorStats *, NMib::CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_ActiveAllocators;
+		NContainer::TCMap<CAllocationKey, CAllocation, CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_Allocations;
+		NContainer::TCMap<NStr::CStrNonTracked, CAllocatorStats, CSort_Default, NMemory::CAllocator_NonTrackedHeap> mp_Allocators;
+		CAllocatorStats mp_AllAllocations;
+
+		NContainer::TCMap<NStr::CStrNonTracked, NContainer::TCVector<CAllocatorStats, NMemory::CAllocator_NonTrackedHeap>, NMib::CSort_Default, NMemory::CAllocator_NonTrackedHeap>
+			mp_AllocatorHistory
+		;
 	};
 
 	// Todo: allow to specify a flag field for what stats should be better in the test
 	struct CTestMemory
 	{
+		CTestMemory(fp64 const &_Tolerance, bool _bCompareNumAllocations);
+
 #if !defined(DConfig_Optimized) && !defined(DConfig_Release) && !defined(DConfig_Profile)
 		bool f_IsIgnored() const;
 #endif
-		CTestMemory(fp64 const &_Tolerance, bool _bCompareNumAllocations);
 		void f_AddBaseline(CTestMemoryMeasure &_Measure);
 		void f_AddReference(CTestMemoryMeasure &_Measure);
 		void f_AddDebug(CTestMemoryMeasure &_Measure);
@@ -201,12 +203,12 @@ namespace NMib::NTest
 		NStr::CStrFormatTypeClassifier_String f_CreateStringFormatter(tf_CFormatter &_Formatter) const;
 
 	private:
-		CTestMemoryResults mp_Results;
-		bool mp_bCompareNumAllocations;
-
 		CTestMemoryResult &fp_Add(CTestMemoryMeasure &_Measure);
 		NStr::CStr fp_GetOutput() const;
 		void fp_GetBest(CTestMemoryResult const * &_pBestRef, CTestMemoryResult const * &_pBest) const;
+
+		CTestMemoryResults mp_Results;
+		bool mp_bCompareNumAllocations;
 	};
 
 	struct CTestMemoryMaxAllocatedBytes : public CTestMemory

@@ -63,10 +63,10 @@ namespace NMib::NTest::NExpression
 
 	template <typename t_CLeft, typename t_CRight>
 	auto TCExpressionWithOperator<t_CLeft, t_CRight, EOperator_Logical_And>::f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
-		-> decltype(fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) && fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive))
+		-> decltype(fg_GetType<t_CLeft const &>().f_GetVariable(o_pValueDesc, _bRecursive) && fg_GetType<t_CRight const &>().f_GetVariable(o_pValueDesc, _bRecursive))
 		requires requires ()
 		{
-			DMibTemp_RequiresCheck(this->fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) && this->fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive));
+			DMibTemp_RequiresCheck(fg_GetType<t_CLeft const &>().f_GetVariable(o_pValueDesc, _bRecursive) && fg_GetType<t_CRight const &>().f_GetVariable(o_pValueDesc, _bRecursive));
 		}
 	{
 		if (!o_pValueDesc)
@@ -130,10 +130,10 @@ namespace NMib::NTest::NExpression
 
 	template <typename t_CLeft, typename t_CRight>
 	auto TCExpressionWithOperator<t_CLeft, t_CRight, EOperator_Logical_Or>::f_GetVariable(NStr::CStr *o_pValueDesc, bool _bRecursive) const
-		-> decltype(fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) || fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive))
+		-> decltype(fg_GetType<t_CLeft const &>().f_GetVariable(o_pValueDesc, _bRecursive) || fg_GetType<t_CRight const &>().f_GetVariable(o_pValueDesc, _bRecursive))
 		requires requires ()
 		{
-			DMibTemp_RequiresCheck(this->fsp_GetLeft().f_GetVariable(o_pValueDesc, _bRecursive) || this->fsp_GetRight().f_GetVariable(o_pValueDesc, _bRecursive));
+			DMibTemp_RequiresCheck(fg_GetType<t_CLeft const &>().f_GetVariable(o_pValueDesc, _bRecursive) || fg_GetType<t_CRight const &>().f_GetVariable(o_pValueDesc, _bRecursive));
 		}
 	{
 		if (!o_pValueDesc)

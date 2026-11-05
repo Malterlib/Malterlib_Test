@@ -26,6 +26,61 @@ namespace NMib::NTest
 
 		struct CTestManager
 		{
+			struct CUniqueTest
+			{
+				COrdering_Strong operator <=> (CUniqueTest const &_Other) const noexcept;
+
+				ch8 const *m_pFile;
+				int32 m_Line;
+			};
+
+			struct CCoroutineState
+			{
+				NStr::CStr m_Path;
+				CTestPathRestoringScope *m_pCurrentScope = nullptr;
+			};
+
+			struct CThreadLocal
+			{
+				CThreadLocal() = default;
+				CThreadLocal(CThreadLocal const &_Inherit);
+				~CThreadLocal();
+
+				NStorage::TCAutoClearPtr<CThreadLocal const> m_pInherit;
+				mutable NThread::CMutual m_TestPathLock;
+				NStr::CStr m_TestPath;
+				NStr::CStr m_ExceptionTestPath;
+				mutable NThread::CMutual m_PropertiesLock;
+				NContainer::TCSet<NStr::CStr> m_TestGroups;
+				CTestResults *m_pResults = nullptr;
+				ch8 const *m_pLastTestFile = nullptr;
+				int32 m_LastTestLine = 0;
+
+				NStr::CStr *m_pDynamicValue = nullptr;
+
+				CCoroutineState m_CoroutineState;
+
+				bool m_bEnableValues = true;
+				bool m_bEnableExceptionFilter = true;
+				bool m_bEnumerating = false;
+				bool m_bInsideTestSuite = false;
+				mutable NThread::CMutual m_UniqueTestsLock;
+				mutable NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>>> m_UniqueTests;
+
+				DMibAutoClearPtrDeclare;
+			};
+
+			CTestManager();
+			~CTestManager();
+
+			static CTestManager &fs_GetManager();
+
+			CTestResults *f_GetResults(CThreadLocal const &_ThreadLocal) const;
+			void f_ClearStatistics();
+			void f_AddCleanupPath(NStr::CStr const &_Directory);
+			void f_AddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_fExceptionHandler);
+			NStr::CStr f_GetExceptionInfo();
+
 			NThread::CMutual m_Lock;
 
 			CTestResults *m_pResults;
@@ -63,177 +118,137 @@ namespace NMib::NTest
 			NThread::CMutual m_ExceptionInfoGeneratorsLock;
 			NContainer::TCVector<NFunction::TCFunctionMovable<NStr::CStr ()>> m_ExceptionInfoGenerators;
 
-			static CTestManager &fs_GetManager();
+			NThread::TCThreadLocal<CThreadLocal, NMemory::CAllocator_Heap, NThread::EThreadLocalFlag_Inherit> m_ThreadLocal;
+		};
 
-			struct CUniqueTest
+		COrdering_Strong CTestManager::CUniqueTest::operator <=> (CUniqueTest const &_Other) const noexcept
+		{
+			if (auto Ret = NStr::fg_StrCmp(m_pFile, _Other.m_pFile); Ret != 0)
+				return Ret <=> 0;
+
+			return m_Line <=> _Other.m_Line;
+		}
+
+		CTestManager::CThreadLocal::CThreadLocal(CThreadLocal const &_Inherit)
+		{
 			{
-				ch8 const *m_pFile;
-				int32 m_Line;
-				COrdering_Strong operator <=> (CUniqueTest const &_Other) const noexcept
-				{
-					if (auto Ret = NStr::fg_StrCmp(m_pFile, _Other.m_pFile); Ret != 0)
-						return Ret <=> 0;
-
-					return m_Line <=> _Other.m_Line;
-				}
-			};
-
-			struct CCoroutineState
+				DMibLock(_Inherit.m_PropertiesLock);
+				m_bEnableValues = _Inherit.m_bEnableValues;
+				m_bEnableExceptionFilter = _Inherit.m_bEnableExceptionFilter;
+				m_bInsideTestSuite = _Inherit.m_bInsideTestSuite;
+				m_pLastTestFile = _Inherit.m_pLastTestFile;
+				m_LastTestLine = _Inherit.m_LastTestLine;
+			}
 			{
-				NStr::CStr m_Path;
-				CTestPathRestoringScope *m_pCurrentScope = nullptr;
-			};
+				DMibLock(_Inherit.m_TestPathLock);
+				m_TestPath = _Inherit.m_TestPath;
+			}
 
-			struct CThreadLocal
 			{
-				CThreadLocal() = default;
-				CThreadLocal(CThreadLocal const &_Inherit)
+				DMibLock(fs_GetManager().m_ThreadLocalLock);
+				m_pInherit = &_Inherit;
+			}
+		}
+
+		CTestManager::CThreadLocal::~CThreadLocal()
+		{
+			NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>>> UniqueTests;
+			{
+				DMibLock(m_UniqueTestsLock);
+				UniqueTests = m_UniqueTests;
+			}
+			DMibLock(fs_GetManager().m_ThreadLocalLock);
+			{
+				if (m_pInherit)
 				{
 					{
-						DMibLock(_Inherit.m_PropertiesLock);
-						m_bEnableValues = _Inherit.m_bEnableValues;
-						m_bEnableExceptionFilter = _Inherit.m_bEnableExceptionFilter;
-						m_bInsideTestSuite = _Inherit.m_bInsideTestSuite;
-						m_pLastTestFile = _Inherit.m_pLastTestFile;
-						m_LastTestLine = _Inherit.m_LastTestLine;
-					}
-					{
-						DMibLock(_Inherit.m_TestPathLock);
-						m_TestPath = _Inherit.m_TestPath;
-					}
-
-					{
-						DMibLock(fs_GetManager().m_ThreadLocalLock);
-						m_pInherit = &_Inherit;
-					}
-				}
-
-				~CThreadLocal()
-				{
-					NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>>> UniqueTests;
-					{
-						DMibLock(m_UniqueTestsLock);
-						UniqueTests = m_UniqueTests;
-					}
-					DMibLock(fs_GetManager().m_ThreadLocalLock);
-					{
-						if (m_pInherit)
+						DMibLock(m_pInherit->m_UniqueTestsLock);
+						for (auto iUniqueTest = UniqueTests.f_GetIterator(); iUniqueTest; ++iUniqueTest)
 						{
+							NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> const &Aggregated = *iUniqueTest;
+							auto MapResult = m_pInherit->m_UniqueTests(iUniqueTest.f_GetKey());
+							NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> &AggregatedNew = *MapResult;
+							AggregatedNew += Aggregated;
+							if (!MapResult.f_WasCreated() && Aggregated.f_IsEmpty())
 							{
-								DMibLock(m_pInherit->m_UniqueTestsLock);
-								for (auto iUniqueTest = UniqueTests.f_GetIterator(); iUniqueTest; ++iUniqueTest)
-								{
-									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> const &Aggregated = *iUniqueTest;
-									auto MapResult = m_pInherit->m_UniqueTests(iUniqueTest.f_GetKey());
-									NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>> &AggregatedNew = *MapResult;
-									AggregatedNew += Aggregated;
-									if (!MapResult.f_WasCreated() && Aggregated.f_IsEmpty())
-									{
-										DMibTrace("Duplicate Test Path: {}" DMibNewLine, iUniqueTest.f_GetKey());
-										DMibPDebugBreak; // The same test run twice is not allowed for reporting reasons
-									}
-								}
+								DMibTrace("Duplicate Test Path: {}" DMibNewLine, iUniqueTest.f_GetKey());
+								DMibPDebugBreak; // The same test run twice is not allowed for reporting reasons
 							}
 						}
-						m_AutoClearPtrMember.f_Clear();
 					}
 				}
-
-				NStorage::TCAutoClearPtr<CThreadLocal const> m_pInherit;
-				mutable NThread::CMutual m_TestPathLock;
-				NStr::CStr m_TestPath;
-				NStr::CStr m_ExceptionTestPath;
-				mutable NThread::CMutual m_PropertiesLock;
-				NContainer::TCSet<NStr::CStr> m_TestGroups;
-				CTestResults *m_pResults = nullptr;
-				ch8 const *m_pLastTestFile = nullptr;
-				int32 m_LastTestLine = 0;
-
-				NStr::CStr *m_pDynamicValue = nullptr;
-
-				CCoroutineState m_CoroutineState;
-
-				bool m_bEnableValues = true;
-				bool m_bEnableExceptionFilter = true;
-				bool m_bEnumerating = false;
-				bool m_bInsideTestSuite = false;
-				mutable NThread::CMutual m_UniqueTestsLock;
-				mutable NContainer::TCMap<NStr::CStr, NContainer::TCMap<CUniqueTest, TCAutoClearInt<bool>>> m_UniqueTests;
-
-				DMibAutoClearPtrDeclare;
-			};
-
-			NThread::TCThreadLocal<CThreadLocal, NMemory::CAllocator_Heap, NThread::EThreadLocalFlag_Inherit> m_ThreadLocal;
-
-			CTestManager()
-			{
-				if (fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true" || fg_GetSys()->f_GetEnvironmentVariable("MalterlibCleanupTestFiles", "") == "true")
-					m_bDoFileCleanup = true;
-
-				if (fg_GetSys()->f_GetEnvironmentVariable("MalterlibInitialConnectionTimeout", "").f_IsEmpty())
-					fg_GetSys()->f_SetEnvironmentVariable("MalterlibInitialConnectionTimeout", NStr::CStr::CFormat("{}") << 30.0 * gc_TimeoutMultiplier);
+				m_AutoClearPtrMember.f_Clear();
 			}
+		}
 
-			~CTestManager()
+		CTestManager::CTestManager()
+		{
+			if (fg_GetSys()->f_GetEnvironmentVariable("RunningCI", "") == "true" || fg_GetSys()->f_GetEnvironmentVariable("MalterlibCleanupTestFiles", "") == "true")
+				m_bDoFileCleanup = true;
+
+			if (fg_GetSys()->f_GetEnvironmentVariable("MalterlibInitialConnectionTimeout", "").f_IsEmpty())
+				fg_GetSys()->f_SetEnvironmentVariable("MalterlibInitialConnectionTimeout", NStr::CStr::CFormat("{}") << 30.0 * gc_TimeoutMultiplier);
+		}
+
+		CTestManager::~CTestManager()
+		{
+			if (!m_bDoFileCleanup)
+				return;
+
+			for (auto &Path : m_CleanupPaths)
 			{
-				if (!m_bDoFileCleanup)
-					return;
-
-				for (auto &Path : m_CleanupPaths)
+				try
 				{
-					try
-					{
-						if (NFile::CFile::fs_FileExists(Path))
-							NFile::CFile::fs_DeleteDirectoryRecursive(Path);
-					}
-					catch (NFile::CExceptionFile const &)
-					{
-					}
+					if (NFile::CFile::fs_FileExists(Path))
+						NFile::CFile::fs_DeleteDirectoryRecursive(Path);
 				}
-			}
-
-			CTestResults *f_GetResults(CThreadLocal const &_ThreadLocal) const
-			{
-				if (_ThreadLocal.m_pResults)
-					return _ThreadLocal.m_pResults;
-				return m_pResults;
-			}
-
-			void f_ClearStatistics()
-			{
-				m_nTotalTests.f_Exchange(0);
-				m_nWarnings.f_Exchange(0);
-				m_nFailed.f_Exchange(0);
-				m_nSuccess.f_Exchange(0);
-				m_nSuccessUnexpected.f_Exchange(0);
-				m_nExpectedFailed.f_Exchange(0);
-				m_nIgnored.f_Exchange(0);
-			}
-
-			void f_AddCleanupPath(NStr::CStr const &_Directory)
-			{
-				DMibLock(m_CleanupPathsLock);
-				m_CleanupPaths[_Directory];
-			}
-
-			void f_AddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_fExceptionHandler)
-			{
-				DMibLock(m_ExceptionInfoGeneratorsLock);
-				m_ExceptionInfoGenerators.f_Insert(fg_Move(_fExceptionHandler));
-			}
-
-			NStr::CStr f_GetExceptionInfo()
-			{
-				DMibLock(m_ExceptionInfoGeneratorsLock);
-				for (auto &fHandler : m_ExceptionInfoGenerators)
+				catch (NFile::CExceptionFile const &)
 				{
-					if (auto HandlerInfo = fHandler())
-						return HandlerInfo;
 				}
-
-				return {};
 			}
-		};
+		}
+
+		CTestResults *CTestManager::f_GetResults(CThreadLocal const &_ThreadLocal) const
+		{
+			if (_ThreadLocal.m_pResults)
+				return _ThreadLocal.m_pResults;
+			return m_pResults;
+		}
+
+		void CTestManager::f_ClearStatistics()
+		{
+			m_nTotalTests.f_Exchange(0);
+			m_nWarnings.f_Exchange(0);
+			m_nFailed.f_Exchange(0);
+			m_nSuccess.f_Exchange(0);
+			m_nSuccessUnexpected.f_Exchange(0);
+			m_nExpectedFailed.f_Exchange(0);
+			m_nIgnored.f_Exchange(0);
+		}
+
+		void CTestManager::f_AddCleanupPath(NStr::CStr const &_Directory)
+		{
+			DMibLock(m_CleanupPathsLock);
+			m_CleanupPaths[_Directory];
+		}
+
+		void CTestManager::f_AddExceptionInfoGenerator(NFunction::TCFunctionMovable<NStr::CStr ()> &&_fExceptionHandler)
+		{
+			DMibLock(m_ExceptionInfoGeneratorsLock);
+			m_ExceptionInfoGenerators.f_Insert(fg_Move(_fExceptionHandler));
+		}
+
+		NStr::CStr CTestManager::f_GetExceptionInfo()
+		{
+			DMibLock(m_ExceptionInfoGeneratorsLock);
+			for (auto &fHandler : m_ExceptionInfoGenerators)
+			{
+				if (auto HandlerInfo = fHandler())
+					return HandlerInfo;
+			}
+
+			return {};
+		}
 
 		constinit static NStorage::TCAggregate<CTestManager, 256> gs_Tests = {DAggregateInit};
 
@@ -244,75 +259,81 @@ namespace NMib::NTest
 
 		struct CTestPathRestoringScope final : public CCrossActorCallStateScope
 		{
-			CTestPathRestoringScope()
-				: CCrossActorCallStateScope(false)
-			{
-				auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
-				auto &CoroutineState = ThreadLocal.m_CoroutineState;
-				m_pOldScope = CoroutineState.m_pCurrentScope;
-				CoroutineState.m_pCurrentScope = this;
-			}
+			CTestPathRestoringScope();
+			~CTestPathRestoringScope();
 
-			~CTestPathRestoringScope()
-			{
-				auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
-				auto &CoroutineState = ThreadLocal.m_CoroutineState;
-				CoroutineState.m_pCurrentScope = m_pOldScope;
-			}
-
-			void f_InitialSuspend() override
-			{
-				auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
-				auto &CoroutineState = ThreadLocal.m_CoroutineState;
-				if (CoroutineState.m_pCurrentScope != this)
-					return;
-
-				DMibLock(ThreadLocal.m_TestPathLock);
-				CoroutineState.m_Path = ThreadLocal.m_TestPath;
-			}
-
-			NFunction::TCFunctionMovable<void () noexcept> f_StoreState(bool _bFromSuspend) override
-			{
-				auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
-				auto &CoroutineState = ThreadLocal.m_CoroutineState;
-				if (CoroutineState.m_pCurrentScope != this)
-					return {};
-
-				DMibLock(ThreadLocal.m_TestPathLock);
-				ch8 const *pFile = ThreadLocal.m_pLastTestFile;
-				int32 Line = ThreadLocal.m_LastTestLine;
-				auto Path = ThreadLocal.m_TestPath;
-
-				if (_bFromSuspend)
-				{
-					DMibLock(ThreadLocal.m_TestPathLock);
-					ThreadLocal.m_TestPath = CoroutineState.m_Path;
-				}
-
-				return [Path, pFile, Line, pForwardingScope = NStorage::TCSharedPointer<CTestPathRestoringScope>{}]() mutable noexcept
-					{
-						auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
-						auto &CoroutineState = ThreadLocal.m_CoroutineState;
-
-						CoroutineState.m_Path = Path;
-						{
-							DMibLock(ThreadLocal.m_TestPathLock);
-							ThreadLocal.m_TestPath = Path;
-						}
-						{
-							DMibLock(ThreadLocal.m_PropertiesLock);
-							ThreadLocal.m_pLastTestFile = pFile;
-							ThreadLocal.m_LastTestLine = Line;
-						}
-
-						if (!CoroutineState.m_pCurrentScope)
-							pForwardingScope = fg_Construct();
-					}
-				;
-			}
+			void f_InitialSuspend() override;
+			NFunction::TCFunctionMovable<void () noexcept> f_StoreState(bool _bFromSuspend) override;
 
 			CTestPathRestoringScope *m_pOldScope = nullptr;
 		};
+
+		CTestPathRestoringScope::CTestPathRestoringScope()
+			: CCrossActorCallStateScope(false)
+		{
+			auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
+			auto &CoroutineState = ThreadLocal.m_CoroutineState;
+			m_pOldScope = CoroutineState.m_pCurrentScope;
+			CoroutineState.m_pCurrentScope = this;
+		}
+
+		CTestPathRestoringScope::~CTestPathRestoringScope()
+		{
+			auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
+			auto &CoroutineState = ThreadLocal.m_CoroutineState;
+			CoroutineState.m_pCurrentScope = m_pOldScope;
+		}
+
+		void CTestPathRestoringScope::f_InitialSuspend()
+		{
+			auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
+			auto &CoroutineState = ThreadLocal.m_CoroutineState;
+			if (CoroutineState.m_pCurrentScope != this)
+				return;
+
+			DMibLock(ThreadLocal.m_TestPathLock);
+			CoroutineState.m_Path = ThreadLocal.m_TestPath;
+		}
+
+		NFunction::TCFunctionMovable<void () noexcept> CTestPathRestoringScope::f_StoreState(bool _bFromSuspend)
+		{
+			auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
+			auto &CoroutineState = ThreadLocal.m_CoroutineState;
+			if (CoroutineState.m_pCurrentScope != this)
+				return {};
+
+			DMibLock(ThreadLocal.m_TestPathLock);
+			ch8 const *pFile = ThreadLocal.m_pLastTestFile;
+			int32 Line = ThreadLocal.m_LastTestLine;
+			auto Path = ThreadLocal.m_TestPath;
+
+			if (_bFromSuspend)
+			{
+				DMibLock(ThreadLocal.m_TestPathLock);
+				ThreadLocal.m_TestPath = CoroutineState.m_Path;
+			}
+
+			return [Path, pFile, Line, pForwardingScope = NStorage::TCSharedPointer<CTestPathRestoringScope>{}]() mutable noexcept
+				{
+					auto &ThreadLocal = *gs_Tests->m_ThreadLocal;
+					auto &CoroutineState = ThreadLocal.m_CoroutineState;
+
+					CoroutineState.m_Path = Path;
+					{
+						DMibLock(ThreadLocal.m_TestPathLock);
+						ThreadLocal.m_TestPath = Path;
+					}
+					{
+						DMibLock(ThreadLocal.m_PropertiesLock);
+						ThreadLocal.m_pLastTestFile = pFile;
+						ThreadLocal.m_LastTestLine = Line;
+					}
+
+					if (!CoroutineState.m_pCurrentScope)
+						pForwardingScope = fg_Construct();
+				}
+			;
+		}
 
 		CTestCategoryScope::CTestCategoryScope(CTestCategory const &_Category, ch8 const *_pFile, int32 _Line, ETestCategoryFlag _Flags)
 			: mp_Category(_Category)
@@ -1046,29 +1067,37 @@ namespace NMib::NTest
 
 		struct CDefaultTestResults : public CTextTestResults
 		{
-			CDefaultTestResults(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags)
-				: CTextTestResults(_AnsiEncodingFlags)
-			{
-			}
+			CDefaultTestResults(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags);
 
-			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override
-			{
-				NMib::NCommandLine::fg_MalterlibConOut(_Text);
-			}
+			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override;
 		};
+
+		CDefaultTestResults::CDefaultTestResults(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags)
+			: CTextTestResults(_AnsiEncodingFlags)
+		{
+		}
+
+		void CDefaultTestResults::fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity)
+		{
+			NMib::NCommandLine::fg_MalterlibConOut(_Text);
+		}
 
 		struct CDefaultTestResultsBrief : public CTextTestResultsBrief
 		{
-			CDefaultTestResultsBrief(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags)
-				: CTextTestResultsBrief(_AnsiEncodingFlags)
-			{
-			}
+			CDefaultTestResultsBrief(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags);
 
-			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override
-			{
-				NMib::NCommandLine::fg_MalterlibConOut(_Text);
-			}
+			void fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity) override;
 		};
+
+		CDefaultTestResultsBrief::CDefaultTestResultsBrief(NCommandLine::EAnsiEncodingFlag _AnsiEncodingFlags)
+			: CTextTestResultsBrief(_AnsiEncodingFlags)
+		{
+		}
+
+		void CDefaultTestResultsBrief::fp_ReportText(NStr::CStr const &_Text, ETestSeverity _Severity)
+		{
+			NMib::NCommandLine::fg_MalterlibConOut(_Text);
+		}
 	}
 
 	CTest::~CTest()
