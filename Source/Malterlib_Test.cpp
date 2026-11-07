@@ -146,6 +146,7 @@ namespace NMib::NTest
 
 			{
 				DMibLock(fs_GetManager().m_ThreadLocalLock);
+				// NOLINTNEXTLINE(malterlib-thread-local-storage): the pointer to the parent's data, guarded by m_ThreadLocalLock and cleared by TCAutoClearPtr
 				m_pInherit = &_Inherit;
 			}
 		}
